@@ -1,0 +1,50 @@
+/* Font Fallback Examples for CheckIt Dashboard */
+
+/* ❌ BAD: No fallbacks */
+.bad-font-stack {
+  font-family: "Inter";
+  /* If Inter fails to load, browser uses default (usually Times New Roman) */
+}
+
+/* ✅ GOOD: Your current system with fallbacks */
+.good-font-stack {
+  font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  /* Graceful degradation through multiple fallbacks */
+}
+
+/* How it works in practice: */
+
+/* 1. Browser tries to load Inter from Google Fonts */
+/* 2. If Inter fails, tries system-ui (OS default UI font) */
+/* 3. If system-ui not supported, tries -apple-system (macOS) */
+/* 4. If not on Apple, tries BlinkMacSystemFont (Webkit on macOS) */
+/* 5. If not Webkit, tries Segoe UI (Windows) */
+/* 6. If not Windows, tries Roboto (Android/Linux) */
+/* 7. If none available, uses browser's default sans-serif */
+
+/* Real-world scenarios: */
+
+/* Scenario 1: Modern Mac with good internet */
+.scenario-mac-online {
+  font-family: Inter; /* ✅ Loads successfully */
+}
+
+/* Scenario 2: Modern Mac with no internet */
+.scenario-mac-offline {
+  font-family: system-ui; /* ✅ Falls back to SF Pro Display */
+}
+
+/* Scenario 3: Windows 10 with slow internet */
+.scenario-windows-slow {
+  font-family: "Segoe UI"; /* ✅ Falls back to Segoe UI */
+}
+
+/* Scenario 4: Old Android device */
+.scenario-android-old {
+  font-family: Roboto; /* ✅ Falls back to Roboto */
+}
+
+/* Scenario 5: Very old system */
+.scenario-old-system {
+  font-family: sans-serif; /* ✅ Falls back to Arial or Helvetica */
+}
