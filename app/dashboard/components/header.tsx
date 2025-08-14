@@ -1,9 +1,9 @@
-"use client"
+"use client";
 
-import { Bell, Search, Settings, User, LogOut, Menu } from "lucide-react"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import { Bell, Search, Settings, User, LogOut, Menu } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -11,12 +11,43 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
-import { Badge } from "@/components/ui/badge"
-import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
-import { Sidebar } from "./sidebar"
+} from "@/components/ui/dropdown-menu";
+import { Badge } from "@/components/ui/badge";
+import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+import { Sidebar } from "../../../components/navigation/sidebar";
+import { useEffect, useState } from "react";
+import { getClientAccount } from "@/lib/services/auth/client-auth";
+import { Account } from "@/lib/services/accounts/models";
 
 export function Header() {
+  const [account, setAccount] = useState<Account | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchAccount = async () => {
+      try {
+        const accountData = await getClientAccount();
+        setAccount(accountData);
+      } catch (error) {
+        console.error("Failed to fetch account:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchAccount();
+  }, []);
+
+  // Get initials from full name
+  const getInitials = (fullName: string) => {
+    return fullName
+      .split(" ")
+      .map((name) => name.charAt(0))
+      .join("")
+      .toUpperCase()
+      .slice(0, 2);
+  };
+
   return (
     <header className="flex items-center justify-between h-16 px-4 md:px-6 bg-white border-b border-gray-200">
       {/* Mobile menu button */}
@@ -36,7 +67,11 @@ export function Header() {
         <div className="hidden md:flex items-center flex-1 max-w-md">
           <div className="relative w-full">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-            <Input type="search" placeholder="Search checklists, tasks, or team members..." className="pl-10 pr-4" />
+            <Input
+              type="search"
+              placeholder="Search checklists, tasks, or team members..."
+              className="pl-10 pr-4"
+            />
           </div>
         </div>
       </div>
@@ -61,16 +96,31 @@ export function Header() {
           <DropdownMenuTrigger asChild>
             <Button variant="ghost" className="relative h-8 w-8 rounded-full">
               <Avatar className="h-8 w-8">
-                <AvatarImage src="/placeholder-user.jpg" alt="User" />
-                <AvatarFallback>JD</AvatarFallback>
+                <AvatarImage
+                  src={account?.picture || "/placeholder-user.jpg"}
+                  alt={account?.full_name || "User"}
+                />
+                <AvatarFallback>
+                  {loading
+                    ? "..."
+                    : account
+                    ? getInitials(account.full_name)
+                    : "U"}
+                </AvatarFallback>
               </Avatar>
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent className="w-56" align="end" forceMount>
             <DropdownMenuLabel className="font-normal">
               <div className="flex flex-col space-y-1">
-                <p className="text-sm font-medium leading-none">John Doe</p>
-                <p className="text-xs leading-none text-muted-foreground">john@company.com</p>
+                <p className="text-sm font-medium leading-none">
+                  {loading
+                    ? "Loading..."
+                    : account?.full_name || "Unknown User"}
+                </p>
+                <p className="text-xs leading-none text-muted-foreground">
+                  {loading ? "..." : account?.email || "No email"}
+                </p>
                 <Badge variant="secondary" className="w-fit mt-1">
                   Admin
                 </Badge>
@@ -94,5 +144,5 @@ export function Header() {
         </DropdownMenu>
       </div>
     </header>
-  )
+  );
 }

@@ -1,26 +1,47 @@
-"use client"
+"use client";
 
-import { EditChecklistModal } from "../components/modals/edit-checklist-modal"
-import { DeleteConfirmationModal } from "../components/modals/delete-confirmation-modal"
-import { NewChecklistModal } from "../components/modals/new-checklist-modal"
-import { useState } from "react"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
-import { Input } from "@/components/ui/input"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Plus, Search, Filter, Calendar, User, MoreHorizontal, CheckCircle, Clock, AlertTriangle } from "lucide-react"
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
-import { ChecklistDetailsModal } from "../components/modals/checklist-details-modal"
+import { useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  Search,
+  Filter,
+  Calendar,
+  User,
+  MoreHorizontal,
+  CheckCircle,
+  Clock,
+  AlertTriangle,
+} from "lucide-react";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { useToast } from "@/hooks/use-toast";
 
-export default function ChecklistsPage() {
-  const [selectedChecklist, setSelectedChecklist] = useState<any>(null)
-  const [showEditModal, setShowEditModal] = useState(false)
-  const [showDeleteModal, setShowDeleteModal] = useState(false)
-  const [showNewModal, setShowNewModal] = useState(false)
-  const [checklistToDelete, setChecklistToDelete] = useState<any>(null)
-  const [showDetailsModal, setShowDetailsModal] = useState(false)
-  const [selectedChecklistForDetails, setSelectedChecklistForDetails] = useState<any>(null)
+interface OngoingChecklistProps {
+  onEditChecklist: (checklist: any) => void;
+  onDeleteChecklist: (checklist: any) => void;
+  onViewDetails: (checklist: any) => void;
+}
+
+export function OngoingChecklist({
+  onEditChecklist,
+  onDeleteChecklist,
+  onViewDetails,
+}: OngoingChecklistProps) {
+  const { toast } = useToast();
 
   const checklists = [
     {
@@ -71,48 +92,26 @@ export default function ChecklistsPage() {
       tasks: 10,
       completedTasks: 10,
     },
-  ]
-
-  const handleEditChecklist = (checklist: any) => {
-    setSelectedChecklist(checklist)
-    setShowEditModal(true)
-  }
-
-  const handleDeleteChecklist = (checklist: any) => {
-    setChecklistToDelete(checklist)
-    setShowDeleteModal(true)
-  }
+  ];
 
   const handleDuplicateChecklist = (checklist: any) => {
-    console.log("Duplicating checklist:", checklist.title)
+    toast({
+      title: "Duplicate Checklist",
+      description: `Duplicating: ${checklist.title}`,
+    });
     // Here you would duplicate the checklist
-  }
+  };
 
   const handleArchiveChecklist = (checklist: any) => {
-    console.log("Archiving checklist:", checklist.title)
+    toast({
+      title: "Archive Checklist",
+      description: `Archiving: ${checklist.title}`,
+    });
     // Here you would archive the checklist
-  }
-
-  const confirmDelete = () => {
-    console.log("Deleting checklist:", checklistToDelete)
-    // Here you would actually delete the checklist
-  }
-
-  const handleViewDetails = (checklist: any) => {
-    setSelectedChecklistForDetails(checklist)
-    setShowDetailsModal(true)
-  }
+  };
 
   return (
-    <div className="flex-1 space-y-4 p-4 md:p-8 pt-6">
-      <div className="flex items-center justify-between">
-        <h2 className="text-3xl font-bold tracking-tight">Checklists</h2>
-        <Button onClick={() => setShowNewModal(true)}>
-          <Plus className="mr-2 h-4 w-4" />
-          New Checklist
-        </Button>
-      </div>
-
+    <div className="space-y-4">
       {/* Filters */}
       <div className="flex items-center space-x-4">
         <div className="relative flex-1 max-w-sm">
@@ -152,7 +151,10 @@ export default function ChecklistsPage() {
       {/* Checklist Grid */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
         {checklists.map((checklist) => (
-          <Card key={checklist.id} className="hover:shadow-md transition-shadow">
+          <Card
+            key={checklist.id}
+            className="hover:shadow-md transition-shadow"
+          >
             <CardHeader className="pb-3">
               <div className="flex items-start justify-between">
                 <div className="space-y-1">
@@ -164,10 +166,14 @@ export default function ChecklistsPage() {
                         checklist.priority === "Major Must"
                           ? "destructive"
                           : checklist.priority === "Minor Must"
-                            ? "secondary"
-                            : "outline"
+                          ? "secondary"
+                          : "outline"
                       }
-                      className={checklist.priority === "Minor Must" ? "bg-yellow-100 text-yellow-800" : ""}
+                      className={
+                        checklist.priority === "Minor Must"
+                          ? "bg-yellow-100 text-yellow-800"
+                          : ""
+                      }
                     >
                       {checklist.priority}
                     </Badge>
@@ -180,10 +186,25 @@ export default function ChecklistsPage() {
                     </Button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end">
-                    <DropdownMenuItem onClick={() => handleEditChecklist(checklist)}>Edit</DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => handleDuplicateChecklist(checklist)}>Duplicate</DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => handleArchiveChecklist(checklist)}>Archive</DropdownMenuItem>
-                    <DropdownMenuItem className="text-red-600" onClick={() => handleDeleteChecklist(checklist)}>
+                    <DropdownMenuItem
+                      onClick={() => onEditChecklist(checklist)}
+                    >
+                      Edit
+                    </DropdownMenuItem>
+                    <DropdownMenuItem
+                      onClick={() => handleDuplicateChecklist(checklist)}
+                    >
+                      Duplicate
+                    </DropdownMenuItem>
+                    <DropdownMenuItem
+                      onClick={() => handleArchiveChecklist(checklist)}
+                    >
+                      Archive
+                    </DropdownMenuItem>
+                    <DropdownMenuItem
+                      className="text-red-600"
+                      onClick={() => onDeleteChecklist(checklist)}
+                    >
                       Delete
                     </DropdownMenuItem>
                   </DropdownMenuContent>
@@ -194,19 +215,27 @@ export default function ChecklistsPage() {
               <div className="space-y-4">
                 {/* Status */}
                 <div className="flex items-center space-x-2">
-                  {checklist.status === "Completed" && <CheckCircle className="h-4 w-4 text-green-500" />}
-                  {checklist.status === "In Progress" && <Clock className="h-4 w-4 text-blue-500" />}
-                  {checklist.status === "Overdue" && <AlertTriangle className="h-4 w-4 text-red-500" />}
-                  {checklist.status === "Pending" && <Clock className="h-4 w-4 text-gray-500" />}
+                  {checklist.status === "Completed" && (
+                    <CheckCircle className="h-4 w-4 text-green-500" />
+                  )}
+                  {checklist.status === "In Progress" && (
+                    <Clock className="h-4 w-4 text-blue-500" />
+                  )}
+                  {checklist.status === "Overdue" && (
+                    <AlertTriangle className="h-4 w-4 text-red-500" />
+                  )}
+                  {checklist.status === "Pending" && (
+                    <Clock className="h-4 w-4 text-gray-500" />
+                  )}
                   <span
                     className={`text-sm font-medium ${
                       checklist.status === "Completed"
                         ? "text-green-600"
                         : checklist.status === "In Progress"
-                          ? "text-blue-600"
-                          : checklist.status === "Overdue"
-                            ? "text-red-600"
-                            : "text-gray-600"
+                        ? "text-blue-600"
+                        : checklist.status === "Overdue"
+                        ? "text-red-600"
+                        : "text-gray-600"
                     }`}
                   >
                     {checklist.status}
@@ -244,7 +273,7 @@ export default function ChecklistsPage() {
                 <Button
                   className="w-full bg-transparent"
                   variant="outline"
-                  onClick={() => handleViewDetails(checklist)}
+                  onClick={() => onViewDetails(checklist)}
                 >
                   View Details
                 </Button>
@@ -253,32 +282,6 @@ export default function ChecklistsPage() {
           </Card>
         ))}
       </div>
-      {/* Modals */}
-      <NewChecklistModal isOpen={showNewModal} onClose={() => setShowNewModal(false)} />
-
-      {selectedChecklist && (
-        <EditChecklistModal
-          isOpen={showEditModal}
-          onClose={() => setShowEditModal(false)}
-          checklist={selectedChecklist}
-        />
-      )}
-
-      <DeleteConfirmationModal
-        isOpen={showDeleteModal}
-        onClose={() => setShowDeleteModal(false)}
-        onConfirm={confirmDelete}
-        title="Delete Checklist"
-        description="Are you sure you want to delete this checklist? All associated data will be permanently removed."
-        itemName={checklistToDelete?.title || ""}
-      />
-      {selectedChecklistForDetails && (
-        <ChecklistDetailsModal
-          isOpen={showDetailsModal}
-          onClose={() => setShowDetailsModal(false)}
-          checklist={selectedChecklistForDetails}
-        />
-      )}
     </div>
-  )
+  );
 }

@@ -1,10 +1,10 @@
-"use client"
+"use client";
 
-import Link from "next/link"
-import { usePathname } from "next/navigation"
-import { cn } from "@/lib/utils"
-import { Button } from "@/components/ui/button"
-import { Badge } from "@/components/ui/badge"
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import {
   LayoutDashboard,
   CheckSquare,
@@ -16,60 +16,66 @@ import {
   Shield,
   HelpCircle,
   MessageSquare,
-} from "lucide-react"
+  MapPin,
+} from "lucide-react";
 
 const navigation = [
   {
     name: "Dashboard",
-    href: "/",
+    href: "/dashboard",
     icon: LayoutDashboard,
   },
   {
     name: "Checklists",
-    href: "/checklists",
+    href: "/dashboard/checklists",
     icon: CheckSquare,
     badge: "12",
   },
   {
+    name: "Farm Sections",
+    href: "/dashboard/sections",
+    icon: MapPin,
+  },
+  {
     name: "Team",
-    href: "/team",
+    href: "/dashboard/team",
     icon: Users,
   },
   {
     name: "Team Chat",
-    href: "/chat",
+    href: "/dashboard/chat",
     icon: MessageSquare,
     badge: "3",
   },
   {
     name: "Analytics",
-    href: "/analytics",
+    href: "/dashboard/analytics",
     icon: BarChart3,
   },
   {
     name: "Companies",
-    href: "/companies",
+    href: "/dashboard/companies",
     icon: Building2,
   },
   {
     name: "Guidelines",
-    href: "/guidelines",
+    href: "/dashboard/guidelines",
     icon: FileText,
   },
   {
     name: "Admin Tools",
-    href: "/admin",
+    href: "/dashboard/admin",
     icon: Shield,
   },
   {
     name: "Settings",
-    href: "/settings",
+    href: "/dashboard/settings",
     icon: Settings,
   },
-]
+];
 
 export function Sidebar() {
-  const pathname = usePathname()
+  const pathname = usePathname();
 
   return (
     <div className="flex flex-col w-64 bg-white border-r border-gray-200 hidden md:flex">
@@ -86,25 +92,30 @@ export function Sidebar() {
       {/* Navigation */}
       <nav className="flex-1 px-4 py-6 space-y-2 overflow-y-auto">
         {navigation.map((item) => {
-          const isActive = pathname === item.href
+          const isActive = pathname === item.href;
           return (
             <Link
               key={item.name}
               href={item.href}
               className={cn(
                 "flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-colors",
-                isActive ? "bg-[#16A34A] text-white" : "text-gray-700 hover:bg-gray-100",
+                isActive
+                  ? "bg-[#16A34A] text-white"
+                  : "text-gray-700 hover:bg-gray-100"
               )}
             >
               <item.icon className="w-5 h-5 mr-3 flex-shrink-0" />
               <span className="truncate">{item.name}</span>
               {item.badge && (
-                <Badge variant="secondary" className="ml-auto bg-gray-100 text-gray-600 flex-shrink-0">
+                <Badge
+                  variant="secondary"
+                  className="ml-auto bg-gray-100 text-gray-600 flex-shrink-0"
+                >
                   {item.badge}
                 </Badge>
               )}
             </Link>
-          )
+          );
         })}
       </nav>
 
@@ -116,5 +127,5 @@ export function Sidebar() {
         </Button>
       </div>
     </div>
-  )
+  );
 }

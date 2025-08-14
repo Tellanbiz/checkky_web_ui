@@ -1,7 +1,13 @@
-"use client"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import { Badge } from "@/components/ui/badge"
+"use client";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import {
   Shield,
   Users,
@@ -13,30 +19,33 @@ import {
   Server,
   Database,
   Zap,
-} from "lucide-react"
-import { useState } from "react"
-import { AdminReviewModal } from "../components/modals/admin-review-modal"
-import { ManageUsersModal } from "../components/modals/manage-users-modal"
-import { RolePermissionsModal } from "../components/modals/role-permissions-modal"
-import { BillingResolveModal } from "../components/modals/billing-resolve-modal"
-import { SystemLogsModal } from "../components/modals/system-logs-modal"
-import { DatabaseToolsModal } from "../components/modals/database-tools-modal"
+} from "lucide-react";
+import { useState } from "react";
+import { AdminReviewModal } from "../components/modals/admin-review-modal";
+import { ManageUsersModal } from "../components/modals/manage-users-modal";
+import { RolePermissionsModal } from "../components/modals/role-permissions-modal";
+import { BillingResolveModal } from "../components/modals/billing-resolve-modal";
+import { SystemLogsModal } from "../components/modals/system-logs-modal";
+import { DatabaseToolsModal } from "../components/modals/database-tools-modal";
 
 const AdminPage = () => {
-  const [showReviewModal, setShowReviewModal] = useState(false)
-  const [reviewType, setReviewType] = useState<"companies" | "billing" | "tickets" | "updates">("companies")
-  const [showManageUsersModal, setShowManageUsersModal] = useState(false)
-  const [showRolePermissionsModal, setShowRolePermissionsModal] = useState(false)
-  const [showBillingResolveModal, setShowBillingResolveModal] = useState(false)
-  const [showSystemLogsModal, setShowSystemLogsModal] = useState(false)
-  const [showDatabaseToolsModal, setShowDatabaseToolsModal] = useState(false)
+  const [showReviewModal, setShowReviewModal] = useState(false);
+  const [reviewType, setReviewType] = useState<
+    "companies" | "billing" | "tickets" | "updates"
+  >("companies");
+  const [showManageUsersModal, setShowManageUsersModal] = useState(false);
+  const [showRolePermissionsModal, setShowRolePermissionsModal] =
+    useState(false);
+  const [showBillingResolveModal, setShowBillingResolveModal] = useState(false);
+  const [showSystemLogsModal, setShowSystemLogsModal] = useState(false);
+  const [showDatabaseToolsModal, setShowDatabaseToolsModal] = useState(false);
 
   const systemStats = [
     { label: "Server Uptime", value: "99.9%", status: "good" },
     { label: "Database Health", value: "Optimal", status: "good" },
     { label: "API Response Time", value: "145ms", status: "good" },
     { label: "Storage Used", value: "67%", status: "warning" },
-  ]
+  ];
 
   const recentActivities = [
     {
@@ -69,7 +78,7 @@ const AdminPage = () => {
       time: "3 hours ago",
       status: "info",
     },
-  ]
+  ];
 
   const pendingActions = [
     {
@@ -96,56 +105,56 @@ const AdminPage = () => {
       priority: "medium",
       count: 1,
     },
-  ]
+  ];
 
   const handleReviewAction = (actionTitle: string) => {
     switch (actionTitle) {
       case "Review Company Applications":
-        setReviewType("companies")
-        setShowReviewModal(true)
-        break
+        setReviewType("companies");
+        setShowReviewModal(true);
+        break;
       case "Process Billing Issues":
-        setReviewType("billing")
-        setShowReviewModal(true)
-        break
+        setReviewType("billing");
+        setShowReviewModal(true);
+        break;
       case "User Support Tickets":
-        setReviewType("tickets")
-        setShowReviewModal(true)
-        break
+        setReviewType("tickets");
+        setShowReviewModal(true);
+        break;
       case "System Updates":
-        setReviewType("updates")
-        setShowReviewModal(true)
-        break
+        setReviewType("updates");
+        setShowReviewModal(true);
+        break;
       default:
-        console.log("Reviewing:", actionTitle)
+        console.log("Reviewing:", actionTitle);
     }
-  }
+  };
 
   const handleQuickAction = (actionTitle: string) => {
     switch (actionTitle) {
       case "Manage Users":
-        setShowManageUsersModal(true)
-        break
+        setShowManageUsersModal(true);
+        break;
       case "Role Permissions":
-        setShowRolePermissionsModal(true)
-        break
+        setShowRolePermissionsModal(true);
+        break;
       case "Review Applications":
-        setReviewType("companies")
-        setShowReviewModal(true)
-        break
+        setReviewType("companies");
+        setShowReviewModal(true);
+        break;
       case "Billing Overview":
-        setShowBillingResolveModal(true)
-        break
+        setShowBillingResolveModal(true);
+        break;
       case "System Logs":
-        setShowSystemLogsModal(true)
-        break
+        setShowSystemLogsModal(true);
+        break;
       case "Database Tools":
-        setShowDatabaseToolsModal(true)
-        break
+        setShowDatabaseToolsModal(true);
+        break;
       default:
-        console.log("Action:", actionTitle)
+        console.log("Action:", actionTitle);
     }
-  }
+  };
 
   return (
     <div className="flex-1 space-y-4 p-4 md:p-8 pt-6">
@@ -168,13 +177,17 @@ const AdminPage = () => {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">1,247</div>
-            <p className="text-xs text-muted-foreground">+12% from last month</p>
+            <p className="text-xs text-muted-foreground">
+              +12% from last month
+            </p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Active Companies</CardTitle>
+            <CardTitle className="text-sm font-medium">
+              Active Companies
+            </CardTitle>
             <Building2 className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
@@ -185,7 +198,9 @@ const AdminPage = () => {
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Monthly Revenue</CardTitle>
+            <CardTitle className="text-sm font-medium">
+              Monthly Revenue
+            </CardTitle>
             <CreditCard className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
@@ -211,17 +226,27 @@ const AdminPage = () => {
         <Card>
           <CardHeader>
             <CardTitle>System Status</CardTitle>
-            <CardDescription>Real-time system health monitoring</CardDescription>
+            <CardDescription>
+              Real-time system health monitoring
+            </CardDescription>
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
               {systemStats.map((stat, index) => (
                 <div key={index} className="flex items-center justify-between">
                   <div className="flex items-center space-x-2">
-                    {stat.label === "Server Uptime" && <Server className="h-4 w-4 text-muted-foreground" />}
-                    {stat.label === "Database Health" && <Database className="h-4 w-4 text-muted-foreground" />}
-                    {stat.label === "API Response Time" && <Zap className="h-4 w-4 text-muted-foreground" />}
-                    {stat.label === "Storage Used" && <Activity className="h-4 w-4 text-muted-foreground" />}
+                    {stat.label === "Server Uptime" && (
+                      <Server className="h-4 w-4 text-muted-foreground" />
+                    )}
+                    {stat.label === "Database Health" && (
+                      <Database className="h-4 w-4 text-muted-foreground" />
+                    )}
+                    {stat.label === "API Response Time" && (
+                      <Zap className="h-4 w-4 text-muted-foreground" />
+                    )}
+                    {stat.label === "Storage Used" && (
+                      <Activity className="h-4 w-4 text-muted-foreground" />
+                    )}
                     <span className="text-sm font-medium">{stat.label}</span>
                   </div>
                   <div className="flex items-center space-x-2">
@@ -231,8 +256,8 @@ const AdminPage = () => {
                         stat.status === "good"
                           ? "bg-green-500"
                           : stat.status === "warning"
-                            ? "bg-yellow-500"
-                            : "bg-red-500"
+                          ? "bg-yellow-500"
+                          : "bg-red-500"
                       }`}
                     />
                   </div>
@@ -250,19 +275,34 @@ const AdminPage = () => {
           <CardContent>
             <div className="space-y-4">
               {pendingActions.map((action, index) => (
-                <div key={index} className="flex items-center justify-between p-3 border rounded-lg">
+                <div
+                  key={index}
+                  className="flex items-center justify-between p-3 border rounded-lg"
+                >
                   <div className="flex-1">
                     <p className="text-sm font-medium">{action.title}</p>
-                    <p className="text-xs text-muted-foreground">{action.description}</p>
+                    <p className="text-xs text-muted-foreground">
+                      {action.description}
+                    </p>
                   </div>
                   <div className="flex items-center space-x-2">
                     <Badge
-                      variant={action.priority === "high" ? "destructive" : "secondary"}
-                      className={action.priority === "high" ? "" : "bg-yellow-100 text-yellow-800"}
+                      variant={
+                        action.priority === "high" ? "destructive" : "secondary"
+                      }
+                      className={
+                        action.priority === "high"
+                          ? ""
+                          : "bg-yellow-100 text-yellow-800"
+                      }
                     >
                       {action.count}
                     </Badge>
-                    <Button size="sm" variant="outline" onClick={() => handleReviewAction(action.title)}>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => handleReviewAction(action.title)}
+                    >
                       Review
                     </Button>
                   </div>
@@ -277,7 +317,9 @@ const AdminPage = () => {
       <Card>
         <CardHeader>
           <CardTitle>Recent System Activity</CardTitle>
-          <CardDescription>Latest system events and user activities</CardDescription>
+          <CardDescription>
+            Latest system events and user activities
+          </CardDescription>
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
@@ -288,20 +330,30 @@ const AdminPage = () => {
                     activity.status === "success"
                       ? "bg-green-100"
                       : activity.status === "warning"
-                        ? "bg-yellow-100"
-                        : activity.status === "error"
-                          ? "bg-red-100"
-                          : "bg-blue-100"
+                      ? "bg-yellow-100"
+                      : activity.status === "error"
+                      ? "bg-red-100"
+                      : "bg-blue-100"
                   }`}
                 >
-                  {activity.status === "success" && <CheckCircle className="h-4 w-4 text-green-600" />}
-                  {activity.status === "warning" && <AlertTriangle className="h-4 w-4 text-yellow-600" />}
-                  {activity.status === "error" && <AlertTriangle className="h-4 w-4 text-red-600" />}
-                  {activity.status === "info" && <Activity className="h-4 w-4 text-blue-600" />}
+                  {activity.status === "success" && (
+                    <CheckCircle className="h-4 w-4 text-green-600" />
+                  )}
+                  {activity.status === "warning" && (
+                    <AlertTriangle className="h-4 w-4 text-yellow-600" />
+                  )}
+                  {activity.status === "error" && (
+                    <AlertTriangle className="h-4 w-4 text-red-600" />
+                  )}
+                  {activity.status === "info" && (
+                    <Activity className="h-4 w-4 text-blue-600" />
+                  )}
                 </div>
                 <div className="flex-1 space-y-1">
                   <p className="text-sm">{activity.message}</p>
-                  <p className="text-xs text-muted-foreground">{activity.time}</p>
+                  <p className="text-xs text-muted-foreground">
+                    {activity.time}
+                  </p>
                 </div>
               </div>
             ))}
@@ -385,14 +437,33 @@ const AdminPage = () => {
       </div>
 
       {/* All Modals */}
-      <AdminReviewModal isOpen={showReviewModal} onClose={() => setShowReviewModal(false)} type={reviewType} />
-      <ManageUsersModal isOpen={showManageUsersModal} onClose={() => setShowManageUsersModal(false)} />
-      <RolePermissionsModal isOpen={showRolePermissionsModal} onClose={() => setShowRolePermissionsModal(false)} />
-      <BillingResolveModal isOpen={showBillingResolveModal} onClose={() => setShowBillingResolveModal(false)} />
-      <SystemLogsModal isOpen={showSystemLogsModal} onClose={() => setShowSystemLogsModal(false)} />
-      <DatabaseToolsModal isOpen={showDatabaseToolsModal} onClose={() => setShowDatabaseToolsModal(false)} />
+      <AdminReviewModal
+        isOpen={showReviewModal}
+        onClose={() => setShowReviewModal(false)}
+        type={reviewType}
+      />
+      <ManageUsersModal
+        isOpen={showManageUsersModal}
+        onClose={() => setShowManageUsersModal(false)}
+      />
+      <RolePermissionsModal
+        isOpen={showRolePermissionsModal}
+        onClose={() => setShowRolePermissionsModal(false)}
+      />
+      <BillingResolveModal
+        isOpen={showBillingResolveModal}
+        onClose={() => setShowBillingResolveModal(false)}
+      />
+      <SystemLogsModal
+        isOpen={showSystemLogsModal}
+        onClose={() => setShowSystemLogsModal(false)}
+      />
+      <DatabaseToolsModal
+        isOpen={showDatabaseToolsModal}
+        onClose={() => setShowDatabaseToolsModal(false)}
+      />
     </div>
-  )
-}
+  );
+};
 
-export default AdminPage
+export default AdminPage;
