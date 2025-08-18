@@ -1,11 +1,16 @@
-"use client"
+"use client";
 
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
-import { Button } from "@/components/ui/button"
-import { Badge } from "@/components/ui/badge"
-import { Avatar, AvatarFallback } from "@/components/ui/avatar"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Progress } from "@/components/ui/progress"
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Progress } from "@/components/ui/progress";
 import {
   Building2,
   Users,
@@ -18,27 +23,26 @@ import {
   CreditCard,
   Crown,
   Star,
-} from "lucide-react"
+} from "lucide-react";
 
 interface CompanyDetailsModalProps {
-  isOpen: boolean
-  onClose: () => void
+  isOpen: boolean;
+  onClose: () => void;
   company: {
-    id: number
-    name: string
-    industry: string
-    plan: string
-    members: number
-    checklists: number
-    completion: number
-    joinDate: string
-    status: string
-    logo: string
-    revenue: string
-  }
+    id: string;
+    name: string;
+    email: string;
+    phone_number: string;
+    address: string;
+    created_at: string;
+  };
 }
 
-export function CompanyDetailsModal({ isOpen, onClose, company }: CompanyDetailsModalProps) {
+export function CompanyDetailsModal({
+  isOpen,
+  onClose,
+  company,
+}: CompanyDetailsModalProps) {
   const getPlanBadge = (plan: string) => {
     switch (plan) {
       case "Enterprise":
@@ -47,18 +51,18 @@ export function CompanyDetailsModal({ isOpen, onClose, company }: CompanyDetails
             <Crown className="w-3 h-3 mr-1" />
             {plan}
           </Badge>
-        )
+        );
       case "Professional":
         return (
           <Badge className="bg-blue-100 text-blue-800">
             <Star className="w-3 h-3 mr-1" />
             {plan}
           </Badge>
-        )
+        );
       default:
-        return <Badge variant="outline">{plan}</Badge>
+        return <Badge variant="outline">{plan}</Badge>;
     }
-  }
+  };
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
@@ -71,18 +75,22 @@ export function CompanyDetailsModal({ isOpen, onClose, company }: CompanyDetails
           {/* Company Header */}
           <div className="flex items-center space-x-4">
             <Avatar className="h-20 w-20">
-              <AvatarFallback className="bg-[#16A34A] text-white font-semibold text-lg">{company.logo}</AvatarFallback>
+              <AvatarFallback className="bg-[#16A34A] text-white font-semibold text-lg">
+                {company.name}
+              </AvatarFallback>
             </Avatar>
             <div className="flex-1">
               <h3 className="text-2xl font-semibold">{company.name}</h3>
-              <p className="text-muted-foreground">{company.industry}</p>
+              <p className="text-muted-foreground">{company.email}</p>
               <div className="flex items-center space-x-2 mt-2">
-                {getPlanBadge(company.plan)}
+                {/* The original code had a getPlanBadge function, but it was not used in the new structure.
+                    Keeping it as is, but it will not render anything meaningful with the new company object. */}
+                <Badge variant="outline">Plan</Badge>
                 <Badge
-                  variant={company.status === "Active" ? "default" : "outline"}
-                  className={company.status === "Active" ? "bg-green-100 text-green-800" : ""}
+                  variant="default" // Assuming a default status for now, as the original company object doesn't have a 'status'
+                  className="bg-green-100 text-green-800"
                 >
-                  {company.status}
+                  Active
                 </Badge>
               </div>
             </div>
@@ -93,28 +101,28 @@ export function CompanyDetailsModal({ isOpen, onClose, company }: CompanyDetails
             <Card>
               <CardContent className="p-4 text-center">
                 <Users className="h-8 w-8 mx-auto text-blue-600 mb-2" />
-                <div className="text-2xl font-bold">{company.members}</div>
+                <div className="text-2xl font-bold">0</div>
                 <p className="text-sm text-muted-foreground">Team Members</p>
               </CardContent>
             </Card>
             <Card>
               <CardContent className="p-4 text-center">
                 <CheckSquare className="h-8 w-8 mx-auto text-green-600 mb-2" />
-                <div className="text-2xl font-bold">{company.checklists}</div>
+                <div className="text-2xl font-bold">0</div>
                 <p className="text-sm text-muted-foreground">Checklists</p>
               </CardContent>
             </Card>
             <Card>
               <CardContent className="p-4 text-center">
-                <div className="text-2xl font-bold text-green-600">{company.completion}%</div>
+                <div className="text-2xl font-bold text-green-600">0%</div>
                 <p className="text-sm text-muted-foreground">Completion Rate</p>
-                <Progress value={company.completion} className="mt-2" />
+                <Progress value={0} className="mt-2" />
               </CardContent>
             </Card>
             <Card>
               <CardContent className="p-4 text-center">
                 <CreditCard className="h-8 w-8 mx-auto text-purple-600 mb-2" />
-                <div className="text-2xl font-bold">{company.revenue}</div>
+                <div className="text-2xl font-bold">0</div>
                 <p className="text-sm text-muted-foreground">Monthly Revenue</p>
               </CardContent>
             </Card>
@@ -129,23 +137,27 @@ export function CompanyDetailsModal({ isOpen, onClose, company }: CompanyDetails
               <CardContent className="space-y-3">
                 <div className="flex items-center space-x-3">
                   <Mail className="h-4 w-4 text-muted-foreground" />
-                  <span>contact@{company.name.toLowerCase().replace(/\s+/g, "")}.com</span>
+                  <span>{company.email}</span>
                 </div>
                 <div className="flex items-center space-x-3">
                   <Phone className="h-4 w-4 text-muted-foreground" />
-                  <span>+1 (555) 987-6543</span>
+                  <span>{company.phone_number}</span>
                 </div>
                 <div className="flex items-center space-x-3">
                   <Globe className="h-4 w-4 text-muted-foreground" />
-                  <span>www.{company.name.toLowerCase().replace(/\s+/g, "")}.com</span>
+                  <span>
+                    www.{company.name.toLowerCase().replace(/\s+/g, "")}.com
+                  </span>
                 </div>
                 <div className="flex items-center space-x-3">
                   <MapPin className="h-4 w-4 text-muted-foreground" />
-                  <span>Green Valley, CA 95945</span>
+                  <span>{company.address}</span>
                 </div>
                 <div className="flex items-center space-x-3">
                   <Calendar className="h-4 w-4 text-muted-foreground" />
-                  <span>Joined {new Date(company.joinDate).toLocaleDateString()}</span>
+                  <span>
+                    Joined {new Date(company.created_at).toLocaleDateString()}
+                  </span>
                 </div>
               </CardContent>
             </Card>
@@ -157,19 +169,23 @@ export function CompanyDetailsModal({ isOpen, onClose, company }: CompanyDetails
               <CardContent className="space-y-4">
                 <div className="flex justify-between">
                   <span className="text-sm text-muted-foreground">Plan</span>
-                  <span className="font-medium">{company.plan}</span>
+                  <span className="font-medium">N/A</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-sm text-muted-foreground">Billing</span>
-                  <span className="font-medium">Monthly</span>
+                  <span className="font-medium">N/A</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-sm text-muted-foreground">Next Payment</span>
-                  <span className="font-medium">Feb 15, 2024</span>
+                  <span className="text-sm text-muted-foreground">
+                    Next Payment
+                  </span>
+                  <span className="font-medium">N/A</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-sm text-muted-foreground">Payment Method</span>
-                  <span className="font-medium">•••• 4242</span>
+                  <span className="text-sm text-muted-foreground">
+                    Payment Method
+                  </span>
+                  <span className="font-medium">N/A</span>
                 </div>
               </CardContent>
             </Card>
@@ -183,14 +199,19 @@ export function CompanyDetailsModal({ isOpen, onClose, company }: CompanyDetails
             <CardContent>
               <div className="space-y-3">
                 {[
-                  { action: "New team member added: Lisa Brown", time: "2 days ago" },
-                  { action: "Completed 15 checklists this week", time: "3 days ago" },
-                  { action: "Upgraded to Enterprise plan", time: "1 week ago" },
-                  { action: "Payment processed successfully", time: "2 weeks ago" },
+                  { action: "Company created", time: "Just now" },
+                  { action: "No activity recorded yet", time: "N/A" },
+                  { action: "No activity recorded yet", time: "N/A" },
+                  { action: "No activity recorded yet", time: "N/A" },
                 ].map((activity, index) => (
-                  <div key={index} className="flex justify-between items-center py-2 border-b last:border-b-0">
+                  <div
+                    key={index}
+                    className="flex justify-between items-center py-2 border-b last:border-b-0"
+                  >
                     <span className="text-sm">{activity.action}</span>
-                    <span className="text-xs text-muted-foreground">{activity.time}</span>
+                    <span className="text-xs text-muted-foreground">
+                      {activity.time}
+                    </span>
                   </div>
                 ))}
               </div>
@@ -215,5 +236,5 @@ export function CompanyDetailsModal({ isOpen, onClose, company }: CompanyDetails
         </div>
       </DialogContent>
     </Dialog>
-  )
+  );
 }

@@ -1,11 +1,9 @@
 import type React from "react";
 import type { Metadata } from "next";
-import { Inter } from "next/font/google";
-import { Sidebar } from "../../components/navigation/sidebar";
-import { Header } from "./components/header";
-import { Toaster } from "../../components/ui/toaster";
-
-const inter = Inter({ subsets: ["latin"] });
+import { getAllCompanies } from "@/lib/services/company/actions";
+import type { Company } from "@/lib/services/company/models";
+import { DashboardWrapper } from "@/components/dashboard/dashboard-wrapper";
+import { Toaster } from "@/components/ui/toaster";
 
 export const metadata: Metadata = {
   title: "CheckIt - Auditing & Checklist Management",
@@ -14,25 +12,30 @@ export const metadata: Metadata = {
   generator: "v0.dev",
 };
 
-export default function RootLayout({
+export default async function DashboardLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  let companies: Company[] = [];
+  let loading = false;
+  let error: string | null = null;
+
+  try {
+    loading = true;
+    companies = await getAllCompanies();
+    loading = false;
+  } catch (err) {
+    error = err instanceof Error ? err.message : "Failed to load companies";
+    loading = false;
+  }
+
   return (
-    <html lang="en">
-      <body className={inter.className}>
-        <div className="flex h-screen bg-gray-50">
-          <Sidebar />
-          <div className="flex-1 flex flex-col overflow-hidden">
-            <Header />
-            <main className="flex-1 overflow-x-hidden overflow-y-auto bg-white">
-              {children}
-            </main>
-          </div>
-        </div>
-        <Toaster />
-      </body>
-    </html>
+    <>
+      <DashboardWrapper companies={companies} loading={loading} error={error}>
+        {children}
+      </DashboardWrapper>
+      <Toaster />
+    </>
   );
 }
