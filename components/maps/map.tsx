@@ -34,6 +34,9 @@ export function MapComponent({
   const [map, setMap] = useState<any>(null);
   const [drawingManager, setDrawingManager] = useState<any>(null);
   const [drawnShapes, setDrawnShapes] = useState<any[]>([]);
+  const [drawnBoundaryPoints, setDrawnBoundaryPoints] = useState<
+    Array<{ lat: number; lng: number }>
+  >([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [searchResults, setSearchResults] = useState<any[]>([]);
   const [showSearchResults, setShowSearchResults] = useState(false);
@@ -44,6 +47,7 @@ export function MapComponent({
   } | null>(null);
   const [searchMarkers, setSearchMarkers] = useState<any[]>([]);
   const [previewShape, setPreviewShape] = useState<any>(null);
+  const [actualBoundaryShape, setActualBoundaryShape] = useState<any>(null);
   const mapRef = useRef<HTMLDivElement>(null);
   const searchInputRef = useRef<HTMLInputElement>(null);
 
@@ -123,6 +127,17 @@ export function MapComponent({
               shape.setMap(null);
             });
             setDrawnShapes([polygon]);
+
+            // Extract boundary points from polygon
+            const points: Array<{ lat: number; lng: number }> = [];
+            polygon.getPath().forEach((latLng: any) => {
+              points.push({
+                lat: latLng.lat(),
+                lng: latLng.lng(),
+              });
+            });
+            setDrawnBoundaryPoints(points);
+
             updateCoordinatesFromShape(polygon);
           }
         );
@@ -136,6 +151,19 @@ export function MapComponent({
               shape.setMap(null);
             });
             setDrawnShapes([rectangle]);
+
+            // Extract boundary points from rectangle
+            const bounds = rectangle.getBounds();
+            const ne = bounds.getNorthEast();
+            const sw = bounds.getSouthWest();
+            const points = [
+              { lat: ne.lat(), lng: sw.lng() }, // Top-left
+              { lat: ne.lat(), lng: ne.lng() }, // Top-right
+              { lat: sw.lat(), lng: ne.lng() }, // Bottom-right
+              { lat: sw.lat(), lng: sw.lng() }, // Bottom-left
+            ];
+            setDrawnBoundaryPoints(points);
+
             updateCoordinatesFromShape(rectangle);
           }
         );
@@ -149,6 +177,19 @@ export function MapComponent({
               shape.setMap(null);
             });
             setDrawnShapes([circle]);
+
+            // Extract boundary points from circle (approximate with 8 points)
+            const center = circle.getCenter();
+            const radius = circle.getRadius();
+            const points: Array<{ lat: number; lng: number }> = [];
+            for (let i = 0; i < 8; i++) {
+              const angle = (i * Math.PI * 2) / 8;
+              const lat = center.lat() + (radius / 111000) * Math.cos(angle);
+              const lng = center.lng() + (radius / 111000) * Math.sin(angle);
+              points.push({ lat, lng });
+            }
+            setDrawnBoundaryPoints(points);
+
             updateCoordinatesFromShape(circle);
           }
         );
@@ -256,11 +297,16 @@ export function MapComponent({
       shape.setMap(null);
     });
     setDrawnShapes([]);
+    setDrawnBoundaryPoints([]);
 
-    // Also clear preview shape
+    // Also clear preview shapes
     if (previewShape) {
       previewShape.setMap(null);
       setPreviewShape(null);
+    }
+    if (actualBoundaryShape) {
+      actualBoundaryShape.setMap(null);
+      setActualBoundaryShape(null);
     }
   };
 
@@ -430,6 +476,37 @@ export function MapComponent({
     // This keeps the user's drawn boundary visible where they drew it
   };
 
+  const previewActualBoundary = () => {
+    console.log(
+      "previewActualBoundary called with points:",
+      drawnBoundaryPoints
+    );
+
+    if (!map || drawnBoundaryPoints.length === 0) {
+      console.log("Cannot preview actual boundary - no points or map");
+      return;
+    }
+
+    // Clear previous actual boundary preview
+    if (actualBoundaryShape) {
+      actualBoundaryShape.setMap(null);
+    }
+
+    // Create a polygon from the drawn boundary points
+    const polygon = new window.google.maps.Polygon({
+      map: map,
+      paths: drawnBoundaryPoints,
+      fillColor: "#FEF3C7",
+      fillOpacity: 0.3,
+      strokeColor: "#F59E0B",
+      strokeWeight: 2,
+      strokeOpacity: 0.8,
+    });
+
+    setActualBoundaryShape(polygon);
+    console.log("Actual boundary preview created:", polygon);
+  };
+
   // Close dropdown when clicking outside
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -478,6 +555,17 @@ export function MapComponent({
               <X className="h-4 w-4 mr-2" />
               Clear Search Markers
             </Button>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={previewActualBoundary}
+              disabled={drawnBoundaryPoints.length === 0}
+              className="bg-orange-50 border-orange-200 text-orange-700 hover:bg-orange-100"
+            >
+              <MapPin className="h-4 w-4 mr-2" />
+              Preview Drawn Boundary
+            </Button>
             {previewBoundary && (
               <Button
                 type="button"
@@ -487,7 +575,7 @@ export function MapComponent({
                 className="bg-yellow-50 border-yellow-200 text-yellow-700 hover:bg-yellow-100"
               >
                 <MapPin className="h-4 w-4 mr-2" />
-                Preview Boundary
+                Preview Calculated Boundary
               </Button>
             )}
             <Button
@@ -632,6 +720,10 @@ export function MapComponent({
                   <strong>Auto-update:</strong> Coordinates automatically update
                   when you draw a shape
                 </li>
+                <li>
+                  <strong>Preview Drawn Boundary:</strong> Click to see the
+                  actual drawn boundary points
+                </li>
               </ul>
             </div>
           </div>
@@ -648,7 +740,7 @@ export function MapComponent({
             {drawnShapes.length > 0 && (
               <div className="text-green-600 font-medium">
                 <MapPin className="inline h-4 w-4 mr-1" />
-                Farm boundary drawn
+                Farm boundary drawn ({drawnBoundaryPoints.length} points)
               </div>
             )}
             {currentLocation && (
@@ -659,6 +751,23 @@ export function MapComponent({
               </div>
             )}
           </div>
+
+          {/* Debug Info */}
+          {drawnBoundaryPoints.length > 0 && (
+            <div className="bg-gray-50 border border-gray-200 rounded-lg p-3">
+              <div className="text-sm text-gray-600">
+                <p className="font-medium mb-2">Drawn Boundary Points:</p>
+                <div className="max-h-32 overflow-y-auto">
+                  {drawnBoundaryPoints.map((point, index) => (
+                    <div key={index} className="text-xs">
+                      Point {index + 1}: {point.lat.toFixed(6)},{" "}
+                      {point.lng.toFixed(6)}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          )}
         </div>
       </CardContent>
     </Card>

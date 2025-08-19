@@ -1,29 +1,50 @@
-"use client"
+"use client";
 
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
-import { Button } from "@/components/ui/button"
-import { Label } from "@/components/ui/label"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Badge } from "@/components/ui/badge"
-import { Card, CardContent } from "@/components/ui/card"
-import { Avatar, AvatarFallback } from "@/components/ui/avatar"
-import { Shield, UserCheck, Eye, Users, Save, X } from "lucide-react"
-import { useState } from "react"
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Badge } from "@/components/ui/badge";
+import { Card, CardContent } from "@/components/ui/card";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Shield, UserCheck, Eye, Users, Save, X, Loader2 } from "lucide-react";
+import { useState } from "react";
+import { updateTeamMemberRoleAction } from "@/lib/services/teams/actions";
+import { useToast } from "@/hooks/use-toast";
 
 interface EditMemberRoleModalProps {
-  isOpen: boolean
-  onClose: () => void
+  isOpen: boolean;
+  onClose: () => void;
   member: {
-    id: number
-    name: string
-    email: string
-    role: string
-    avatar: string
-  }
+    id: number;
+    name: string;
+    email: string;
+    role: string;
+    avatar: string;
+  };
+  onRoleUpdated?: () => void;
 }
 
-export function EditMemberRoleModal({ isOpen, onClose, member }: EditMemberRoleModalProps) {
-  const [selectedRole, setSelectedRole] = useState(member.role)
+export function EditMemberRoleModal({
+  isOpen,
+  onClose,
+  member,
+  onRoleUpdated,
+}: EditMemberRoleModalProps) {
+  const [selectedRole, setSelectedRole] = useState(member.role);
+  const [loading, setLoading] = useState(false);
+  const { toast } = useToast();
 
   const roles = [
     {
@@ -74,15 +95,51 @@ export function EditMemberRoleModal({ isOpen, onClose, member }: EditMemberRoleM
         "No editing permissions",
       ],
     },
-  ]
+  ];
 
-  const handleSave = () => {
-    console.log("Updating role for", member.name, "to", selectedRole)
-    onClose()
-    // Here you would update the member's role
-  }
+  const handleSave = async () => {
+    if (selectedRole === member.role) {
+      onClose();
+      return;
+    }
 
-  const selectedRoleData = roles.find((role) => role.name === selectedRole)
+    setLoading(true);
+    try {
+      const result = await updateTeamMemberRoleAction(member.id, selectedRole);
+
+      if (result.success) {
+        toast({
+          title: "Role Updated",
+          description: `${member.name}'s role has been updated to ${selectedRole} successfully.`,
+        });
+
+        // Call the callback to refresh the parent component
+        if (onRoleUpdated) {
+          onRoleUpdated();
+        }
+
+        onClose();
+      } else {
+        toast({
+          title: "Update Failed",
+          description:
+            result.error || "Failed to update member role. Please try again.",
+          variant: "destructive",
+        });
+      }
+    } catch (error) {
+      console.error("Error updating role:", error);
+      toast({
+        title: "Update Failed",
+        description: "An unexpected error occurred. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const selectedRoleData = roles.find((role) => role.name === selectedRole);
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
@@ -101,7 +158,9 @@ export function EditMemberRoleModal({ isOpen, onClose, member }: EditMemberRoleM
               <h3 className="font-semibold">{member.name}</h3>
               <p className="text-sm text-muted-foreground">{member.email}</p>
               <div className="flex items-center space-x-2 mt-1">
-                <span className="text-xs text-muted-foreground">Current role:</span>
+                <span className="text-xs text-muted-foreground">
+                  Current role:
+                </span>
                 <Badge variant="outline">{member.role}</Badge>
               </div>
             </div>
@@ -134,13 +193,18 @@ export function EditMemberRoleModal({ isOpen, onClose, member }: EditMemberRoleM
                 <CardContent className="p-4">
                   <div className="flex items-center space-x-2 mb-3">
                     <selectedRoleData.icon className="h-5 w-5" />
-                    <Badge className={selectedRoleData.color}>{selectedRoleData.name}</Badge>
+                    <Badge className={selectedRoleData.color}>
+                      {selectedRoleData.name}
+                    </Badge>
                   </div>
                   <div className="space-y-2">
                     <h4 className="font-medium text-sm">Permissions:</h4>
                     <ul className="space-y-1">
                       {selectedRoleData.permissions.map((permission, index) => (
-                        <li key={index} className="text-sm text-muted-foreground flex items-center space-x-2">
+                        <li
+                          key={index}
+                          className="text-sm text-muted-foreground flex items-center space-x-2"
+                        >
                           <div className="w-1 h-1 bg-gray-400 rounded-full" />
                           <span>{permission}</span>
                         </li>
@@ -183,25 +247,38 @@ export function EditMemberRoleModal({ isOpen, onClose, member }: EditMemberRoleM
           {selectedRole !== member.role && (
             <div className="p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
               <p className="text-sm text-yellow-800">
-                <strong>Note:</strong> Changing this member's role will immediately update their access permissions.
-                They will receive an email notification about this change.
+                <strong>Note:</strong> Changing this member's role will
+                immediately update their access permissions. They will receive
+                an email notification about this change.
               </p>
             </div>
           )}
 
           {/* Actions */}
           <div className="flex justify-end space-x-2">
-            <Button variant="outline" onClick={onClose}>
+            <Button variant="outline" onClick={onClose} disabled={loading}>
               <X className="mr-2 h-4 w-4" />
               Cancel
             </Button>
-            <Button onClick={handleSave} disabled={selectedRole === member.role}>
-              <Save className="mr-2 h-4 w-4" />
-              Update Role
+            <Button
+              onClick={handleSave}
+              disabled={selectedRole === member.role || loading}
+            >
+              {loading ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Updating...
+                </>
+              ) : (
+                <>
+                  <Save className="mr-2 h-4 w-4" />
+                  Update Role
+                </>
+              )}
             </Button>
           </div>
         </div>
       </DialogContent>
     </Dialog>
-  )
+  );
 }

@@ -1,152 +1,221 @@
-"use client"
+"use client";
 
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
-import { Avatar, AvatarFallback } from "@/components/ui/avatar"
-import { Input } from "@/components/ui/input"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Plus, Search, Mail, MoreHorizontal, Shield, Eye, UserCheck, Users } from "lucide-react"
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
-import { ViewProfileModal } from "../components/modals/view-profile-modal"
-import { DeleteConfirmationModal } from "../components/modals/delete-confirmation-modal"
-import { useState } from "react"
-import { InviteMemberModal } from "../components/modals/invite-member-modal"
-import { EditMemberRoleModal } from "../components/modals/edit-member-role-modal"
+import { useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  Plus,
+  Search,
+  Mail,
+  MoreHorizontal,
+  Shield,
+  Eye,
+  UserCheck,
+  Users,
+  RefreshCw,
+  Loader2,
+} from "lucide-react";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { ViewProfileModal } from "../components/modals/view-profile-modal";
+import { DeleteConfirmationModal } from "../components/modals/delete-confirmation-modal";
+import { InviteMemberModal } from "../components/modals/invite-member-modal";
+import { EditMemberRoleModal } from "../components/modals/edit-member-role-modal";
 
+// Mock data - replace with actual API calls
 const teamMembers = [
   {
     id: 1,
-    name: "John Smith",
-    email: "john@company.com",
+    name: "Sarah Johnson",
+    email: "sarah.johnson@company.com",
     role: "Admin",
-    avatar: "JS",
+    avatar: "SJ",
     status: "Active",
-    lastActive: "2 minutes ago",
-    completedTasks: 45,
-    totalTasks: 52,
-    performance: 87,
+    performance: 95,
+    completedTasks: 47,
+    totalTasks: 50,
+    lastActive: "2 hours ago",
   },
   {
     id: 2,
-    name: "Sarah Johnson",
-    email: "sarah@company.com",
+    name: "Mike Chen",
+    email: "mike.chen@company.com",
     role: "Auditor",
-    avatar: "SJ",
+    avatar: "MC",
     status: "Active",
-    lastActive: "15 minutes ago",
-    completedTasks: 38,
-    totalTasks: 42,
-    performance: 90,
+    performance: 88,
+    completedTasks: 35,
+    totalTasks: 40,
+    lastActive: "1 hour ago",
   },
   {
     id: 3,
-    name: "Mike Wilson",
-    email: "mike@company.com",
+    name: "Emily Rodriguez",
+    email: "emily.rodriguez@company.com",
     role: "Assignee",
-    avatar: "MW",
+    avatar: "ER",
     status: "Away",
-    lastActive: "2 hours ago",
+    performance: 92,
     completedTasks: 28,
-    totalTasks: 35,
-    performance: 80,
+    totalTasks: 30,
+    lastActive: "4 hours ago",
   },
   {
     id: 4,
-    name: "Emma Davis",
-    email: "emma@company.com",
-    role: "Auditor",
-    avatar: "ED",
+    name: "David Kim",
+    email: "david.kim@company.com",
+    role: "Viewer",
+    avatar: "DK",
     status: "Active",
-    lastActive: "5 minutes ago",
-    completedTasks: 33,
-    totalTasks: 36,
-    performance: 92,
+    performance: 78,
+    completedTasks: 15,
+    totalTasks: 20,
+    lastActive: "30 minutes ago",
   },
   {
     id: 5,
-    name: "Lisa Brown",
-    email: "lisa@company.com",
-    role: "Viewer",
-    avatar: "LB",
-    status: "Offline",
-    lastActive: "1 day ago",
-    completedTasks: 12,
-    totalTasks: 15,
-    performance: 75,
+    name: "Lisa Thompson",
+    email: "lisa.thompson@company.com",
+    role: "Auditor",
+    avatar: "LT",
+    status: "Active",
+    performance: 91,
+    completedTasks: 42,
+    totalTasks: 45,
+    lastActive: "3 hours ago",
   },
-]
+  {
+    id: 6,
+    name: "James Wilson",
+    email: "james.wilson@company.com",
+    role: "Assignee",
+    avatar: "JW",
+    status: "Active",
+    performance: 85,
+    completedTasks: 33,
+    totalTasks: 38,
+    lastActive: "1 hour ago",
+  },
+];
 
 const getRoleIcon = (role: string) => {
   switch (role) {
     case "Admin":
-      return <Shield className="h-4 w-4" />
+      return <Shield className="h-4 w-4 text-red-600" />;
     case "Auditor":
-      return <UserCheck className="h-4 w-4" />
+      return <UserCheck className="h-4 w-4 text-blue-600" />;
+    case "Assignee":
+      return <Users className="h-4 w-4 text-green-600" />;
     case "Viewer":
-      return <Eye className="h-4 w-4" />
+      return <Eye className="h-4 w-4 text-gray-600" />;
     default:
-      return <Users className="h-4 w-4" />
+      return <Users className="h-4 w-4 text-gray-600" />;
   }
-}
+};
 
 const getRoleBadgeColor = (role: string) => {
   switch (role) {
     case "Admin":
-      return "bg-red-100 text-red-800"
+      return "bg-red-100 text-red-800";
     case "Auditor":
-      return "bg-blue-100 text-blue-800"
+      return "bg-blue-100 text-blue-800";
     case "Assignee":
-      return "bg-green-100 text-green-800"
+      return "bg-green-100 text-green-800";
     case "Viewer":
-      return "bg-gray-100 text-gray-800"
+      return "bg-gray-100 text-gray-800";
     default:
-      return "bg-gray-100 text-gray-800"
+      return "bg-gray-100 text-gray-800";
   }
-}
+};
 
 export default function TeamPage() {
-  const [selectedMember, setSelectedMember] = useState<any>(null)
-  const [showProfileModal, setShowProfileModal] = useState(false)
-  const [showDeleteModal, setShowDeleteModal] = useState(false)
-  const [memberToDelete, setMemberToDelete] = useState<any>(null)
-  const [showInviteModal, setShowInviteModal] = useState(false)
-  const [showEditRoleModal, setShowEditRoleModal] = useState(false)
-  const [memberToEditRole, setMemberToEditRole] = useState<any>(null)
+  const [selectedMember, setSelectedMember] = useState<any>(null);
+  const [showProfileModal, setShowProfileModal] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [memberToDelete, setMemberToDelete] = useState<any>(null);
+  const [showInviteModal, setShowInviteModal] = useState(false);
+  const [showEditRoleModal, setShowEditRoleModal] = useState(false);
+  const [memberToEditRole, setMemberToEditRole] = useState<any>(null);
+  const [loading, setLoading] = useState(false);
 
   const handleViewProfile = (member: any) => {
-    setSelectedMember(member)
-    setShowProfileModal(true)
-  }
+    setSelectedMember(member);
+    setShowProfileModal(true);
+  };
 
   const handleDeleteMember = (member: any) => {
-    setMemberToDelete(member)
-    setShowDeleteModal(true)
-  }
+    setMemberToDelete(member);
+    setShowDeleteModal(true);
+  };
 
   const confirmDelete = () => {
-    console.log("Deleting member:", memberToDelete)
+    console.log("Deleting member:", memberToDelete);
     // Here you would actually delete the member
-  }
+  };
 
   const handleSendMessage = (member: any) => {
-    console.log("Sending message to:", member.name)
+    console.log("Sending message to:", member.name);
     // Here you would open a message modal or redirect
-  }
+  };
 
   const handleEditRole = (member: any) => {
-    setMemberToEditRole(member)
-    setShowEditRoleModal(true)
-  }
+    setMemberToEditRole(member);
+    setShowEditRoleModal(true);
+  };
+
+  const handleRoleUpdated = () => {
+    // Refresh team data after role update
+    // In a real app, you would refetch the team members here
+    console.log("Role updated, refreshing team data...");
+    // You could add a refetch function here if you have an API
+  };
+
+  const handleRefresh = async () => {
+    setLoading(true);
+    try {
+      // Simulate API call delay
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+      // In a real app, you would refetch team data here
+      console.log("Team data refreshed");
+    } catch (error) {
+      console.error("Error refreshing team data:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <div className="flex-1 space-y-4 p-4 md:p-8 pt-6">
       <div className="flex items-center justify-between">
         <h2 className="text-3xl font-bold tracking-tight">Team Management</h2>
-        <Button onClick={() => setShowInviteModal(true)}>
-          <Plus className="mr-2 h-4 w-4" />
-          Invite Member
-        </Button>
+        <div className="flex space-x-2">
+          <Button variant="outline" onClick={handleRefresh} disabled={loading}>
+            {loading ? (
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+            ) : (
+              <RefreshCw className="mr-2 h-4 w-4" />
+            )}
+            Refresh
+          </Button>
+          <Button onClick={() => setShowInviteModal(true)}>
+            <Plus className="mr-2 h-4 w-4" />
+            Invite Member
+          </Button>
+        </div>
       </div>
 
       {/* Team Stats */}
@@ -173,7 +242,9 @@ export default function TeamPage() {
         </Card>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Avg Performance</CardTitle>
+            <CardTitle className="text-sm font-medium">
+              Avg Performance
+            </CardTitle>
             <UserCheck className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
@@ -183,7 +254,9 @@ export default function TeamPage() {
         </Card>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Pending Invites</CardTitle>
+            <CardTitle className="text-sm font-medium">
+              Pending Invites
+            </CardTitle>
             <Mail className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
@@ -236,7 +309,9 @@ export default function TeamPage() {
                   </Avatar>
                   <div>
                     <h3 className="font-semibold">{member.name}</h3>
-                    <p className="text-sm text-muted-foreground">{member.email}</p>
+                    <p className="text-sm text-muted-foreground">
+                      {member.email}
+                    </p>
                   </div>
                 </div>
                 <DropdownMenu>
@@ -246,10 +321,19 @@ export default function TeamPage() {
                     </Button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end">
-                    <DropdownMenuItem onClick={() => handleViewProfile(member)}>View Profile</DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => handleEditRole(member)}>Edit Role</DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => handleSendMessage(member)}>Send Message</DropdownMenuItem>
-                    <DropdownMenuItem className="text-red-600" onClick={() => handleDeleteMember(member)}>
+                    <DropdownMenuItem onClick={() => handleViewProfile(member)}>
+                      View Profile
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => handleEditRole(member)}>
+                      Edit Role
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => handleSendMessage(member)}>
+                      Send Message
+                    </DropdownMenuItem>
+                    <DropdownMenuItem
+                      className="text-red-600"
+                      onClick={() => handleDeleteMember(member)}
+                    >
                       Remove
                     </DropdownMenuItem>
                   </DropdownMenuContent>
@@ -262,7 +346,9 @@ export default function TeamPage() {
                 <div className="flex items-center justify-between">
                   <div className="flex items-center space-x-2">
                     {getRoleIcon(member.role)}
-                    <Badge className={getRoleBadgeColor(member.role)}>{member.role}</Badge>
+                    <Badge className={getRoleBadgeColor(member.role)}>
+                      {member.role}
+                    </Badge>
                   </div>
                   <div className="flex items-center space-x-2">
                     <div
@@ -270,11 +356,13 @@ export default function TeamPage() {
                         member.status === "Active"
                           ? "bg-green-500"
                           : member.status === "Away"
-                            ? "bg-yellow-500"
-                            : "bg-gray-400"
+                          ? "bg-yellow-500"
+                          : "bg-gray-400"
                       }`}
                     />
-                    <span className="text-sm text-muted-foreground">{member.status}</span>
+                    <span className="text-sm text-muted-foreground">
+                      {member.status}
+                    </span>
                   </div>
                 </div>
 
@@ -290,10 +378,10 @@ export default function TeamPage() {
                         member.performance >= 90
                           ? "bg-green-500"
                           : member.performance >= 80
-                            ? "bg-blue-500"
-                            : member.performance >= 70
-                              ? "bg-yellow-500"
-                              : "bg-red-500"
+                          ? "bg-blue-500"
+                          : member.performance >= 70
+                          ? "bg-yellow-500"
+                          : "bg-red-500"
                       }`}
                       style={{ width: `${member.performance}%` }}
                     />
@@ -305,10 +393,16 @@ export default function TeamPage() {
                   <span>
                     Tasks: {member.completedTasks}/{member.totalTasks}
                   </span>
-                  <span className="text-muted-foreground">Last active: {member.lastActive}</span>
+                  <span className="text-muted-foreground">
+                    Last active: {member.lastActive}
+                  </span>
                 </div>
 
-                <Button className="w-full bg-transparent" variant="outline" onClick={() => handleViewProfile(member)}>
+                <Button
+                  className="w-full bg-transparent"
+                  variant="outline"
+                  onClick={() => handleViewProfile(member)}
+                >
                   View Details
                 </Button>
               </div>
@@ -334,15 +428,20 @@ export default function TeamPage() {
         itemName={memberToDelete?.name || ""}
       />
 
-      <InviteMemberModal isOpen={showInviteModal} onClose={() => setShowInviteModal(false)} />
+      <InviteMemberModal
+        isOpen={showInviteModal}
+        onClose={() => setShowInviteModal(false)}
+        onInviteSent={handleRoleUpdated}
+      />
 
       {memberToEditRole && (
         <EditMemberRoleModal
           isOpen={showEditRoleModal}
           onClose={() => setShowEditRoleModal(false)}
           member={memberToEditRole}
+          onRoleUpdated={handleRoleUpdated}
         />
       )}
     </div>
-  )
+  );
 }
