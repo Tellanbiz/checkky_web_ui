@@ -51,11 +51,22 @@ export function DashboardWrapper({
     }
   }, [companies]);
 
+  // Redirect to login on unauthorized errors
+  useEffect(() => {
+    if (error && /unauthorized|401/i.test(error)) {
+      router.replace("/login");
+    }
+  }, [error, router]);
+
   // Combined redirect and dialog management
   useEffect(() => {
     const hasCompanies = currentCompanies.length > 0;
     const onCompanyCreatePage = pathname === "/dashboard/companies/new";
     if (loading) return;
+
+    // If unauthorized, let the other effect handle redirect
+    if (error && /unauthorized|401/i.test(error)) return;
+
     if (!hasCompanies && !onCompanyCreatePage) {
       router.replace("/dashboard/companies/new");
       return;
@@ -69,7 +80,7 @@ export function DashboardWrapper({
 
     // Manage dialog visibility only on /dashboard with no companies
     setShowCompanyDialog(!hasCompanies && pathname === "/dashboard");
-  }, [loading, currentCompanies.length, pathname, router]);
+  }, [loading, currentCompanies.length, pathname, router, error]);
 
   const handleCreateCompany = async (companyData: CompanyParams) => {
     try {
@@ -94,6 +105,18 @@ export function DashboardWrapper({
       throw error;
     }
   };
+
+  // Early return: if unauthorized, show brief redirect UI
+  if (error && /unauthorized|401/i.test(error)) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-8 h-8 border-4 border-gray-300 border-t-blue-500 rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-gray-600">Redirecting to login...</p>
+        </div>
+      </div>
+    );
+  }
 
   // If no companies and not on company creation page, show loading
   if (

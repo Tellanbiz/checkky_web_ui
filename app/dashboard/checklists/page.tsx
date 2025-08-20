@@ -1,7 +1,6 @@
 "use client";
 
 import { EditChecklistModal } from "../components/modals/edit-checklist-modal";
-import { DeleteConfirmationModal } from "../components/modals/delete-confirmation-modal";
 import { NewChecklistModal } from "../../../components/checklist/new-checklist-modal";
 import { OngoingChecklist } from "../../../components/checklist/ongoing-checklist";
 import { AvailableChecklist } from "../../../components/checklist/available-checklist";
@@ -11,6 +10,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Plus } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { ChecklistDetailsModal } from "../components/modals/checklist-details-modal";
+import { DeleteConfirmationModal } from "@/components/team/delete-confirmation-modal";
 
 export default function ChecklistsPage() {
   const { toast } = useToast();

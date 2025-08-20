@@ -1,10 +1,11 @@
 'use server';
 
-import { cookies } from 'next/headers';
 import { getAccessToken } from '@/lib/services/auth/auth-get';
-import { inviteTeamMember, acceptTeamInvite, updateTeamMemberRole } from './post';
+import { inviteTeamMember, acceptTeamInvite } from './post';
+import { InviteParams, TeamInvite } from './data';
+import { getTeamInvites } from './get';
 
-export async function inviteTeamMemberAction(params: { email: string; role: string; message?: string }) {
+export async function inviteTeamMemberAction(params: InviteParams) {
     try {
         const token = await getAccessToken();
         if (!token) {
@@ -22,9 +23,26 @@ export async function inviteTeamMemberAction(params: { email: string; role: stri
     }
 }
 
+
+export async function getAllTeamInvites(): Promise<TeamInvite[]> {
+    try {
+        const token = await getAccessToken();
+        if (!token) {
+            throw new Error('No access token found');
+        }
+
+        return await getTeamInvites(token);
+    } catch (error) {
+        console.error('Error inviting team member:', error);
+        return []
+    }
+}
+
 export async function acceptTeamInviteAction(teamId: string) {
     try {
         const token = await getAccessToken();
+        console.log("token: ", token);
+
         if (!token) {
             throw new Error('No access token found');
         }
@@ -40,20 +58,4 @@ export async function acceptTeamInviteAction(teamId: string) {
     }
 }
 
-export async function updateTeamMemberRoleAction(memberId: number, role: string) {
-    try {
-        const token = await getAccessToken();
-        if (!token) {
-            throw new Error('No access token found');
-        }
 
-        const result = await updateTeamMemberRole(token, memberId, role);
-        return { success: true, data: result };
-    } catch (error) {
-        console.error('Error updating team member role:', error);
-        return {
-            success: false,
-            error: error instanceof Error ? error.message : 'Failed to update team member role'
-        };
-    }
-}

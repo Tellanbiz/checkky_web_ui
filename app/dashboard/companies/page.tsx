@@ -1,7 +1,6 @@
 "use client";
 
 import { CompanyDetailsModal } from "../components/modals/company-details-modal";
-import { DeleteConfirmationModal } from "../components/modals/delete-confirmation-modal";
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -31,6 +30,7 @@ import {
 import { EditCompanyModal } from "../components/modals/edit-company-modal";
 import { getAllCompanies } from "@/lib/services/company/actions";
 import type { Company } from "@/lib/services/company/models";
+import { DeleteConfirmationModal } from "@/components/team/delete-confirmation-modal";
 
 export default function CompaniesPage() {
   const router = useRouter();

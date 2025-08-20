@@ -2,12 +2,7 @@
 
 import { clientV1 } from "@/lib/client/client";
 import { Result } from "@/lib/shared/data";
-
-interface InviteParams {
-    email: string;
-    role: string;
-    message?: string;
-}
+import { InviteParams } from "./data";
 
 export async function inviteTeamMember(token: string, params: InviteParams): Promise<Result> {
     const response = await clientV1.post<Result>('/companies/team/invite', params, {
@@ -27,11 +22,3 @@ export async function acceptTeamInvite(token: string, team_id: string): Promise<
     return response.data;
 }
 
-export async function updateTeamMemberRole(token: string, memberId: number, role: string): Promise<Result> {
-    const response = await clientV1.put<Result>(`/companies/team/members/${memberId}/role`, { role }, {
-        headers: {
-            Authorization: `Bearer ${token}`,
-        },
-    });
-    return response.data;
-} 
