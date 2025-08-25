@@ -42,7 +42,7 @@ export async function updateCurrentCompanyAction(current_company_id: string): Pr
             throw new Error("Not authenticated");
         }
         const failed = await updateCurrentCompanyPost(token, current_company_id);
-        return !failed;
+        return failed;
     } catch (error) {
         console.error("Failed to update current company:", error);
         return false;

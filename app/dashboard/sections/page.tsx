@@ -25,7 +25,17 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { MapPin, Plus, Search, MoreVertical, Loader2 } from "lucide-react";
+import {
+  MapPin,
+  Plus,
+  Search,
+  MoreVertical,
+  Loader2,
+  Eye,
+  Edit,
+  Users,
+  History,
+} from "lucide-react";
 import { EditSectionModal } from "@/components/sections/edit-section-modal";
 import { SectionDetailsModal } from "@/components/sections/section-details-modal";
 import { getAllFarms } from "@/lib/services/farms/actions";
@@ -152,7 +162,7 @@ export default function SectionsPage() {
     <div className="space-y-6 p-8">
       {/* Header */}
       <div className="flex justify-between items-center">
-        <h1 className="text-3xl font-bold tracking-tight">Farm Sections</h1>
+        <h1 className="text-3xl font-bold tracking-tight">Area Sections</h1>
 
         <div className="flex space-x-2">
           <Button variant="outline" onClick={fetchFarms} disabled={loading}>
@@ -228,87 +238,70 @@ export default function SectionsPage() {
           filteredSections.map((section) => (
             <Card
               key={section.id}
-              className="hover:shadow-md transition-shadow"
+              className="group hover:shadow-md transition-shadow duration-200 border border-gray-200"
             >
-              <CardHeader>
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center space-x-2">
-                    <MapPin className="h-4 w-4" />
-                    <CardTitle className="text-lg">{section.name}</CardTitle>
+              <div className="p-5">
+                {/* Header */}
+                <div className="flex items-center justify-between mb-4">
+                  <div className="flex items-center space-x-3">
+                    <div className="w-10 h-10 bg-gray-100 rounded-lg flex items-center justify-center">
+                      <MapPin className="h-5 w-5 text-gray-600" />
+                    </div>
+                    <div>
+                      <h3 className="text-sm font-semibold text-gray-900">
+                        {section.name}
+                      </h3>
+                      <p className="text-xs text-gray-600">
+                        {section.location}
+                      </p>
+                    </div>
                   </div>
+
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
-                      <Button variant="ghost" className="h-8 w-8 p-0">
+                      <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
                         <MoreVertical className="h-4 w-4" />
                       </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end">
-                      <DropdownMenuItem
-                        onClick={() => {
-                          setSelectedSection(section);
-                          setShowDetailsModal(true);
-                        }}
-                      >
-                        View Details
-                      </DropdownMenuItem>
-                      <DropdownMenuItem
-                        onClick={() => {
-                          setSelectedSection(section);
-                          setShowEditModal(true);
-                        }}
-                      >
-                        Edit Section
-                      </DropdownMenuItem>
+                      <DropdownMenuItem>View Details</DropdownMenuItem>
+                      <DropdownMenuItem>Edit Section</DropdownMenuItem>
                       <DropdownMenuItem>Assign Tasks</DropdownMenuItem>
                       <DropdownMenuItem>View History</DropdownMenuItem>
                     </DropdownMenuContent>
                   </DropdownMenu>
                 </div>
-                <CardDescription>{section.location}</CardDescription>
-              </CardHeader>
-              <CardContent>
+
+                {/* Content */}
                 <div className="space-y-4">
                   <div className="flex items-center justify-between">
-                    <Badge className={getStatusColor(section.status)}>
-                      {section.status
-                        ? section.status.charAt(0).toUpperCase() +
-                          section.status.slice(1)
-                        : "Unknown"}
-                    </Badge>
-                    <span className="text-sm text-muted-foreground">
-                      {section.size_ha ? section.size_ha.toFixed(1) : "0"}{" "}
-                      hectares
+                    <span className="text-sm text-gray-600">
+                      {section.size_ha ? section.size_ha.toFixed(1) : "0"} ha
                     </span>
                   </div>
 
-                  <div className="grid grid-cols-3 gap-4 text-center">
-                    <div>
-                      <div className="text-lg font-semibold text-blue-600">
+                  <div className="grid grid-cols-3 gap-3">
+                    <div className="text-center">
+                      <div className="text-lg font-semibold text-gray-900">
                         {section.live?.workers || 0}
                       </div>
-                      <div className="text-xs text-muted-foreground">
-                        Workers
-                      </div>
+                      <div className="text-xs text-gray-500">Workers</div>
                     </div>
-                    <div>
-                      <div className="text-lg font-semibold text-orange-600">
+                    <div className="text-center">
+                      <div className="text-lg font-semibold text-gray-900">
                         {section.live?.active || 0}
                       </div>
-                      <div className="text-xs text-muted-foreground">
-                        Active
-                      </div>
+                      <div className="text-xs text-gray-500">Active</div>
                     </div>
-                    <div>
-                      <div className="text-lg font-semibold text-green-600">
+                    <div className="text-center">
+                      <div className="text-lg font-semibold text-gray-900">
                         {section.live?.complete || 0}
                       </div>
-                      <div className="text-xs text-muted-foreground">
-                        Complete
-                      </div>
+                      <div className="text-xs text-gray-500">Complete</div>
                     </div>
                   </div>
                 </div>
-              </CardContent>
+              </div>
             </Card>
           ))
         )}

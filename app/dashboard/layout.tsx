@@ -4,6 +4,8 @@ import { getAllCompanies } from "@/lib/services/company/actions";
 import type { Company } from "@/lib/services/company/models";
 import { DashboardWrapper } from "@/components/dashboard/dashboard-wrapper";
 import { Toaster } from "@/components/ui/toaster";
+import { Account } from "@/lib/services/accounts/models";
+import { getAccount } from "@/lib/services/auth/auth-get";
 
 export const metadata: Metadata = {
   title: "CheckIt - Auditing & Checklist Management",
@@ -18,12 +20,14 @@ export default async function DashboardLayout({
   children: React.ReactNode;
 }) {
   let companies: Company[] = [];
+  let account: Account | undefined = undefined;
   let loading = false;
   let error: string | null = null;
 
   try {
     loading = true;
     companies = await getAllCompanies();
+    account = await getAccount();
     loading = false;
   } catch (err) {
     error = err instanceof Error ? err.message : "Failed to load companies";
@@ -32,7 +36,12 @@ export default async function DashboardLayout({
 
   return (
     <>
-      <DashboardWrapper companies={companies} loading={loading} error={error}>
+      <DashboardWrapper
+        companies={companies}
+        loading={loading}
+        error={error}
+        account={account}
+      >
         {children}
       </DashboardWrapper>
       <Toaster />

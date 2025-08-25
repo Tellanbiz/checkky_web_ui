@@ -13,110 +13,46 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import {
-  LayoutDashboard,
-  CheckSquare,
-  Users,
-  BarChart3,
-  Settings,
-  FileText,
-  Building2,
-  Shield,
-  MessageSquare,
-  MapPin,
-  Building,
-} from "lucide-react";
+import { CheckSquare, Building } from "lucide-react";
 import { useCompany } from "../../hooks/use-company";
 import type { Company } from "@/lib/services/company/models";
+import { updateCurrentCompanyAction } from "@/lib/services/company/actions";
+import { useToast } from "@/hooks/use-toast";
+import { navigation } from "./data";
+import { Account } from "@/lib/services/accounts/models";
 
 type SidebarProps = {
   initialCompanies?: Company[];
+  account: Account | undefined;
 };
 
-const navigation = [
-  {
-    name: "Dashboard",
-    href: "/dashboard",
-    icon: LayoutDashboard,
-  },
-  {
-    name: "Checklists",
-    href: "/dashboard/checklists",
-    icon: CheckSquare,
-    badge: "12",
-  },
-  {
-    name: "Farm Sections",
-    href: "/dashboard/sections",
-    icon: MapPin,
-  },
-  {
-    name: "Team",
-    href: "/dashboard/team",
-    icon: Users,
-  },
-  {
-    name: "Team Chat",
-    href: "/dashboard/chat",
-    icon: MessageSquare,
-    badge: "3",
-  },
-  {
-    name: "Analytics",
-    href: "/dashboard/analytics",
-    icon: BarChart3,
-  },
-  {
-    name: "Companies",
-    href: "/dashboard/companies",
-    icon: Building2,
-  },
-  {
-    name: "Guidelines",
-    href: "/dashboard/guidelines",
-    icon: FileText,
-  },
-  {
-    name: "Admin Tools",
-    href: "/dashboard/admin",
-    icon: Shield,
-  },
-  {
-    name: "Settings",
-    href: "/dashboard/settings",
-    icon: Settings,
-  },
-];
-
-export function Sidebar({ initialCompanies }: SidebarProps) {
+export function Sidebar({ initialCompanies, account }: SidebarProps) {
   const pathname = usePathname();
+  const { toast } = useToast();
   const [companies, setCompanies] = useState<Company[]>(initialCompanies ?? []);
   const [loading, setLoading] = useState<boolean>(!initialCompanies);
   const [error, setError] = useState<string | null>(null);
 
-  const {
-    currentCompany,
-    currentCompanyId,
-    setCurrentCompany,
-    setCurrentCompanyId,
-  } = useCompany();
+  const { currentCompany, currentCompanyId, setCurrentCompany } = useCompany();
 
-  // If we have initial companies and no current company selected, select first
+  // Initialize current company
   useEffect(() => {
-    if (initialCompanies && initialCompanies.length > 0 && !currentCompanyId) {
-      setCurrentCompany(initialCompanies[0]);
+    if (initialCompanies?.length && !currentCompanyId) {
+      const company =
+        initialCompanies.find((c) => c.id === account?.current_company_id) ||
+        initialCompanies[0];
+      setCurrentCompany(company);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  // Only run initialization logic if no initial companies were provided
-  useEffect(() => {
-    if (!initialCompanies || initialCompanies.length === 0) {
-      // If no initial companies, we could show an error or fallback
+    if (!initialCompanies?.length) {
       setError("No companies available");
       setLoading(false);
     }
-  }, [initialCompanies]);
+  }, [
+    initialCompanies,
+    currentCompanyId,
+    account?.current_company_id,
+    setCurrentCompany,
+  ]);
 
   return (
     <div className="flex flex-col w-64 bg-white border-r border-gray-200 hidden md:flex">
@@ -163,13 +99,11 @@ export function Sidebar({ initialCompanies }: SidebarProps) {
       {/* Company Switcher */}
       <div className="p-4 border-t border-gray-200">
         <div className="space-y-3">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-2">
-              <Building className="w-4 h-4 text-gray-500" />
-              <span className="text-sm font-medium text-gray-700">Company</span>
-            </div>
+          <div className="flex items-center space-x-2">
+            <Building className="w-4 h-4 text-gray-500" />
+            <span className="text-sm font-medium text-gray-700">Company</span>
             {companies.length > 0 && (
-              <span className="text-xs text-gray-400 bg-gray-100 px-2 py-1 rounded-full">
+              <span className="text-xs text-gray-400 bg-gray-100 px-2 py-1 rounded-full ml-auto">
                 {companies.length}
               </span>
             )}
@@ -178,12 +112,33 @@ export function Sidebar({ initialCompanies }: SidebarProps) {
           {/* Company Selector */}
           <Select
             value={currentCompanyId || ""}
-            onValueChange={(companyId) => {
+            onValueChange={async (companyId) => {
               const selectedCompany = companies.find((c) => c.id === companyId);
-              if (selectedCompany) {
-                setCurrentCompany(selectedCompany);
-                // Refresh the page to update context
-                window.location.reload();
+              if (!selectedCompany) return;
+
+              try {
+                const success = await updateCurrentCompanyAction(companyId);
+                if (success) {
+                  setCurrentCompany(selectedCompany);
+                  toast({
+                    title: "Company Switched",
+                    description: `Switched to ${selectedCompany.name}`,
+                  });
+                  window.location.reload();
+                } else {
+                  toast({
+                    title: "Error",
+                    description: "Failed to switch company. Please try again.",
+                    variant: "destructive",
+                  });
+                }
+              } catch (error) {
+                console.error("Failed to switch company:", error);
+                toast({
+                  title: "Error",
+                  description: "Failed to switch company. Please try again.",
+                  variant: "destructive",
+                });
               }
             }}
             disabled={loading}
@@ -196,21 +151,24 @@ export function Sidebar({ initialCompanies }: SidebarProps) {
               />
             </SelectTrigger>
             <SelectContent className="min-w-[200px]">
-              {loading ? (
+              {loading && (
                 <div className="p-3 text-sm text-gray-500 text-center">
                   <div className="flex items-center justify-center space-x-2">
                     <div className="w-4 h-4 border-2 border-gray-300 border-t-green-500 rounded-full animate-spin"></div>
                     <span>Loading companies...</span>
                   </div>
                 </div>
-              ) : error ? (
+              )}
+              {error && (
                 <div className="p-3 text-sm text-red-500 text-center">
                   <div className="flex items-center justify-center space-x-2">
                     <span>⚠️</span>
                     <span>{error}</span>
                   </div>
                 </div>
-              ) : companies.length > 0 ? (
+              )}
+              {!loading &&
+                !error &&
                 companies.map((company) => (
                   <SelectItem
                     key={company.id}
@@ -231,8 +189,8 @@ export function Sidebar({ initialCompanies }: SidebarProps) {
                       )}
                     </div>
                   </SelectItem>
-                ))
-              ) : (
+                ))}
+              {!loading && !error && companies.length === 0 && (
                 <div className="p-3 text-sm text-gray-500 text-center">
                   <div className="flex items-center justify-center space-x-2">
                     <span>📋</span>

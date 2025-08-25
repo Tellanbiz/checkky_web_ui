@@ -48,12 +48,12 @@ export default function NewCompanyPage() {
 
       toast({
         title: "Success",
-        description:
-          "Company created successfully! Redirecting to dashboard...",
+        description: "Company created successfully!",
       });
 
+      // Redirect to companies list page instead of dashboard
       setTimeout(() => {
-        router.push("/dashboard");
+        router.push("/dashboard/companies");
       }, 800);
     } catch (error) {
       console.error("Failed to create company:", error);

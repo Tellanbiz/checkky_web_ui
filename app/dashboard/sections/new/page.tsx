@@ -17,17 +17,15 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Plus, Save } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { MapComponent } from "@/components/maps/map";
+import { createFarm } from "@/lib/services/farms/actions";
 
 interface FarmSectionForm {
   name: string;
-  type: "pasture" | "cropland" | "facility" | "water";
-  acreage: string;
-  status: "active" | "maintenance" | "inactive";
-  description: string;
-  coordinates: {
-    lat: string;
-    lng: string;
-  };
+  location: string;
+  country: string;
+  size: string;
+  points: string;
+  active: string;
 }
 
 export default function NewSectionPage() {
@@ -37,14 +35,11 @@ export default function NewSectionPage() {
 
   const [formData, setFormData] = useState<FarmSectionForm>({
     name: "",
-    type: "cropland",
-    acreage: "",
-    status: "active",
-    description: "",
-    coordinates: {
-      lat: "",
-      lng: "",
-    },
+    location: "",
+    country: "",
+    size: "",
+    points: "",
+    active: "true",
   });
 
   // Debug logging for form data changes
@@ -55,50 +50,35 @@ export default function NewSectionPage() {
   const handleInputChange = (field: string, value: string) => {
     console.log("handleInputChange called:", { field, value });
 
-    if (field.includes(".")) {
-      const [parent, child] = field.split(".");
-      setFormData((prev) => {
-        const newData = {
-          ...prev,
-          [parent]: {
-            ...(prev[parent as keyof FarmSectionForm] as any),
-            [child]: value,
-          },
-        };
-        console.log("Updated form data:", newData);
-        return newData;
-      });
-    } else {
-      setFormData((prev) => {
-        const newData = {
-          ...prev,
-          [field]: value,
-        };
-        console.log("Updated form data:", newData);
-        return newData;
-      });
-    }
+    setFormData((prev) => {
+      const newData = {
+        ...prev,
+        [field]: value,
+      };
+      console.log("Updated form data:", newData);
+      return newData;
+    });
   };
 
   const handleCoordinatesChange = (lat: string, lng: string) => {
+    // Convert coordinates to points format for database
+    const points = `[[${lng},${lat}]]`;
     setFormData((prev) => ({
       ...prev,
-      coordinates: { lat, lng },
+      points: points,
     }));
   };
 
   // Debug logging for preview boundary data
   console.log("Form data for preview:", {
-    lat: formData.coordinates.lat,
-    lng: formData.coordinates.lng,
-    acreage: formData.acreage,
-    type: formData.type,
+    points: formData.points,
+    size: formData.size,
   });
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!formData.name || !formData.acreage) {
+    if (!formData.name || !formData.size) {
       toast({
         title: "Validation Error",
         description: "Please fill in all required fields.",
@@ -109,8 +89,15 @@ export default function NewSectionPage() {
 
     setLoading(true);
     try {
-      // Here you would call your API to create the section
-      // For now, we'll just show success and redirect
+      const formDataToSubmit = new FormData();
+      formDataToSubmit.append("name", formData.name);
+      formDataToSubmit.append("location", formData.location);
+      formDataToSubmit.append("country", formData.country);
+      formDataToSubmit.append("size", formData.size);
+      formDataToSubmit.append("points", formData.points);
+      formDataToSubmit.append("active", formData.active);
+
+      await createFarm(formDataToSubmit);
 
       toast({
         title: "Section Created",
@@ -172,34 +159,40 @@ export default function NewSectionPage() {
                 </div>
 
                 <div className="space-y-2">
-                  <Label>Section Type *</Label>
-                  <Select
-                    value={formData.type}
-                    onValueChange={(value) => handleInputChange("type", value)}
-                  >
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="pasture">Pasture</SelectItem>
-                      <SelectItem value="cropland">Cropland</SelectItem>
-                      <SelectItem value="facility">Facility</SelectItem>
-                      <SelectItem value="water">Water</SelectItem>
-                    </SelectContent>
-                  </Select>
+                  <Label htmlFor="location">Location *</Label>
+                  <Input
+                    id="location"
+                    placeholder="Enter location..."
+                    value={formData.location}
+                    onChange={(e) =>
+                      handleInputChange("location", e.target.value)
+                    }
+                    required
+                  />
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="acreage">Acreage *</Label>
+                  <Label htmlFor="country">Country *</Label>
                   <Input
-                    id="acreage"
+                    id="country"
+                    placeholder="Enter country..."
+                    value={formData.country}
+                    onChange={(e) =>
+                      handleInputChange("country", e.target.value)
+                    }
+                    required
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="size">Size (hectares) *</Label>
+                  <Input
+                    id="size"
                     type="number"
                     step="0.1"
                     placeholder="0.0"
-                    value={formData.acreage}
-                    onChange={(e) =>
-                      handleInputChange("acreage", e.target.value)
-                    }
+                    value={formData.size}
+                    onChange={(e) => handleInputChange("size", e.target.value)}
                     required
                   />
                 </div>
@@ -207,72 +200,38 @@ export default function NewSectionPage() {
                 <div className="space-y-2">
                   <Label>Status *</Label>
                   <Select
-                    value={formData.status}
+                    value={formData.active}
                     onValueChange={(value) =>
-                      handleInputChange("status", value)
+                      handleInputChange("active", value)
                     }
                   >
                     <SelectTrigger>
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="active">Active</SelectItem>
-                      <SelectItem value="maintenance">Maintenance</SelectItem>
-                      <SelectItem value="inactive">Inactive</SelectItem>
+                      <SelectItem value="true">Active</SelectItem>
+                      <SelectItem value="false">Inactive</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
               </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="description">Description</Label>
-                <Textarea
-                  id="description"
-                  placeholder="Describe this section..."
-                  value={formData.description}
-                  onChange={(e) =>
-                    handleInputChange("description", e.target.value)
-                  }
-                  rows={3}
-                />
-              </div>
             </CardContent>
           </Card>
 
-          {/* Coordinates */}
+          {/* Points */}
           <Card>
             <CardHeader>
-              <CardTitle>Location Coordinates</CardTitle>
+              <CardTitle>Location Points</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="lat">Latitude</Label>
-                  <Input
-                    id="lat"
-                    type="number"
-                    step="0.000001"
-                    placeholder="40.7128"
-                    value={formData.coordinates.lat}
-                    onChange={(e) =>
-                      handleInputChange("coordinates.lat", e.target.value)
-                    }
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="lng">Longitude</Label>
-                  <Input
-                    id="lng"
-                    type="number"
-                    step="0.000001"
-                    placeholder="-74.0060"
-                    value={formData.coordinates.lng}
-                    onChange={(e) =>
-                      handleInputChange("coordinates.lng", e.target.value)
-                    }
-                  />
-                </div>
+              <div className="space-y-2">
+                <Label htmlFor="points">Points (JSON format)</Label>
+                <Input
+                  id="points"
+                  placeholder="[[lng,lat]]"
+                  value={formData.points}
+                  onChange={(e) => handleInputChange("points", e.target.value)}
+                />
               </div>
             </CardContent>
           </Card>
@@ -280,10 +239,14 @@ export default function NewSectionPage() {
           {/* Google Maps */}
           {(() => {
             const previewData = {
-              lat: formData.coordinates.lat,
-              lng: formData.coordinates.lng,
-              acreage: formData.acreage,
-              type: formData.type,
+              lat: formData.points
+                ? JSON.parse(formData.points)[0]?.[1] || ""
+                : "",
+              lng: formData.points
+                ? JSON.parse(formData.points)[0]?.[0] || ""
+                : "",
+              acreage: formData.size,
+              type: "cropland" as const,
             };
             console.log("Passing preview data to MapComponent:", previewData);
             return null;
@@ -301,12 +264,8 @@ export default function NewSectionPage() {
               onClick={() => {
                 console.log("Setting test data...");
                 const newData = {
-                  coordinates: {
-                    lat: "40.724652266271505",
-                    lng: "-74.13215257918141",
-                  },
-                  acreage: "100",
-                  type: "cropland" as const,
+                  points: "[[-74.13215257918141,40.724652266271505]]",
+                  size: "100",
                 };
                 console.log("New data to set:", newData);
                 setFormData((prev) => {
@@ -327,38 +286,42 @@ export default function NewSectionPage() {
               variant="outline"
               size="sm"
               onClick={() => {
-                console.log("Setting just acreage...");
+                console.log("Setting just size...");
                 setFormData((prev) => {
-                  const updated = { ...prev, acreage: "150" };
-                  console.log("Updated acreage:", updated);
+                  const updated = { ...prev, size: "150" };
+                  console.log("Updated size:", updated);
                   return updated;
                 });
               }}
               className="mr-2"
             >
-              Set Acreage Only
+              Set Size Only
             </Button>
             <div className="mt-2 text-xs text-gray-500">
+              <div>Current Points: {formData.points}</div>
               <div>
-                Current: {formData.coordinates.lat}, {formData.coordinates.lng}
+                Size: "{formData.size}" (length: {formData.size.length})
               </div>
-              <div>
-                Acreage: "{formData.acreage}" (length: {formData.acreage.length}
-                )
-              </div>
-              <div>Type: {formData.type}</div>
             </div>
           </div>
 
           <MapComponent
             onCoordinatesChange={handleCoordinatesChange}
-            initialLat={formData.coordinates.lat}
-            initialLng={formData.coordinates.lng}
+            initialLat={
+              formData.points ? JSON.parse(formData.points)[0]?.[1] || "" : ""
+            }
+            initialLng={
+              formData.points ? JSON.parse(formData.points)[0]?.[0] || "" : ""
+            }
             previewBoundary={{
-              lat: formData.coordinates.lat,
-              lng: formData.coordinates.lng,
-              acreage: formData.acreage,
-              type: formData.type,
+              lat: formData.points
+                ? JSON.parse(formData.points)[0]?.[1] || ""
+                : "",
+              lng: formData.points
+                ? JSON.parse(formData.points)[0]?.[0] || ""
+                : "",
+              acreage: formData.size,
+              type: "cropland" as const,
             }}
           />
 

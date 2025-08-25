@@ -8,12 +8,13 @@ export async function submitFarm(token: string, formData: FormData): Promise<Far
   const response = await clientV1.post<Farm>('/farms', {
     name: formData.get('name'),
     location: formData.get('location'),
-    country: formData.get('country'),
     size_ha: Number(formData.get('size')),
+    points: formData.get('points'),
+    active: formData.get('active'),
   }, {
     headers: {
       Authorization: `Bearer ${token}`,
     },
   });
   return response.data;
-} 
+} 	

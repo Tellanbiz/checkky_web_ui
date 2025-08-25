@@ -31,6 +31,7 @@ import { EditCompanyModal } from "../components/modals/edit-company-modal";
 import { getAllCompanies } from "@/lib/services/company/actions";
 import type { Company } from "@/lib/services/company/models";
 import { DeleteConfirmationModal } from "@/components/team/delete-confirmation-modal";
+import { CompanyNewDialog } from "@/components/company/company_new_dialog";
 
 export default function CompaniesPage() {
   const router = useRouter();
@@ -47,6 +48,7 @@ export default function CompaniesPage() {
   const [companies, setCompanies] = useState<Company[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [showNewCompanyDialog, setShowNewCompanyDialog] = useState(false);
 
   useEffect(() => {
     const fetchCompanies = async () => {
@@ -99,7 +101,27 @@ export default function CompaniesPage() {
   };
 
   const handleAddCompany = () => {
-    router.push("/dashboard/companies/new");
+    setShowNewCompanyDialog(true);
+  };
+
+  const handleCompanyCreated = () => {
+    // Refresh the companies list
+    const fetchCompanies = async () => {
+      try {
+        setLoading(true);
+        const fetchedCompanies = await getAllCompanies();
+        setCompanies(fetchedCompanies);
+        setError(null);
+      } catch (err) {
+        setError(
+          err instanceof Error ? err.message : "Failed to load companies"
+        );
+        console.error("Error fetching companies:", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchCompanies();
   };
 
   const getPlanBadge = (plan: string) => {
@@ -345,6 +367,12 @@ export default function CompaniesPage() {
           company={selectedCompanyForBilling}
         />
       )} */}
+
+      <CompanyNewDialog
+        isOpen={showNewCompanyDialog}
+        onClose={() => setShowNewCompanyDialog(false)}
+        onSuccess={handleCompanyCreated}
+      />
     </div>
   );
 }

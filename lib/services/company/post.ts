@@ -8,15 +8,16 @@ export async function createCompany(token: string, company: CompanyParams): Prom
         },
     });
 
-    return response.status != 200;
+    return response.status === 200;
 }
 
 export async function updateCurrentCompany(token: string, current_company_id: string): Promise<boolean> {
-    const response = await clientV1.put('/companies', { current_company_id }, {
+    const response = await clientV1.put('/companies/current', { company_id: current_company_id }, {
         headers: {
             Authorization: `Bearer ${token}`,
         },
     });
 
-    return response.status != 200;
+
+    return response.status === 200;
 }

@@ -14,6 +14,7 @@ export interface ChecklistInfo {
     created_at: string;
     sections: {
         order_index: number;
+        question_group: string;
         questions: {
             id: string;
             question_group: string;

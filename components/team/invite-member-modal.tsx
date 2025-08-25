@@ -16,10 +16,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
-import { Mail, Plus, X, Send, Loader2 } from "lucide-react";
+import { Plus, X, Send, Loader2 } from "lucide-react";
 import { useState } from "react";
 import { inviteTeamMemberAction } from "@/lib/services/teams/actions";
 import { useToast } from "@/hooks/use-toast";
@@ -31,9 +30,6 @@ interface InviteMemberModalProps {
 
 export function InviteMemberModal({ isOpen, onClose }: InviteMemberModalProps) {
   const [invites, setInvites] = useState([{ email: "", role: "" }]);
-  const [message, setMessage] = useState(
-    "You've been invited to join our team on CheckIt. Click the link below to accept your invitation and get started."
-  );
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
 
@@ -100,9 +96,6 @@ export function InviteMemberModal({ isOpen, onClose }: InviteMemberModalProps) {
 
         // Reset form and close modal
         setInvites([{ email: "", role: "" }]);
-        setMessage(
-          "You've been invited to join our team on CheckIt. Click the link below to accept your invitation and get started."
-        );
         onClose();
       } else {
         toast({
@@ -226,45 +219,6 @@ export function InviteMemberModal({ isOpen, onClose }: InviteMemberModalProps) {
                   <p className="text-xs text-muted-foreground">{description}</p>
                 </div>
               ))}
-            </div>
-          </div>
-
-          {/* Custom Message */}
-          <div className="space-y-2">
-            <Label htmlFor="message">Invitation Message</Label>
-            <Textarea
-              id="message"
-              value={message}
-              onChange={(e) => setMessage(e.target.value)}
-              rows={3}
-              placeholder="Add a personal message to your invitation..."
-            />
-          </div>
-
-          {/* Preview */}
-          <div className="space-y-2">
-            <Label>Preview</Label>
-            <div className="p-4 border rounded-lg bg-gray-50">
-              <div className="flex items-center space-x-2 mb-3">
-                <Mail className="h-5 w-5 text-blue-500" />
-                <span className="font-medium">Invitation to join CheckIt</span>
-              </div>
-              <p className="text-sm text-muted-foreground mb-3">{message}</p>
-              <div className="space-y-1">
-                <p className="text-xs text-muted-foreground">
-                  Invitations will be sent to:
-                </p>
-                {invites
-                  .filter((invite) => invite.email && invite.role)
-                  .map((invite, index) => (
-                    <div key={index} className="flex items-center space-x-2">
-                      <span className="text-sm">{invite.email}</span>
-                      <Badge variant="secondary" className="text-xs">
-                        {invite.role}
-                      </Badge>
-                    </div>
-                  ))}
-              </div>
             </div>
           </div>
 

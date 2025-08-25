@@ -6,9 +6,16 @@ import { Sidebar } from "@/components/navigation/sidebar";
 import { Header } from "@/app/dashboard/components/header";
 import { CompanySetupDialog } from "@/components/company/company-setup-dialog";
 import type { Company, CompanyParams } from "@/lib/services/company/models";
+import {
+  createCompanyAction,
+  updateCurrentCompanyAction,
+} from "@/lib/services/company/actions";
+import { useToast } from "@/hooks/use-toast";
+import { Account } from "@/lib/services/accounts/models";
 
 interface DashboardWrapperProps {
   companies: Company[];
+  account: Account | undefined;
   loading: boolean;
   error: string | null;
   children: React.ReactNode;
@@ -16,35 +23,18 @@ interface DashboardWrapperProps {
 
 export function DashboardWrapper({
   companies,
+  account,
   loading,
   error,
   children,
 }: DashboardWrapperProps) {
   const router = useRouter();
   const pathname = usePathname();
+  const { toast } = useToast();
   const [currentCompanies, setCurrentCompanies] =
     useState<Company[]>(companies);
   const [showCompanyDialog, setShowCompanyDialog] = useState(false);
 
-  // Debug logging
-  useEffect(() => {
-    console.log("DashboardWrapper - Props received:", {
-      companiesCount: companies.length,
-      companies: companies,
-      loading,
-      error,
-      pathname,
-    });
-  }, [companies, loading, error, pathname]);
-
-  useEffect(() => {
-    console.log("DashboardWrapper - Current state:", {
-      currentCompaniesCount: currentCompanies.length,
-      currentCompanies: currentCompanies,
-    });
-  }, [currentCompanies]);
-
-  // Update currentCompanies when companies prop changes
   useEffect(() => {
     if (companies && companies.length > 0) {
       setCurrentCompanies(companies);
@@ -84,10 +74,17 @@ export function DashboardWrapper({
 
   const handleCreateCompany = async (companyData: CompanyParams) => {
     try {
-      // In a real app, you'd get the token from context or cookies
-      // For now, we'll simulate the creation
+      // Create the company using the proper action
+      const success = await createCompanyAction(companyData);
+      if (!success) {
+        throw new Error("Failed to create company");
+      }
+
+      // Refresh the companies list
+      // Note: In a real app, you might want to refetch the companies
+      // For now, we'll simulate adding the new company
       const newCompany: Company = {
-        id: `company_${Date.now()}`,
+        id: `company_${Date.now()}`, // This would come from the API response
         name: companyData.name,
         email: companyData.email,
         phone_number: companyData.phone_number,
@@ -98,10 +95,33 @@ export function DashboardWrapper({
       setCurrentCompanies((prev) => [...prev, newCompany]);
       setShowCompanyDialog(false);
 
+      // Set the newly created company as the current company
+      const currentCompanySuccess = await updateCurrentCompanyAction(
+        newCompany.id
+      );
+      if (currentCompanySuccess) {
+        toast({
+          title: "Success",
+          description: `Company "${newCompany.name}" created and set as active!`,
+        });
+      } else {
+        toast({
+          title: "Company Created",
+          description: `Company "${newCompany.name}" created successfully!`,
+        });
+      }
+
       // Redirect to dashboard after successful creation
       router.push("/dashboard");
     } catch (error) {
+      console.log(error);
+
       console.error("Failed to create company:", error);
+      toast({
+        title: "Error",
+        description: "Failed to create company. Please try again.",
+        variant: "destructive",
+      });
       throw error;
     }
   };
@@ -150,7 +170,7 @@ export function DashboardWrapper({
           </div>
         </div>
       ) : (
-        <Sidebar initialCompanies={currentCompanies} />
+        <Sidebar initialCompanies={currentCompanies} account={account} />
       )}
 
       <div className="flex-1 flex flex-col overflow-hidden">
