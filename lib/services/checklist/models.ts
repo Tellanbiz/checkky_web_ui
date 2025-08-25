@@ -11,22 +11,38 @@ export interface ChecklistInfo {
     id: string;
     name: string;
     description: string;
-    created_at: string; // ISO date string
-    sections: ChecklistSection[];
-}
-
-export interface ChecklistSection {
-    id: string;
-    title: string;
-    order_index: number;
-    questions: ChecklistItem[];
-}
-
-export interface ChecklistItem {
-    id: string;
-    question: string;
-    requirement_code: string;
-    is_mandatory: boolean;
-    order_index: number;
-    guidance: string | null;
+    created_at: string;
+    sections: {
+        order_index: number;
+        questions: {
+            id: string;
+            question_group: string;
+            checklist_item_caption: string;
+            question_type: string;
+            corrective_action_options: string;
+            default_answer: string;
+            photo_available: string;
+            answer_option1: string;
+            answer_option2: string;
+            answer_option3: string | null;
+            answer_option4: string | null;
+            answer_option5: string | null;
+            answer_option6: string | null;
+            answer_option7: string | null;
+            answer_option8: string | null;
+            answer_option9: string | null;
+            answer_option10: string | null;
+            corrective_action_option1: string | null;
+            corrective_action_option2: string | null;
+            corrective_action_option3: string | null;
+            corrective_action_option4: string | null;
+            corrective_action_option5: string | null;
+            corrective_action_option6: string | null;
+            corrective_action_option7: string | null;
+            corrective_action_option8: string | null;
+            corrective_action_option9: string | null;
+            corrective_action_option10: string | null;
+            policy: string | null;
+        }[];
+    }[];
 }
