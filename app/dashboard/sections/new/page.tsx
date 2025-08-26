@@ -5,7 +5,6 @@ import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
 import {
   Select,
   SelectContent,
@@ -17,7 +16,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Plus, Save } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { MapComponent } from "@/components/maps/map";
-import { createFarm } from "@/lib/services/farms/actions";
+import { submitSection } from "@/lib/services/sections/actions";
 
 interface FarmSectionForm {
   name: string;
@@ -61,11 +60,30 @@ export default function NewSectionPage() {
   };
 
   const handleCoordinatesChange = (lat: string, lng: string) => {
-    // Convert coordinates to points format for database
-    const points = `[[${lng},${lat}]]`;
+    // This function is called when coordinates change, but for polygon boundaries
+    // we need to get the complete drawn boundary from the map component
+    // For now, we'll store a single point but the map should provide the full polygon
+    const newPoint: [number, number] = [Number(lng), Number(lat)];
+
     setFormData((prev) => ({
       ...prev,
-      points: points,
+      points: JSON.stringify([newPoint]),
+    }));
+  };
+
+  // Function to get the complete polygon boundary from the map
+  const getPolygonBoundary = () => {
+    // This should be called after the polygon is drawn to get all boundary points
+    // The MapComponent already has drawnBoundaryPoints that we need to access
+    console.log("Need to get complete polygon boundary from map");
+  };
+
+  // Handle complete polygon boundary from map
+  const handlePolygonComplete = (boundaryPoints: [number, number][]) => {
+    console.log("Received complete polygon boundary:", boundaryPoints);
+    setFormData((prev) => ({
+      ...prev,
+      points: JSON.stringify(boundaryPoints),
     }));
   };
 
@@ -89,15 +107,28 @@ export default function NewSectionPage() {
 
     setLoading(true);
     try {
-      const formDataToSubmit = new FormData();
-      formDataToSubmit.append("name", formData.name);
-      formDataToSubmit.append("location", formData.location);
-      formDataToSubmit.append("country", formData.country);
-      formDataToSubmit.append("size", formData.size);
-      formDataToSubmit.append("points", formData.points);
-      formDataToSubmit.append("active", formData.active);
+      // Parse points from string to [number, number][] format
+      let parsedPoints: [number, number][] = [];
+      if (formData.points) {
+        try {
+          const pointsArray = JSON.parse(formData.points);
+          if (Array.isArray(pointsArray) && pointsArray.length > 0) {
+            parsedPoints = pointsArray;
+          }
+        } catch (error) {
+          console.error("Failed to parse points:", error);
+        }
+      }
 
-      await createFarm(formDataToSubmit);
+      const farmParams = {
+        name: formData.name,
+        location: formData.location,
+        size_ha: Number(formData.size),
+        points: parsedPoints,
+        active: formData.active === "true",
+      };
+
+      await submitSection(farmParams);
 
       toast({
         title: "Section Created",
@@ -172,19 +203,6 @@ export default function NewSectionPage() {
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="country">Country *</Label>
-                  <Input
-                    id="country"
-                    placeholder="Enter country..."
-                    value={formData.country}
-                    onChange={(e) =>
-                      handleInputChange("country", e.target.value)
-                    }
-                    required
-                  />
-                </div>
-
-                <div className="space-y-2">
                   <Label htmlFor="size">Size (hectares) *</Label>
                   <Input
                     id="size"
@@ -218,24 +236,6 @@ export default function NewSectionPage() {
             </CardContent>
           </Card>
 
-          {/* Points */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Location Points</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="points">Points (JSON format)</Label>
-                <Input
-                  id="points"
-                  placeholder="[[lng,lat]]"
-                  value={formData.points}
-                  onChange={(e) => handleInputChange("points", e.target.value)}
-                />
-              </div>
-            </CardContent>
-          </Card>
-
           {/* Google Maps */}
           {(() => {
             const previewData = {
@@ -252,61 +252,9 @@ export default function NewSectionPage() {
             return null;
           })()}
 
-          {/* Debug Test Button */}
-          <div className="mb-4 p-4 bg-gray-100 rounded-lg">
-            <p className="text-sm text-gray-600 mb-2">
-              Debug: Test Preview Boundary
-            </p>
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              onClick={() => {
-                console.log("Setting test data...");
-                const newData = {
-                  points: "[[-74.13215257918141,40.724652266271505]]",
-                  size: "100",
-                };
-                console.log("New data to set:", newData);
-                setFormData((prev) => {
-                  const updated = {
-                    ...prev,
-                    ...newData,
-                  };
-                  console.log("Updated form data:", updated);
-                  return updated;
-                });
-              }}
-              className="mr-2"
-            >
-              Set Test Data
-            </Button>
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              onClick={() => {
-                console.log("Setting just size...");
-                setFormData((prev) => {
-                  const updated = { ...prev, size: "150" };
-                  console.log("Updated size:", updated);
-                  return updated;
-                });
-              }}
-              className="mr-2"
-            >
-              Set Size Only
-            </Button>
-            <div className="mt-2 text-xs text-gray-500">
-              <div>Current Points: {formData.points}</div>
-              <div>
-                Size: "{formData.size}" (length: {formData.size.length})
-              </div>
-            </div>
-          </div>
-
           <MapComponent
             onCoordinatesChange={handleCoordinatesChange}
+            onPolygonComplete={handlePolygonComplete}
             initialLat={
               formData.points ? JSON.parse(formData.points)[0]?.[1] || "" : ""
             }

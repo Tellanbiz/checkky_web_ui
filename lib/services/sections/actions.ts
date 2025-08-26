@@ -2,9 +2,10 @@
 
 import { cookies } from "next/headers";
 import { submitFarm } from "./services-post";
-import { getFarms } from "./service-get";
+import { getSections } from "./service-get";
+import { FarmParams } from "./models";
 
-export async function createFarm(formData: FormData): Promise<any> {
+export async function submitSection(params: FarmParams): Promise<any> {
     const cookieStore = await cookies();
     const token = cookieStore.get("access_token")?.value;
 
@@ -12,10 +13,10 @@ export async function createFarm(formData: FormData): Promise<any> {
         throw new Error("Not authenticated");
     }
 
-    return submitFarm(token, formData);
+    return submitFarm(token, params);
 }
 
-export async function getAllFarms(): Promise<any> {
+export async function getAllSections(): Promise<any> {
     const cookieStore = await cookies();
     const token = cookieStore.get("access_token")?.value;
 
@@ -23,5 +24,5 @@ export async function getAllFarms(): Promise<any> {
         throw new Error("Not authenticated");
     }
 
-    return getFarms(token);
+    return getSections(token);
 }

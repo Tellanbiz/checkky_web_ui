@@ -15,6 +15,7 @@ declare global {
 
 interface MapComponentProps {
   onCoordinatesChange: (lat: string, lng: string) => void;
+  onPolygonComplete?: (boundaryPoints: [number, number][]) => void;
   initialLat?: string;
   initialLng?: string;
   previewBoundary?: {
@@ -27,6 +28,7 @@ interface MapComponentProps {
 
 export function MapComponent({
   onCoordinatesChange,
+  onPolygonComplete,
   initialLat,
   initialLng,
   previewBoundary,
@@ -139,6 +141,15 @@ export function MapComponent({
             setDrawnBoundaryPoints(points);
 
             updateCoordinatesFromShape(polygon);
+
+            // Convert points to [number, number][] format and call callback
+            if (onPolygonComplete) {
+              const boundaryPoints: [number, number][] = points.map((point) => [
+                point.lng,
+                point.lat,
+              ]);
+              onPolygonComplete(boundaryPoints);
+            }
           }
         );
 
@@ -165,6 +176,15 @@ export function MapComponent({
             setDrawnBoundaryPoints(points);
 
             updateCoordinatesFromShape(rectangle);
+
+            // Convert points to [number, number][] format and call callback
+            if (onPolygonComplete) {
+              const boundaryPoints: [number, number][] = points.map((point) => [
+                point.lng,
+                point.lat,
+              ]);
+              onPolygonComplete(boundaryPoints);
+            }
           }
         );
 
@@ -191,6 +211,15 @@ export function MapComponent({
             setDrawnBoundaryPoints(points);
 
             updateCoordinatesFromShape(circle);
+
+            // Convert points to [number, number][] format and call callback
+            if (onPolygonComplete) {
+              const boundaryPoints: [number, number][] = points.map((point) => [
+                point.lng,
+                point.lat,
+              ]);
+              onPolygonComplete(boundaryPoints);
+            }
           }
         );
 
@@ -286,9 +315,14 @@ export function MapComponent({
       );
     }
 
-    if (bounds) {
+    // For search and location functionality, we still need to update coordinates
+    // but we'll do it differently to avoid unwanted circles from polygon drawing
+    if (bounds && onCoordinatesChange) {
       const center = bounds.getCenter();
-      onCoordinatesChange(center.lat().toString(), center.lng().toString());
+      // Only call onCoordinatesChange for non-polygon shapes or when explicitly needed
+      if (!(shape instanceof window.google.maps.Polygon)) {
+        onCoordinatesChange(center.lat().toString(), center.lng().toString());
+      }
     }
   };
 

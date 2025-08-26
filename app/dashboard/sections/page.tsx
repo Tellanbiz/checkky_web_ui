@@ -2,15 +2,8 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import {
   Select,
@@ -38,8 +31,8 @@ import {
 } from "lucide-react";
 import { EditSectionModal } from "@/components/sections/edit-section-modal";
 import { SectionDetailsModal } from "@/components/sections/section-details-modal";
-import { getAllFarms } from "@/lib/services/farms/actions";
-import { Farm } from "@/lib/services/farms/models";
+import { getAllSections } from "@/lib/services/sections/actions";
+import { Farm } from "@/lib/services/sections/models";
 import { useToast } from "@/hooks/use-toast";
 
 export default function SectionsPage() {
@@ -61,8 +54,7 @@ export default function SectionsPage() {
   const fetchFarms = async () => {
     try {
       setLoading(true);
-      const farms = await getAllFarms();
-
+      const farms = await getAllSections();
       setSections(farms);
     } catch (error) {
       console.error("Failed to fetch farms:", error);

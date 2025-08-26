@@ -10,3 +10,13 @@ export interface Farm {
         complete: number;
     }
 }
+
+
+export interface FarmParams {
+    id?: string;
+    name: string;
+    location: string;
+    size_ha: number;
+    points: [number, number][];
+    active: boolean;
+}
