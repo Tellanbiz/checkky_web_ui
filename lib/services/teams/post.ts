@@ -13,8 +13,8 @@ export async function inviteTeamMember(token: string, params: InviteParams): Pro
     return response.data;
 }
 
-export async function acceptTeamInvite(token: string, team_id: string): Promise<Result> {
-    const response = await clientV1.post<Result>('/companies/team/accept', { team_id }, {
+export async function acceptTeamInvite(token: string, invite_id: string, accepted: boolean): Promise<Result> {
+    const response = await clientV1.post<Result>('/companies/team/submission', { invite_id, accepted }, {
         headers: {
             Authorization: `Bearer ${token}`,
         },

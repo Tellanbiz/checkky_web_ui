@@ -2,8 +2,8 @@
 
 import { getAccessToken } from '@/lib/services/auth/auth-get';
 import { inviteTeamMember, acceptTeamInvite } from './post';
-import { InviteParams, TeamInvite } from './data';
-import { getTeamInvites } from './get';
+import { InviteParams, TeamInvite, TeamInviteInfo } from './data';
+import { getMyTeamInvite, getTeamInviteInfo, getTeamInvites } from './get';
 
 export async function inviteTeamMemberAction(params: InviteParams) {
     try {
@@ -38,7 +38,37 @@ export async function getAllTeamInvites(): Promise<TeamInvite[]> {
     }
 }
 
-export async function acceptTeamInviteAction(teamId: string) {
+
+export async function getMyTeamInvitesAction(): Promise<TeamInviteInfo[]> {
+    try {
+        const token = await getAccessToken();
+        if (!token) {
+            throw new Error('No access token found');
+        }
+
+        return await getMyTeamInvite(token);
+    } catch (error) {
+        console.error('Error inviting team member:', error);
+        return []
+    }
+}
+
+
+export async function getTeamInviteInfoAction(teamID: string): Promise<TeamInviteInfo | undefined> {
+    try {
+        const token = await getAccessToken();
+        if (!token) {
+            throw new Error('No access token found');
+        }
+
+        return await getTeamInviteInfo(token, teamID);
+    } catch (error) {
+        console.error('Error inviting team member:', error);
+        return
+    }
+}
+
+export async function acceptTeamInviteAction(invite_id: string, accepted: boolean) {
     try {
         const token = await getAccessToken();
         console.log("token: ", token);
@@ -47,7 +77,7 @@ export async function acceptTeamInviteAction(teamId: string) {
             throw new Error('No access token found');
         }
 
-        const result = await acceptTeamInvite(token, teamId);
+        const result = await acceptTeamInvite(token, invite_id, accepted);
         return { success: true, data: result };
     } catch (error) {
         console.error('Error accepting team invite:', error);

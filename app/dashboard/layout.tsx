@@ -6,6 +6,7 @@ import { DashboardWrapper } from "@/components/dashboard/dashboard-wrapper";
 import { Toaster } from "@/components/ui/toaster";
 import { Account } from "@/lib/services/accounts/models";
 import { getAccount } from "@/lib/services/auth/auth-get";
+import { redirect } from "next/navigation";
 
 export const metadata: Metadata = {
   title: "CheckIt - Auditing & Checklist Management",
@@ -32,6 +33,21 @@ export default async function DashboardLayout({
   } catch (err) {
     error = err instanceof Error ? err.message : "Failed to load companies";
     loading = false;
+  }
+
+  // If user has no companies, redirect to continue page
+  if (!loading && companies.length === 0) {
+    redirect("/auth/continue");
+  }
+
+  // If user has companies but none selected, redirect to companies page
+  if (
+    !loading &&
+    companies.length > 0 &&
+    account &&
+    !account.current_company_id
+  ) {
+    redirect("/companies");
   }
 
   return (

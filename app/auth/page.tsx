@@ -60,7 +60,7 @@ export default function LoginPage() {
 
       {/* Logo */}
       <div className="absolute top-8 left-8 text-xl font-bold">
-        GlobalGAP<span className="text-emerald-600">.</span>
+        CHeckIt<span className="text-emerald-600">.</span>
       </div>
 
       {/* Login Form */}

@@ -52,6 +52,7 @@ export function DashboardWrapper({
   useEffect(() => {
     const hasCompanies = currentCompanies.length > 0;
     const onCompanyCreatePage = pathname === "/dashboard/companies/new";
+    const onCompaniesPage = pathname === "/companies";
     if (loading) return;
 
     // If unauthorized, let the other effect handle redirect
@@ -68,9 +69,20 @@ export function DashboardWrapper({
       return;
     }
 
+    // Check if user has companies but none selected
+    if (
+      hasCompanies &&
+      account &&
+      !account.current_company_id &&
+      !onCompaniesPage
+    ) {
+      router.replace("/companies");
+      return;
+    }
+
     // Manage dialog visibility only on /dashboard with no companies
     setShowCompanyDialog(!hasCompanies && pathname === "/dashboard");
-  }, [loading, currentCompanies.length, pathname, router, error]);
+  }, [loading, currentCompanies.length, pathname, router, error, account]);
 
   const handleCreateCompany = async (companyData: CompanyParams) => {
     try {

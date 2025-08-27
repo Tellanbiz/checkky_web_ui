@@ -15,19 +15,13 @@ import {
 import {
   Plus,
   Search,
-  MoreHorizontal,
   RefreshCw,
   Loader2,
   Mail,
   Send,
   XCircle,
+  CheckCircle,
 } from "lucide-react";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
 import { InviteMemberModal } from "./invite-member-modal";
 import { DeleteConfirmationModal } from "./delete-confirmation-modal";
 import {
@@ -79,9 +73,40 @@ export function Page() {
     setShowDeleteModal(false);
   };
 
-  const handleResendInvite = (invite: any) => {
-    console.log("Resending invite to:", invite.email);
-    // Here you would resend the invitation
+  const handleResendInvite = async (invite: TeamInvite) => {
+    try {
+      const result = await inviteTeamMemberAction({
+        invites: [
+          {
+            email: invite.email,
+            role: invite.role as "admin" | "auditor" | "assignee" | "viewer",
+          },
+        ],
+      });
+
+      if (result.success) {
+        toast({
+          title: "Invitation Resent",
+          description: `Successfully resent invitation to ${invite.email}`,
+        });
+        fetchInvites(); // Refresh the invites data
+      } else {
+        toast({
+          title: "Resend Failed",
+          description:
+            result.error || "Failed to resend invitation. Please try again.",
+          variant: "destructive",
+        });
+      }
+    } catch (error) {
+      console.error("Error resending invitation:", error);
+      toast({
+        title: "Error",
+        description:
+          "An unexpected error occurred while resending the invitation.",
+        variant: "destructive",
+      });
+    }
   };
 
   const handleInviteSent = async (inviteData: {
@@ -126,6 +151,8 @@ export function Page() {
     switch (status) {
       case "Pending":
         return <Badge className="bg-blue-100 text-blue-800">Pending</Badge>;
+      case "Rejected":
+        return <Badge className="bg-red-100 text-red-800">Rejected</Badge>;
       case "Expired":
         return <Badge className="bg-red-100 text-red-800">Expired</Badge>;
       default:
@@ -204,30 +231,40 @@ export function Page() {
                   </TableCell>
                   <TableCell>{getStatusBadge(invite.status)}</TableCell>
                   <TableCell className="text-right">
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" size="icon">
-                          <MoreHorizontal className="h-4 w-4" />
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                        {invite.status === "Pending" && (
-                          <DropdownMenuItem
-                            onClick={() => handleResendInvite(invite)}
-                          >
-                            <Send className="mr-2 h-4 w-4" />
-                            Resend
-                          </DropdownMenuItem>
-                        )}
-                        <DropdownMenuItem
-                          className="text-red-600"
-                          onClick={() => handleDeleteInvite(invite)}
+                    <div className="flex items-center gap-2 justify-end">
+                      {(invite.status === "pending" ||
+                        invite.status === "declined") && (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => handleResendInvite(invite)}
+                          className="border-blue-200 text-blue-600 hover:bg-blue-50"
                         >
-                          <XCircle className="mr-2 h-4 w-4" />
-                          Cancel
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
+                          <Send className="mr-2 h-4 w-4" />
+                          Resend
+                        </Button>
+                      )}
+                      {invite.status === "accepted" && (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          disabled
+                          className="border-green-200 text-green-600 bg-green-50"
+                        >
+                          <CheckCircle className="mr-2 h-4 w-4" />
+                          Accepted
+                        </Button>
+                      )}
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handleDeleteInvite(invite)}
+                        className="border-red-200 text-red-600 hover:bg-red-50"
+                      >
+                        <XCircle className="mr-2 h-4 w-4" />
+                        Cancel
+                      </Button>
+                    </div>
                   </TableCell>
                 </TableRow>
               ))}

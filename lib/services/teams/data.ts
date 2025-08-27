@@ -12,3 +12,15 @@ export interface TeamInvite {
     status: string;
     created_at: string;
 }
+
+export interface TeamInviteInfo {
+    id: string;
+    role: string;
+    email: string;
+    status: string;
+    created_at: string;
+    company: {
+        name: string;
+        email: string;
+    }
+}

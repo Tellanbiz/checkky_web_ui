@@ -217,6 +217,15 @@ export function Sidebar({ initialCompanies, account }: SidebarProps) {
               </div>
             </div>
           )}
+
+          {/* Manage Companies Link */}
+          <Link
+            href="/companies"
+            className="flex items-center justify-center w-full px-3 py-2 text-sm font-medium text-gray-600 bg-gray-50 border border-gray-200 rounded-lg hover:bg-gray-100 hover:text-gray-700 transition-colors"
+          >
+            <Building className="w-4 h-4 mr-2" />
+            Manage Companies
+          </Link>
         </div>
       </div>
     </div>
