@@ -67,33 +67,42 @@ export function Sidebar({ initialCompanies, account }: SidebarProps) {
       </div>
 
       {/* Navigation */}
-      <nav className="flex-1 px-4 py-6 space-y-2 overflow-y-auto">
-        {navigation.map((item) => {
-          const isActive = pathname === item.href;
-          return (
-            <Link
-              key={item.name}
-              href={item.href}
-              className={cn(
-                "flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-colors",
-                isActive
-                  ? "bg-[#16A34A] text-white"
-                  : "text-gray-700 hover:bg-gray-100"
-              )}
-            >
-              <item.icon className="w-5 h-5 mr-3 flex-shrink-0" />
-              <span className="truncate">{item.name}</span>
-              {item.badge && (
-                <Badge
-                  variant="secondary"
-                  className="ml-auto bg-gray-100 text-gray-600 flex-shrink-0"
-                >
-                  {item.badge}
-                </Badge>
-              )}
-            </Link>
-          );
-        })}
+      <nav className="flex-1 px-4 py-6 space-y-6 overflow-y-auto">
+        {navigation.map((section) => (
+          <div key={section.title} className="space-y-2">
+            <h3 className="px-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">
+              {section.title}
+            </h3>
+            <div className="space-y-1">
+              {section.items.map((item) => {
+                const isActive = pathname === item.href;
+                return (
+                  <Link
+                    key={item.name}
+                    href={item.href}
+                    className={cn(
+                      "flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-colors",
+                      isActive
+                        ? "bg-[#16A34A] text-white"
+                        : "text-gray-700 hover:bg-gray-100"
+                    )}
+                  >
+                    <item.icon className="w-5 h-5 mr-3 flex-shrink-0" />
+                    <span className="truncate">{item.name}</span>
+                    {item.badge && (
+                      <Badge
+                        variant="secondary"
+                        className="ml-auto bg-gray-100 text-gray-600 flex-shrink-0"
+                      >
+                        {item.badge}
+                      </Badge>
+                    )}
+                  </Link>
+                );
+              })}
+            </div>
+          </div>
+        ))}
       </nav>
 
       {/* Company Switcher */}
