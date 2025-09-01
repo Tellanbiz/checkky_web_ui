@@ -3,7 +3,7 @@
 import { getAccessToken } from '@/lib/services/auth/auth-get';
 import { inviteTeamMember, acceptTeamInvite } from './post';
 import { InviteParams, TeamInvite, TeamInviteInfo } from './data';
-import { getMyTeamInvite, getTeamInviteInfo, getTeamInvites } from './get';
+import { getMyTeamInvite, getTeamInviteInfo, getTeamInvites, getTeamMembers } from './get';
 
 export async function inviteTeamMemberAction(params: InviteParams) {
     try {
@@ -71,13 +71,22 @@ export async function getTeamInviteInfoAction(teamID: string): Promise<TeamInvit
 export async function acceptTeamInviteAction(invite_id: string, accepted: boolean) {
     try {
         const token = await getAccessToken();
-        console.log("token: ", token);
+        const result = await acceptTeamInvite(token!, invite_id, accepted);
+        return { success: true, data: result };
+    } catch (error) {
+        console.error('Error accepting team invite:', error);
+        return {
+            success: false,
+            error: error instanceof Error ? error.message : 'Failed to accept team invite'
+        };
+    }
+}
 
-        if (!token) {
-            throw new Error('No access token found');
-        }
 
-        const result = await acceptTeamInvite(token, invite_id, accepted);
+export async function getTeamMembersAction() {
+    try {
+        const token = await getAccessToken();
+        const result = await getTeamMembers(token!);
         return { success: true, data: result };
     } catch (error) {
         console.error('Error accepting team invite:', error);

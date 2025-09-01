@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -33,92 +33,18 @@ import {
 import { ViewProfileModal } from "./view-profile-modal";
 import { DeleteConfirmationModal } from "./delete-confirmation-modal";
 import { EditMemberRoleModal } from "./edit-member-role-modal";
-
-// Mock data - replace with actual API calls
-const teamMembers = [
-  {
-    id: 1,
-    name: "Sarah Johnson",
-    email: "sarah.johnson@company.com",
-    role: "Admin",
-    avatar: "SJ",
-    status: "Active",
-    performance: 95,
-    completedTasks: 47,
-    totalTasks: 50,
-    lastActive: "2 hours ago",
-  },
-  {
-    id: 2,
-    name: "Mike Chen",
-    email: "mike.chen@company.com",
-    role: "Auditor",
-    avatar: "MC",
-    status: "Active",
-    performance: 88,
-    completedTasks: 35,
-    totalTasks: 40,
-    lastActive: "1 hour ago",
-  },
-  {
-    id: 3,
-    name: "Emily Rodriguez",
-    email: "emily.rodriguez@company.com",
-    role: "Assignee",
-    avatar: "ER",
-    status: "Away",
-    performance: 92,
-    completedTasks: 28,
-    totalTasks: 30,
-    lastActive: "4 hours ago",
-  },
-  {
-    id: 4,
-    name: "David Kim",
-    email: "david.kim@company.com",
-    role: "Viewer",
-    avatar: "DK",
-    status: "Active",
-    performance: 78,
-    completedTasks: 15,
-    totalTasks: 20,
-    lastActive: "30 minutes ago",
-  },
-  {
-    id: 5,
-    name: "Lisa Thompson",
-    email: "lisa.thompson@company.com",
-    role: "Auditor",
-    avatar: "LT",
-    status: "Active",
-    performance: 91,
-    completedTasks: 42,
-    totalTasks: 45,
-    lastActive: "3 hours ago",
-  },
-  {
-    id: 6,
-    name: "James Wilson",
-    email: "james.wilson@company.com",
-    role: "Assignee",
-    avatar: "JW",
-    status: "Active",
-    performance: 85,
-    completedTasks: 33,
-    totalTasks: 38,
-    lastActive: "1 hour ago",
-  },
-];
+import { getTeamMembersAction } from "@/lib/services/teams/actions";
+import { TeamMember } from "@/lib/services/teams/data";
 
 const getRoleIcon = (role: string) => {
   switch (role) {
-    case "Admin":
+    case "admin":
       return <Shield className="h-4 w-4 text-red-600" />;
-    case "Auditor":
+    case "auditor":
       return <UserCheck className="h-4 w-4 text-blue-600" />;
-    case "Assignee":
+    case "assignee":
       return <Users className="h-4 w-4 text-green-600" />;
-    case "Viewer":
+    case "viewer":
       return <Eye className="h-4 w-4 text-gray-600" />;
     default:
       return <Users className="h-4 w-4 text-gray-600" />;
@@ -127,34 +53,77 @@ const getRoleIcon = (role: string) => {
 
 const getRoleBadgeColor = (role: string) => {
   switch (role) {
-    case "Admin":
+    case "admin":
       return "bg-red-100 text-red-800";
-    case "Auditor":
+    case "auditor":
       return "bg-blue-100 text-blue-800";
-    case "Assignee":
+    case "assignee":
       return "bg-green-100 text-green-800";
-    case "Viewer":
+    case "viewer":
       return "bg-gray-100 text-gray-800";
     default:
       return "bg-gray-100 text-gray-800";
   }
 };
 
+const getRoleDisplayName = (role: string) => {
+  switch (role) {
+    case "admin":
+      return "Admin";
+    case "auditor":
+      return "Auditor";
+    case "assignee":
+      return "Assignee";
+    case "viewer":
+      return "Viewer";
+    default:
+      return role;
+  }
+};
+
 export function Page() {
-  const [selectedMember, setSelectedMember] = useState<any>(null);
+  const [selectedMember, setSelectedMember] = useState<TeamMember | null>(null);
   const [showProfileModal, setShowProfileModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
-  const [memberToDelete, setMemberToDelete] = useState<any>(null);
+  const [memberToDelete, setMemberToDelete] = useState<TeamMember | null>(null);
   const [showEditRoleModal, setShowEditRoleModal] = useState(false);
-  const [memberToEditRole, setMemberToEditRole] = useState<any>(null);
+  const [memberToEditRole, setMemberToEditRole] = useState<TeamMember | null>(
+    null
+  );
   const [loading, setLoading] = useState(false);
+  const [teamMembers, setTeamMembers] = useState<TeamMember[]>([]);
+  const [initialLoading, setInitialLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  const handleViewProfile = (member: any) => {
+  const fetchTeamMembers = async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const result = await getTeamMembersAction();
+      if (result.success && result.data) {
+        setTeamMembers(result.data);
+      } else {
+        setError(result.error || "Failed to fetch team members");
+      }
+    } catch (error) {
+      setError("An unexpected error occurred");
+      console.error("Error fetching team members:", error);
+    } finally {
+      setLoading(false);
+      setInitialLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchTeamMembers();
+  }, []);
+
+  const handleViewProfile = (member: TeamMember) => {
     setSelectedMember(member);
     setShowProfileModal(true);
   };
 
-  const handleDeleteMember = (member: any) => {
+  const handleDeleteMember = (member: TeamMember) => {
     setMemberToDelete(member);
     setShowDeleteModal(true);
   };
@@ -164,41 +133,58 @@ export function Page() {
     // Here you would actually delete the member
   };
 
-  const handleSendMessage = (member: any) => {
-    console.log("Sending message to:", member.name);
+  const handleSendMessage = (member: TeamMember) => {
+    console.log("Sending message to:", member.user.full_name);
     // Here you would open a message modal or redirect
   };
 
-  const handleEditRole = (member: any) => {
+  const handleEditRole = (member: TeamMember) => {
     setMemberToEditRole(member);
     setShowEditRoleModal(true);
   };
 
   const handleRoleUpdated = () => {
     // Refresh team data after role update
-    // In a real app, you would refetch the team members here
-    console.log("Role updated, refreshing team data...");
-    // You could add a refetch function here if you have an API
+    fetchTeamMembers();
   };
 
   const handleRefresh = async () => {
-    setLoading(true);
-    try {
-      // Simulate API call delay
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-      // In a real app, you would refetch team data here
-      console.log("Team data refreshed");
-    } catch (error) {
-      console.error("Error refreshing team data:", error);
-    } finally {
-      setLoading(false);
-    }
+    await fetchTeamMembers();
   };
+
+  if (initialLoading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <Loader2 className="h-8 w-8 animate-spin" />
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="space-y-6">
+        <div className="flex items-center justify-end">
+          <Button variant="outline" onClick={handleRefresh} disabled={loading}>
+            {loading ? (
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+            ) : (
+              <RefreshCw className="mr-2 h-4 w-4" />
+            )}
+            Refresh
+          </Button>
+        </div>
+        <div className="text-center py-8">
+          <p className="text-red-600 mb-4">{error}</p>
+          <Button onClick={handleRefresh} disabled={loading}>
+            Try Again
+          </Button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
-      {/* Header */}
-
       {/* Filters */}
       <div className="flex items-center space-x-4">
         <div className="relative flex-1 max-w-sm">
@@ -217,7 +203,6 @@ export function Page() {
             <SelectItem value="viewer">Viewer</SelectItem>
           </SelectContent>
         </Select>
-
         <Button variant="outline" onClick={handleRefresh} disabled={loading}>
           {loading ? (
             <Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -236,12 +221,18 @@ export function Page() {
               <div className="flex items-start justify-between">
                 <div className="flex items-center space-x-3">
                   <Avatar className="h-12 w-12">
-                    <AvatarFallback>{member.avatar}</AvatarFallback>
+                    <AvatarFallback>
+                      {member.user.full_name
+                        .split(" ")
+                        .map((n) => n[0])
+                        .join("")
+                        .toUpperCase()}
+                    </AvatarFallback>
                   </Avatar>
                   <div>
-                    <h3 className="font-semibold">{member.name}</h3>
+                    <h3 className="font-semibold">{member.user.full_name}</h3>
                     <p className="text-sm text-muted-foreground">
-                      {member.email}
+                      {member.user.email}
                     </p>
                   </div>
                 </div>
@@ -273,48 +264,51 @@ export function Page() {
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
-                {/* Role and Status */}
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center space-x-2">
-                    {getRoleIcon(member.role)}
-                    <Badge className={getRoleBadgeColor(member.role)}>
-                      {member.role}
-                    </Badge>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <div
-                      className={`h-2 w-2 rounded-full ${
-                        member.status === "Active"
-                          ? "bg-green-500"
-                          : member.status === "Away"
-                          ? "bg-yellow-500"
-                          : "bg-gray-400"
-                      }`}
-                    />
-                    <span className="text-sm text-muted-foreground">
-                      {member.status}
-                    </span>
-                  </div>
+                {/* Role */}
+                <div className="flex items-center space-x-2">
+                  {getRoleIcon(member.role)}
+                  <Badge className={getRoleBadgeColor(member.role)}>
+                    {getRoleDisplayName(member.role)}
+                  </Badge>
                 </div>
 
-                {/* Performance */}
+                {/* Task Stats */}
                 <div className="space-y-2">
                   <div className="flex justify-between text-sm">
-                    <span>Performance</span>
-                    <span className="font-medium">{member.performance}%</span>
+                    <span>Tasks Completed</span>
+                    <span className="font-medium">
+                      {member.checklist_stats.completed}
+                    </span>
                   </div>
                   <div className="w-full bg-gray-200 rounded-full h-2">
                     <div
                       className={`h-2 rounded-full transition-all ${
-                        member.performance >= 90
-                          ? "bg-green-500"
-                          : member.performance >= 80
-                          ? "bg-blue-500"
-                          : member.performance >= 70
-                          ? "bg-yellow-500"
-                          : "bg-red-500"
+                        member.checklist_stats.total > 0
+                          ? member.checklist_stats.completed /
+                              member.checklist_stats.total >=
+                            0.9
+                            ? "bg-green-500"
+                            : member.checklist_stats.completed /
+                                member.checklist_stats.total >=
+                              0.8
+                            ? "bg-blue-500"
+                            : member.checklist_stats.completed /
+                                member.checklist_stats.total >=
+                              0.7
+                            ? "bg-yellow-500"
+                            : "bg-red-500"
+                          : "bg-gray-400"
                       }`}
-                      style={{ width: `${member.performance}%` }}
+                      style={{
+                        width:
+                          member.checklist_stats.total > 0
+                            ? `${
+                                (member.checklist_stats.completed /
+                                  member.checklist_stats.total) *
+                                100
+                              }%`
+                            : "0%",
+                      }}
                     />
                   </div>
                 </div>
@@ -322,10 +316,11 @@ export function Page() {
                 {/* Task Stats */}
                 <div className="flex justify-between text-sm">
                   <span>
-                    Tasks: {member.completedTasks}/{member.totalTasks}
+                    Tasks: {member.checklist_stats.completed}/
+                    {member.checklist_stats.total}
                   </span>
                   <span className="text-muted-foreground">
-                    Last active: {member.lastActive}
+                    Pending: {member.checklist_stats.pending}
                   </span>
                 </div>
 
@@ -357,7 +352,7 @@ export function Page() {
         onConfirm={confirmDelete}
         title="Remove Team Member"
         description="Are you sure you want to remove this team member? They will lose access to all checklists and data."
-        itemName={memberToDelete?.name || ""}
+        itemName={memberToDelete?.user.full_name || ""}
       />
 
       {memberToEditRole && (

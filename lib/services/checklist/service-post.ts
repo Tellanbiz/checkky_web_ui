@@ -1,4 +1,5 @@
 import { clientV1 } from "@/lib/client/client";
+import { AssignedChecklistParams } from "./models";
 
 export interface CreateChecklistData {
     name: string;
@@ -20,3 +21,11 @@ export async function createChecklist(token: string, data: CreateChecklistData):
     return res.status != 200 ? { error: res.data.error } : res.data;
 }
 
+export async function assignChecklist(token: string, data: AssignedChecklistParams): Promise<any> {
+    const res = await clientV1.post('/checklist/assign', data, {
+        headers: {
+            Authorization: `Bearer ${token}`,
+        },
+    });
+    return res.status != 200 ? { error: res.data.error } : res.data;
+}

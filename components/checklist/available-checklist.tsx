@@ -11,15 +11,24 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Search, Filter, Plus, Download, Eye, Loader2 } from "lucide-react";
+import {
+  Search,
+  Filter,
+  Plus,
+  Download,
+  Eye,
+  Loader2,
+  Users,
+} from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useEffect, useState } from "react";
 import { getAllChecklists } from "@/lib/services/checklist/actions";
 import { CheckList } from "@/lib/services/checklist/models";
-import { redirect } from "next/navigation";
+import { useRouter } from "next/navigation";
 
 export function AvailableChecklist() {
   const { toast } = useToast();
+  const router = useRouter();
   const [checklists, setChecklists] = useState<CheckList[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
@@ -90,8 +99,11 @@ export function AvailableChecklist() {
   };
 
   const handlePreviewChecklist = (checklist: CheckList) => {
-    redirect(`/dashboard/checklists/${checklist.id}`);
-    // Here you would open a preview modal
+    router.push(`/dashboard/checklists/${checklist.id}`);
+  };
+
+  const handleAssignChecklist = (checklist: CheckList) => {
+    router.push(`/dashboard/checklists/assign/${checklist.id}`);
   };
 
   const handleUseTemplate = (checklist: CheckList) => {
@@ -196,10 +208,10 @@ export function AvailableChecklist() {
                   <div className="space-y-2">
                     <Button
                       className="w-full"
-                      onClick={() => handleUseTemplate(checklist)}
+                      onClick={() => handleAssignChecklist(checklist)}
                     >
-                      <Plus className="mr-2 h-4 w-4" />
-                      Use Template
+                      <Users className="mr-2 h-4 w-4" />
+                      Assign Checklist
                     </Button>
                     <div className="flex space-x-2">
                       <Button

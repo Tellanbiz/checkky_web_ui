@@ -21,19 +21,29 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Shield, UserCheck, Eye, Users, Save, X, Loader2 } from "lucide-react";
 import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
+import { TeamMember } from "@/lib/services/teams/data";
 
 interface EditMemberRoleModalProps {
   isOpen: boolean;
   onClose: () => void;
-  member: {
-    id: number;
-    name: string;
-    email: string;
-    role: string;
-    avatar: string;
-  };
+  member: TeamMember;
   onRoleUpdated?: () => void;
 }
+
+const getRoleDisplayName = (role: string) => {
+  switch (role) {
+    case "admin":
+      return "Admin";
+    case "auditor":
+      return "Auditor";
+    case "assignee":
+      return "Assignee";
+    case "viewer":
+      return "Viewer";
+    default:
+      return role;
+  }
+};
 
 export function EditMemberRoleModal({
   isOpen,
@@ -47,6 +57,7 @@ export function EditMemberRoleModal({
 
   const roles = [
     {
+      value: "admin",
       name: "Admin",
       icon: Shield,
       color: "bg-red-100 text-red-800",
@@ -59,6 +70,7 @@ export function EditMemberRoleModal({
       ],
     },
     {
+      value: "auditor",
       name: "Auditor",
       icon: UserCheck,
       color: "bg-blue-100 text-blue-800",
@@ -71,6 +83,7 @@ export function EditMemberRoleModal({
       ],
     },
     {
+      value: "assignee",
       name: "Assignee",
       icon: Users,
       color: "bg-green-100 text-green-800",
@@ -83,6 +96,7 @@ export function EditMemberRoleModal({
       ],
     },
     {
+      value: "viewer",
       name: "Viewer",
       icon: Eye,
       color: "bg-gray-100 text-gray-800",
@@ -103,9 +117,31 @@ export function EditMemberRoleModal({
     }
 
     setLoading(true);
+    try {
+      // TODO: Implement actual role update API call
+      // const result = await updateMemberRoleAction(member.id, selectedRole);
+
+      toast({
+        title: "Role Updated",
+        description: `${
+          member.user.full_name
+        }'s role has been updated to ${getRoleDisplayName(selectedRole)}.`,
+      });
+
+      onRoleUpdated?.();
+      onClose();
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to update member role. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const selectedRoleData = roles.find((role) => role.name === selectedRole);
+  const selectedRoleData = roles.find((role) => role.value === selectedRole);
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
@@ -118,16 +154,26 @@ export function EditMemberRoleModal({
           {/* Member Info */}
           <div className="flex items-center space-x-4 p-4 bg-gray-50 rounded-lg">
             <Avatar className="h-12 w-12">
-              <AvatarFallback>{member.avatar}</AvatarFallback>
+              <AvatarFallback>
+                {member.user.full_name
+                  .split(" ")
+                  .map((n) => n[0])
+                  .join("")
+                  .toUpperCase()}
+              </AvatarFallback>
             </Avatar>
             <div>
-              <h3 className="font-semibold">{member.name}</h3>
-              <p className="text-sm text-muted-foreground">{member.email}</p>
+              <h3 className="font-semibold">{member.user.full_name}</h3>
+              <p className="text-sm text-muted-foreground">
+                {member.user.email}
+              </p>
               <div className="flex items-center space-x-2 mt-1">
                 <span className="text-xs text-muted-foreground">
                   Current role:
                 </span>
-                <Badge variant="outline">{member.role}</Badge>
+                <Badge variant="outline">
+                  {getRoleDisplayName(member.role)}
+                </Badge>
               </div>
             </div>
           </div>
@@ -142,7 +188,7 @@ export function EditMemberRoleModal({
                 </SelectTrigger>
                 <SelectContent>
                   {roles.map((role) => (
-                    <SelectItem key={role.name} value={role.name}>
+                    <SelectItem key={role.value} value={role.value}>
                       <div className="flex items-center space-x-2">
                         <role.icon className="h-4 w-4" />
                         <span>{role.name}</span>
@@ -188,11 +234,11 @@ export function EditMemberRoleModal({
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
               {roles.map((role) => (
                 <Card
-                  key={role.name}
+                  key={role.value}
                   className={`cursor-pointer transition-all ${
-                    selectedRole === role.name ? "ring-2 ring-blue-500" : ""
+                    selectedRole === role.value ? "ring-2 ring-blue-500" : ""
                   }`}
-                  onClick={() => setSelectedRole(role.name)}
+                  onClick={() => setSelectedRole(role.value)}
                 >
                   <CardContent className="p-3">
                     <div className="flex items-center space-x-2 mb-2">

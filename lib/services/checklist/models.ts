@@ -47,3 +47,31 @@ export interface ChecklistInfo {
         }[];
     }[];
 }
+
+export interface AssignedChecklist {
+    id: string;
+    title: string;
+    notes: string;
+    status: 'pending' | 'completed';
+    priority: 'high' | 'mid' | 'low';
+    member_id: string;
+    checklist_id: string;
+    created_at: string; // ISO timestamp or date string
+    assigned_member: {
+        id: string;
+        name: string;
+        email: string;
+    };
+    checklist_progress: {
+        total_questions: number;
+        answered_questions: number;
+    };
+}
+
+export interface AssignedChecklistParams {
+    title: string;
+    notes: string;
+    priority: 'high' | 'mid' | 'low';
+    checklist_id: string;
+    member_id: string;
+}

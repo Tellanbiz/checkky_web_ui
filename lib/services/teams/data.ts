@@ -24,3 +24,21 @@ export interface TeamInviteInfo {
         email: string;
     }
 }
+
+export interface TeamMember {
+    id: string;
+    role: string;
+    user: {
+        picture: string;
+        full_name: string;
+        email: string;
+    };
+    checklist_stats: {
+        total: number;
+        completed: number;
+        pending: number;
+    };
+}
+
+
+
