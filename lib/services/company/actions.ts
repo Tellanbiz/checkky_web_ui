@@ -26,8 +26,10 @@ export async function createCompanyAction(company: CompanyParams): Promise<boole
         if (!token) {
             throw new Error("Not authenticated");
         }
-        const failed = await createCompanyPost(token, company);
-        return !failed;
+        const success = await createCompanyPost(token, company);
+        console.log("company created", success);
+
+        return success;
     } catch (error) {
         console.error("Failed to create company:", error);
         return false;

@@ -70,7 +70,10 @@ export default function LoginPage() {
           <h2 className="text-2xl font-bold mb-1">Sign in to CheckIt</h2>
           <p className="text-sm text-gray-600 mb-6">
             New here?{" "}
-            <Link href="#" className="text-emerald-600 hover:underline">
+            <Link
+              href="/auth/signup"
+              className="text-emerald-600 hover:underline"
+            >
               Create an account
             </Link>
           </p>
