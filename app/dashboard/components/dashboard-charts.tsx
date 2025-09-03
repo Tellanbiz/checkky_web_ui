@@ -1,23 +1,52 @@
-"use client"
+"use client";
 
-import { Bar, BarChart, ResponsiveContainer, XAxis, YAxis, CartesianGrid, Tooltip, PieChart, Pie, Cell } from "recharts"
+import {
+  Bar,
+  BarChart,
+  ResponsiveContainer,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  PieChart,
+  Pie,
+  Cell,
+} from "recharts";
+import { MonthlyTasks } from "@/lib/services/reports/models";
 
-const completionData = [
-  { name: "Jan", completed: 65, pending: 35 },
-  { name: "Feb", completed: 72, pending: 28 },
-  { name: "Mar", completed: 78, pending: 22 },
-  { name: "Apr", completed: 85, pending: 15 },
-  { name: "May", completed: 87, pending: 13 },
-  { name: "Jun", completed: 89, pending: 11 },
-]
+interface DashboardChartsProps {
+  yearlyData?: MonthlyTasks | null;
+}
 
 const priorityData = [
   { name: "Major Must", value: 45, color: "#EF4444" },
   { name: "Minor Must", value: 30, color: "#F59E0B" },
   { name: "Optional", value: 25, color: "#10B981" },
-]
+];
 
-export function DashboardCharts() {
+export function DashboardCharts({ yearlyData }: DashboardChartsProps) {
+  // Transform yearly data into chart format
+  const completionData = yearlyData
+    ? Object.entries(yearlyData).map(([month, data]) => ({
+        name: month,
+        completed: data.completed,
+        pending: data.pending,
+      }))
+    : [
+        { name: "Jan", completed: 0, pending: 0 },
+        { name: "Feb", completed: 0, pending: 0 },
+        { name: "Mar", completed: 0, pending: 0 },
+        { name: "Apr", completed: 0, pending: 0 },
+        { name: "May", completed: 0, pending: 0 },
+        { name: "Jun", completed: 0, pending: 0 },
+        { name: "Jul", completed: 0, pending: 0 },
+        { name: "Aug", completed: 0, pending: 0 },
+        { name: "Sep", completed: 0, pending: 0 },
+        { name: "Oct", completed: 0, pending: 0 },
+        { name: "Nov", completed: 0, pending: 0 },
+        { name: "Dec", completed: 0, pending: 0 },
+      ];
+
   return (
     <div className="space-y-6">
       <div className="h-[300px]">
@@ -39,7 +68,14 @@ export function DashboardCharts() {
           <div className="h-[150px]">
             <ResponsiveContainer width="100%" height="100%">
               <PieChart>
-                <Pie data={priorityData} cx="50%" cy="50%" innerRadius={40} outerRadius={60} dataKey="value">
+                <Pie
+                  data={priorityData}
+                  cx="50%"
+                  cy="50%"
+                  innerRadius={40}
+                  outerRadius={60}
+                  dataKey="value"
+                >
                   {priorityData.map((entry, index) => (
                     <Cell key={`cell-${index}`} fill={entry.color} />
                   ))}
@@ -54,7 +90,10 @@ export function DashboardCharts() {
           <h4 className="text-sm font-medium">Legend</h4>
           {priorityData.map((item) => (
             <div key={item.name} className="flex items-center space-x-2">
-              <div className="w-3 h-3 rounded-full" style={{ backgroundColor: item.color }} />
+              <div
+                className="w-3 h-3 rounded-full"
+                style={{ backgroundColor: item.color }}
+              />
               <span className="text-xs">
                 {item.name}: {item.value}%
               </span>
@@ -63,5 +102,5 @@ export function DashboardCharts() {
         </div>
       </div>
     </div>
-  )
+  );
 }
