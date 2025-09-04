@@ -5,11 +5,6 @@ import { redirect, RedirectType } from "next/navigation";
 import { cookies } from "next/headers";
 import { AuthResult } from "@/lib/services/auth/models";
 
-
-
-
-
-
 export async function updateCurrentFarm(formData: FormData) {
     const res = await clientV1.post("/account/farm", {
         "farm_id": formData.get("name"),
