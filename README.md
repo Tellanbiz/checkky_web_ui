@@ -26,7 +26,7 @@ Your project is live at:
 
 ## Build your app
 
-docker build -t my-image-name:tag .
+docker build -t nextjs:tag .
 
 Continue building your app on:
 
