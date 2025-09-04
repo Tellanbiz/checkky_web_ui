@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { completeSignUpWithEmail } from "@/lib/services/auth/auth-post";
 import { SignUpVerificationParams } from "@/lib/services/auth/models";
 
-export default function CompleteSignUpPage() {
+function CompleteSignUpContent() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState(false);
@@ -222,5 +222,24 @@ export default function CompleteSignUpPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function CompleteSignUpPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="min-h-screen flex bg-[#f3f3fa] relative overflow-hidden">
+          <div className="flex-1 flex items-center justify-center relative z-10">
+            <div className="w-full max-w-md p-8 bg-white rounded-lg shadow-lg mx-4 text-center">
+              <div className="animate-spin rounded-full h-8 w-8 border-4 border-emerald-600 border-t-transparent mx-auto"></div>
+              <p className="mt-4 text-gray-600">Loading...</p>
+            </div>
+          </div>
+        </div>
+      }
+    >
+      <CompleteSignUpContent />
+    </Suspense>
   );
 }

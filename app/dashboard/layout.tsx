@@ -8,6 +8,9 @@ import { Account } from "@/lib/services/accounts/models";
 import { getAccount } from "@/lib/services/auth/auth-get";
 import { redirect } from "next/navigation";
 
+// Force dynamic rendering to prevent static generation issues with cookies
+export const dynamic = "force-dynamic";
+
 export const metadata: Metadata = {
   title: "CheckIt - Auditing & Checklist Management",
   description:
