@@ -7,6 +7,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { Account } from "@/lib/services/accounts/models";
 import { getAccount } from "@/lib/services/auth/auth-get";
 import { redirect } from "next/navigation";
+import { WebSocketProvider } from "@/lib/socket/socket";
 
 // Force dynamic rendering to prevent static generation issues with cookies
 export const dynamic = "force-dynamic";
@@ -55,15 +56,17 @@ export default async function DashboardLayout({
 
   return (
     <>
-      <DashboardWrapper
-        companies={companies}
-        loading={loading}
-        error={error}
-        account={account}
-      >
-        {children}
-      </DashboardWrapper>
-      <Toaster />
+      <WebSocketProvider>
+        <DashboardWrapper
+          companies={companies}
+          loading={loading}
+          error={error}
+          account={account}
+        >
+          {children}
+        </DashboardWrapper>
+        <Toaster />
+      </WebSocketProvider>
     </>
   );
 }

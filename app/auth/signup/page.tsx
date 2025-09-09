@@ -40,46 +40,10 @@ export default function SignUpPage() {
     };
 
   return (
-    <div className="min-h-screen flex bg-[#f3f3fa] relative overflow-hidden">
-      {/* Background elements */}
-      <div className="absolute inset-0 w-full h-full">
-        <div className="absolute left-[10%] top-[30%]">
-          <div className="relative">
-            <div className="w-[300px] h-[150px] bg-white opacity-50 rounded-[50px] rotate-[20deg]"></div>
-            <div className="absolute top-[20px] left-[70px] w-[160px] h-[20px] bg-emerald-600 rounded-full"></div>
-            <div className="absolute top-[50px] right-[70px] w-[20px] h-[20px] bg-emerald-600 rounded-full"></div>
-            <div className="absolute bottom-[30px] right-[80px] w-[20px] h-[20px] bg-emerald-600 rounded-full"></div>
-          </div>
-        </div>
-
-        {/* Stylized map with ship */}
-        <div className="absolute inset-0 z-0 overflow-hidden opacity-70">
-          <div className="w-full h-full bg-[#f3f3fa]">
-            <div className="relative w-full h-full">
-              {/* World map silhouette */}
-              <div className="absolute inset-0 bg-[#eeeef8] rounded-full scale-150 translate-y-[30%]"></div>
-
-              {/* Location dots */}
-              <div className="absolute top-1/4 left-1/4 w-4 h-4 bg-emerald-600 rounded-full"></div>
-              <div className="absolute top-1/3 right-1/3 w-4 h-4 bg-emerald-600 rounded-full"></div>
-              <div className="absolute bottom-1/4 left-1/5 w-4 h-4 bg-emerald-600 rounded-full"></div>
-              <div className="absolute right-[10%] bottom-[40%] w-4 h-4 bg-emerald-600 rounded-full"></div>
-
-              {/* Ship silhouette */}
-              <div className="absolute top-[45%] left-[40%] w-[100px] h-[30px] bg-[#333] rounded-md"></div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Logo */}
-      <div className="absolute top-8 left-8 text-xl font-bold">
-        CHeckIt<span className="text-emerald-600">.</span>
-      </div>
-
+    <div className="min-h-screen flex items-center justify-center bg-white">
       {/* Sign Up Form */}
-      <div className="flex-1 flex items-center justify-center relative z-10">
-        <div className="w-full max-w-md p-8 bg-white rounded-lg shadow-lg mx-4">
+      <div className="flex-1 flex items-center justify-center">
+        <div className="w-full max-w-md p-8 bg-white rounded-lg mx-4">
           <h2 className="text-2xl font-bold mb-1">Create your account</h2>
           <p className="text-sm text-gray-600 mb-6">
             Already have an account?{" "}
