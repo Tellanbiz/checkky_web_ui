@@ -26,9 +26,7 @@ Your project is live at:
 
 ## Build your app
 
-docker build -t nextjs .
-
-docker run --name nextjs
+docker compose up -d --build
 
 Continue building your app on:
 
