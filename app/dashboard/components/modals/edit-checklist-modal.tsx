@@ -59,24 +59,7 @@ export function EditChecklistModal({ isOpen, onClose, checklist }: EditChecklist
           </div>
 
           <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label>Category</Label>
-              <Select
-                value={formData.category}
-                onValueChange={(value) => setFormData({ ...formData, category: value })}
-              >
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="Livestock">Livestock</SelectItem>
-                  <SelectItem value="Crop Farming">Crop Farming</SelectItem>
-                  <SelectItem value="Flower Farming">Flower Farming</SelectItem>
-                  <SelectItem value="General">General</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
+        
             <div className="space-y-2">
               <Label>Priority</Label>
               <Select

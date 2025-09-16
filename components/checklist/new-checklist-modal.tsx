@@ -116,25 +116,7 @@ export function NewChecklistModal({ isOpen, onClose }: NewChecklistModalProps) {
             />
           </div>
 
-          <div className="space-y-2">
-            <Label>Category</Label>
-            <Select
-              value={formData.category}
-              onValueChange={(value) =>
-                setFormData({ ...formData, category: value })
-              }
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="Select category (optional)" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="Livestock">Livestock</SelectItem>
-                <SelectItem value="Crop Farming">Crop Farming</SelectItem>
-                <SelectItem value="Flower Farming">Flower Farming</SelectItem>
-                <SelectItem value="General">General</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
+         
 
           <div className="space-y-2">
             <Label htmlFor="description">Description</Label>

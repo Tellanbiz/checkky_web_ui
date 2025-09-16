@@ -296,6 +296,7 @@ export default function AssignChecklistPage({
                       </SelectContent>
                     </Select>
                   </div>
+                  
 
                   {/* Notes */}
                   <div className="space-y-2">
