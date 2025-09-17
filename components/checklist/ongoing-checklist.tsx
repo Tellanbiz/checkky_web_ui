@@ -22,6 +22,7 @@ import {
   Clock,
   AlertTriangle,
   Loader2,
+  GripVertical,
 } from "lucide-react";
 import {
   DropdownMenu,
@@ -116,6 +117,7 @@ export function OngoingChecklist({
   const [checklists, setChecklists] = useState<AssignedChecklist[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [draggedItem, setDraggedItem] = useState<string | null>(null);
 
   const fetchChecklists = async () => {
     setLoading(true);
@@ -155,6 +157,70 @@ export function OngoingChecklist({
     // Here you would archive the checklist
   };
 
+  const handleDragStart = (e: React.DragEvent, checklistId: string) => {
+    setDraggedItem(checklistId);
+    e.dataTransfer.effectAllowed = "move";
+  };
+
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = "move";
+  };
+
+  const handleDrop = (e: React.DragEvent, newPriority: "high" | "mid" | "low") => {
+    e.preventDefault();
+    
+    if (!draggedItem) return;
+
+    const updatedChecklists = checklists.map((checklist) =>
+      checklist.id === draggedItem
+        ? { ...checklist, priority: newPriority }
+        : checklist
+    );
+
+    setChecklists(updatedChecklists);
+    setDraggedItem(null);
+
+    toast({
+      title: "Priority Updated",
+      description: `Checklist moved to ${getPriorityDisplayName(newPriority)}`,
+    });
+  };
+
+  const handleDragEnd = () => {
+    setDraggedItem(null);
+  };
+
+  const getChecklistsByPriority = (priority: "high" | "mid" | "low") => {
+    return checklists.filter((checklist) => checklist.priority === priority);
+  };
+
+  const getColumnStyles = (priority: "high" | "mid" | "low") => {
+    switch (priority) {
+      case "high":
+        return "border-red-200 bg-white";
+      case "mid":
+        return "border-yellow-200 bg-white";
+      case "low":
+        return "border-green-200 bg-white";
+      default:
+        return "border-gray-200 bg-white";
+    }
+  };
+
+  const getColumnHeaderStyles = (priority: "high" | "mid" | "low") => {
+    switch (priority) {
+      case "high":
+        return "bg-red-100 border-red-300 text-red-800";
+      case "mid":
+        return "bg-yellow-100 border-yellow-300 text-yellow-800";
+      case "low":
+        return "bg-green-100 border-green-300 text-green-800";
+      default:
+        return "bg-gray-100 border-gray-300 text-gray-800";
+    }
+  };
+
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
@@ -177,25 +243,14 @@ export function OngoingChecklist({
   }
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-6">
       {/* Filters */}
       <div className="flex items-center space-x-4">
         <div className="relative flex-1 max-w-sm">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
           <Input placeholder="Search checklists..." className="pl-10" />
         </div>
-        <Select>
-          <SelectTrigger className="w-[180px]">
-            <SelectValue placeholder="Category" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All Categories</SelectItem>
-            <SelectItem value="livestock">Livestock</SelectItem>
-            <SelectItem value="crop">Crop Farming</SelectItem>
-            <SelectItem value="flower">Flower Farming</SelectItem>
-            <SelectItem value="general">General</SelectItem>
-          </SelectContent>
-        </Select>
+      
         <Select>
           <SelectTrigger className="w-[180px]">
             <SelectValue placeholder="Status" />
@@ -214,124 +269,115 @@ export function OngoingChecklist({
         </Button>
       </div>
 
-      {/* Checklist Grid */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-        {checklists.map((checklist) => {
-          const progress =
-            checklist.checklist_progress.total_questions > 0
-              ? (checklist.checklist_progress.answered_questions /
-                  checklist.checklist_progress.total_questions) *
-                100
-              : 0;
-
+      {/* Drag and Drop Board */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        {(["high", "mid", "low"] as const).map((priority) => {
+          const priorityChecklists = getChecklistsByPriority(priority);
+          
           return (
-            <Card
-              key={checklist.id}
-              className="hover:shadow-md transition-shadow"
+            <div
+              key={priority}
+              className={`rounded-lg border-2 border-dashed ${getColumnStyles(priority)} min-h-[600px]`}
+              onDragOver={handleDragOver}
+              onDrop={(e) => handleDrop(e, priority)}
             >
-              <CardHeader className="pb-3">
-                <div className="flex items-start justify-between">
-                  <div className="space-y-1">
-                    <CardTitle className="text-lg">{checklist.title}</CardTitle>
-                    <div className="flex items-center space-x-2">
-                      <Badge variant="outline">General</Badge>
-                      <Badge
-                        variant={getPriorityBadgeVariant(checklist.priority)}
-                        className={
-                          checklist.priority === "mid"
-                            ? "bg-yellow-100 text-yellow-800"
-                            : ""
-                        }
-                      >
-                        {getPriorityDisplayName(checklist.priority)}
-                      </Badge>
-                    </div>
-                  </div>
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button variant="ghost" size="icon">
-                        <MoreHorizontal className="h-4 w-4" />
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end">
-                      <DropdownMenuItem
-                        onClick={() => onEditChecklist(checklist)}
-                      >
-                        Edit
-                      </DropdownMenuItem>
-                      <DropdownMenuItem
-                        onClick={() => handleDuplicateChecklist(checklist)}
-                      >
-                        Duplicate
-                      </DropdownMenuItem>
-                      <DropdownMenuItem
-                        onClick={() => handleArchiveChecklist(checklist)}
-                      >
-                        Archive
-                      </DropdownMenuItem>
-                      <DropdownMenuItem
-                        className="text-red-600"
-                        onClick={() => onDeleteChecklist(checklist)}
-                      >
-                        Delete
-                      </DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
+              {/* Column Header */}
+              <div className={`p-4 border-b-2 ${getColumnHeaderStyles(priority)} rounded-t-lg`}>
+                <div className="flex items-center justify-between">
+                  <h3 className="font-semibold text-lg">
+                    {getPriorityDisplayName(priority)}
+                  </h3>
+                  <Badge variant="outline" className="bg-white">
+                    {priorityChecklists.length}
+                  </Badge>
                 </div>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  {/* Status */}
-                  <div className="flex items-center space-x-2">
-                    {getStatusIcon(checklist.status)}
-                    <span
-                      className={`text-sm font-medium ${getStatusColor(
-                        checklist.status
-                      )}`}
+              </div>
+
+              {/* Column Content */}
+              <div className="p-3 space-y-3">
+                {priorityChecklists.map((checklist) => {
+                  const progress =
+                    checklist.checklist_progress.total_questions > 0
+                      ? (checklist.checklist_progress.answered_questions /
+                          checklist.checklist_progress.total_questions) *
+                        100
+                      : 0;
+
+                  return (
+                    <Card
+                      key={checklist.id}
+                      draggable
+                      onDragStart={(e) => handleDragStart(e, checklist.id)}
+                      onDragEnd={handleDragEnd}
+                      onClick={() => onViewDetails(checklist)}
+                      className={`cursor-pointer hover:shadow-md transition-all duration-200 ${
+                        draggedItem === checklist.id ? "opacity-50" : ""
+                      }`}
                     >
-                      {getStatusDisplayName(checklist.status)}
-                    </span>
-                  </div>
+                      <CardHeader className="pb-2 px-3 pt-3">
+                        <div className="flex flex-col items-start justify-between">
+                            <CardTitle className="text-[15px] font-medium">{checklist.title}</CardTitle>
+                            
+                          <p className="text-xs text-gray-500">{checklist.notes}</p>
+                        
+                        </div>
+                      </CardHeader>
+                      <CardContent className="px-3 pb-3">
+                        <div className="space-y-2">
+                          {/* Status */}
+                          <div className="flex items-center space-x-1">
+                            {getStatusIcon(checklist.status)}
+                            <span
+                              className={`text-xs font-medium ${getStatusColor(
+                                checklist.status
+                              )}`}
+                            >
+                              {getStatusDisplayName(checklist.status)}
+                            </span>
+                          </div>
 
-                  {/* Progress */}
-                  <div className="space-y-2">
-                    <div className="flex justify-between text-sm">
-                      <span>Progress</span>
-                      <span>
-                        {checklist.checklist_progress.answered_questions}/
-                        {checklist.checklist_progress.total_questions} questions
-                      </span>
-                    </div>
-                    <div className="w-full bg-gray-200 rounded-full h-2">
-                      <div
-                        className="bg-[#16A34A] h-2 rounded-full transition-all"
-                        style={{ width: `${progress}%` }}
-                      />
-                    </div>
-                  </div>
+                          {/* Progress */}
+                          <div className="space-y-1">
+                            <div className="flex justify-between text-xs">
+                              <span>Progress</span>
+                              <span>
+                                {checklist.checklist_progress.answered_questions}/
+                                {checklist.checklist_progress.total_questions}
+                              </span>
+                            </div>
+                            <div className="w-full bg-gray-200 rounded-full h-1.5">
+                              <div
+                                className="bg-[#16A34A] h-1.5 rounded-full transition-all"
+                                style={{ width: `${progress}%` }}
+                              />
+                            </div>
+                          </div>
 
-                  {/* Meta Info */}
-                  <div className="flex items-center justify-between text-sm text-muted-foreground">
-                    <div className="flex items-center space-x-1">
-                      <User className="h-3 w-3" />
-                      <span>{checklist.assigned_member.name}</span>
-                    </div>
-                    <div className="flex items-center space-x-1">
-                      <Calendar className="h-3 w-3" />
-                      <span>{formatDate(checklist.created_at)}</span>
-                    </div>
+                          {/* Meta Info */}
+                          <div className="flex items-center justify-between text-xs text-muted-foreground">
+                            <div className="flex items-center space-x-1">
+                              <User className="h-2.5 w-2.5" />
+                              <span className="truncate">{checklist.assigned_member.name}</span>
+                            </div>
+                            <div className="flex items-center space-x-1">
+                              <Calendar className="h-2.5 w-2.5" />
+                              <span>{formatDate(checklist.created_at)}</span>
+                            </div>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  );
+                })}
+                
+                {priorityChecklists.length === 0 && (
+                  <div className="text-center py-8 text-gray-500">
+                    <p className="text-sm">No checklists in this priority</p>
+                    <p className="text-xs mt-1">Drag checklists here to change priority</p>
                   </div>
-
-                  <Button
-                    className="w-full bg-transparent"
-                    variant="outline"
-                    onClick={() => onViewDetails(checklist)}
-                  >
-                    View Details
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
+                )}
+              </div>
+            </div>
           );
         })}
       </div>

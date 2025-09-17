@@ -26,6 +26,8 @@ import {
 } from "@/lib/services/checklist/models";
 import { getTeamMembersAction } from "@/lib/services/teams/actions";
 import { TeamMember } from "@/lib/services/teams/data";
+import { getAllSections } from "@/lib/services/sections/actions";
+import { Farm } from "@/lib/services/sections/models";
 
 export default function AssignChecklistPage({
   params,
@@ -38,6 +40,7 @@ export default function AssignChecklistPage({
 
   const [checklist, setChecklist] = useState<ChecklistInfo | null>(null);
   const [teamMembers, setTeamMembers] = useState<TeamMember[]>([]);
+  const [sections, setSections] = useState<Farm[]>([]);
   const [loading, setLoading] = useState(true);
   const [assigning, setAssigning] = useState(false);
   const [error, setError] = useState("");
@@ -47,6 +50,8 @@ export default function AssignChecklistPage({
   const [priority, setPriority] = useState<"high" | "mid" | "low">("mid");
   const [title, setTitle] = useState("");
   const [notes, setNotes] = useState("");
+  const [deadline, setDeadline] = useState("");
+  const [selectedSection, setSelectedSection] = useState("");
 
   useEffect(() => {
     const loadData = async () => {
@@ -67,6 +72,16 @@ export default function AssignChecklistPage({
         } else {
           console.error("Failed to load team members:", teamResult.error);
         }
+
+        // Load sections using getAllSections
+        const sectionsData = await getAllSections();
+        console.log("Sections result:", sectionsData); // Debug log
+        if (sectionsData && Array.isArray(sectionsData)) {
+          setSections(sectionsData);
+          console.log("Sections loaded:", sectionsData); // Debug log
+        } else {
+          console.error("Failed to load sections:", sectionsData);
+        }
       } catch (err) {
         setError("Failed to load checklist details. Please try again.");
         console.error("Error loading data:", err);
@@ -83,10 +98,10 @@ export default function AssignChecklistPage({
       e.preventDefault();
     }
 
-    if (!selectedMember || !title.trim()) {
+    if (!selectedMember || !title.trim() || !deadline || !selectedSection) {
       toast({
         title: "Validation Error",
-        description: "Please fill in all required fields.",
+        description: "Please fill in all required fields including deadline and section.",
         variant: "destructive",
       });
       return;
@@ -95,12 +110,17 @@ export default function AssignChecklistPage({
     try {
       setAssigning(true);
 
+      // Convert date to UTC
+      const deadlineUTC = deadline ? new Date(deadline + 'T00:00:00').toISOString() : '';
+
       const assignData: AssignedChecklistParams = {
         title: title.trim(),
         notes: notes.trim(),
         priority,
         checklist_id: id,
         member_id: selectedMember,
+        deadline: deadlineUTC,
+        section_id: selectedSection
       };
 
       const result = await assignChecklist(assignData);
@@ -192,7 +212,7 @@ export default function AssignChecklistPage({
             </div>
             <Button
               onClick={handleAssign}
-              disabled={assigning || !selectedMember || !title.trim()}
+              disabled={assigning || !selectedMember || !title.trim() || !deadline || !selectedSection}
               className="px-6 py-2"
             >
               {assigning ? (
@@ -295,6 +315,50 @@ export default function AssignChecklistPage({
                         </SelectItem>
                       </SelectContent>
                     </Select>
+                  </div>
+
+                  {/* Deadline */}
+                  <div className="space-y-2">
+                    <Label htmlFor="deadline">Deadline *</Label>
+                    <Input
+                      id="deadline"
+                      type="date"
+                      value={deadline}
+                      onChange={(e) => setDeadline(e.target.value)}
+                      required
+                    />
+                  </div>
+
+                  {/* Section Selection */}
+                  <div className="space-y-2">
+                    <Label htmlFor="section">Section *</Label>
+                    <Select
+                      value={selectedSection}
+                      onValueChange={setSelectedSection}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select a section" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {sections.map((section) => (
+                          <SelectItem key={section.id} value={section.id}>
+                            <div className="flex items-center space-x-2">
+                              <FileText className="h-4 w-4" />
+                              <span>{section.name}</span>
+                              <Badge variant="outline" className="text-xs">
+                                {section.location}
+                              </Badge>
+                            </div>
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    {/* Debug info */}
+                    <div className="text-xs text-gray-500 mt-1">
+                      {sections.length > 0
+                        ? `${sections.length} section(s) loaded`
+                        : "No sections loaded"}
+                    </div>
                   </div>
                   
 

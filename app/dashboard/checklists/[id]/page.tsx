@@ -206,12 +206,12 @@ export default function ChecklistDetailPage({
 
                                   <span
                                     className={`text-xs font-medium px-2 py-1 rounded-full border ${
-                                      question.photo_available === "true"
+                                      question.photo_available === "Yes"
                                         ? "text-blue-600 bg-blue-50 border-blue-200"
                                         : "text-gray-500 bg-gray-100 border-gray-200"
                                     }`}
                                   >
-                                    {question.photo_available === "true"
+                                    {question.photo_available === "Yes"
                                       ? "📷 Photo Available"
                                       : "📷 No Photo Available"}
                                   </span>
@@ -249,31 +249,9 @@ export default function ChecklistDetailPage({
                                 <span className="w-2 h-2 bg-emerald-400 rounded-full"></span>
                                 Answer Options
                               </h4>
-                              {[
-                                question.answer_option1,
-                                question.answer_option2,
-                                question.answer_option3,
-                                question.answer_option4,
-                                question.answer_option5,
-                                question.answer_option6,
-                                question.answer_option7,
-                                question.answer_option8,
-                                question.answer_option9,
-                                question.answer_option10,
-                              ].filter(Boolean).length > 0 ? (
+                              {question.answer_options && question.answer_options.length > 0 ? (
                                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                                  {[
-                                    question.answer_option1,
-                                    question.answer_option2,
-                                    question.answer_option3,
-                                    question.answer_option4,
-                                    question.answer_option5,
-                                    question.answer_option6,
-                                    question.answer_option7,
-                                    question.answer_option8,
-                                    question.answer_option9,
-                                    question.answer_option10,
-                                  ]
+                                  {question.answer_options
                                     .filter(Boolean)
                                     .map((option, index) => (
                                       <div
@@ -301,31 +279,9 @@ export default function ChecklistDetailPage({
                                 <span className="w-2 h-2 bg-orange-400 rounded-full"></span>
                                 Corrective Actions
                               </h4>
-                              {[
-                                question.corrective_action_option1,
-                                question.corrective_action_option2,
-                                question.corrective_action_option3,
-                                question.corrective_action_option4,
-                                question.corrective_action_option5,
-                                question.corrective_action_option6,
-                                question.corrective_action_option7,
-                                question.corrective_action_option8,
-                                question.corrective_action_option9,
-                                question.corrective_action_option10,
-                              ].filter(Boolean).length > 0 ? (
+                              {question.corrective_actions && question.corrective_actions.length > 0 ? (
                                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                                  {[
-                                    question.corrective_action_option1,
-                                    question.corrective_action_option2,
-                                    question.corrective_action_option3,
-                                    question.corrective_action_option4,
-                                    question.corrective_action_option5,
-                                    question.corrective_action_option6,
-                                    question.corrective_action_option7,
-                                    question.corrective_action_option8,
-                                    question.corrective_action_option9,
-                                    question.corrective_action_option10,
-                                  ]
+                                  {question.corrective_actions
                                     .filter(Boolean)
                                     .map((action, index) => (
                                       <div
@@ -349,21 +305,6 @@ export default function ChecklistDetailPage({
 
                             {/* Additional Information */}
                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2 border-t border-gray-100">
-                              <div className="space-y-1">
-                                <h5 className="text-xs font-medium text-gray-500 uppercase tracking-wide">
-                                  Corrective Action Options
-                                </h5>
-                                {question.corrective_action_options ? (
-                                  <p className="text-sm text-gray-700 bg-gray-50 px-3 py-2 rounded-lg border border-gray-200">
-                                    {question.corrective_action_options}
-                                  </p>
-                                ) : (
-                                  <p className="text-sm text-gray-500 italic bg-gray-50 px-3 py-2 rounded-lg border border-gray-200">
-                                    No data available
-                                  </p>
-                                )}
-                              </div>
-
                               <div className="space-y-1">
                                 <h5 className="text-xs font-medium text-gray-500 uppercase tracking-wide">
                                   Policy Reference
