@@ -42,6 +42,7 @@ export interface AssignedChecklist {
         id: string;
         name: string;
         email: string;
+        can_answer: boolean;
     };
     checklist_progress: {
         total_questions: number;

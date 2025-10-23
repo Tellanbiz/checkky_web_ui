@@ -1,7 +1,7 @@
 "use server";
 
 import { cookies } from "next/headers";
-import { assignChecklist as assignChecklistService, createChecklist as createChecklistService, CreateChecklistData } from "./service-post";
+import { assignChecklist as assignChecklistService, createChecklist as createChecklistService, CreateChecklistData } from "./post";
 import { getAssignedChecklists, getChecklistInfo, getChecklists } from "./services-get";
 import { AssignedChecklistParams } from "./models";
 
@@ -29,14 +29,7 @@ export async function getAllChecklists(name?: string): Promise<any> {
 
 export async function getAssignedChecklistsAction(): Promise<any> {
     try {
-        const cookieStore = await cookies();
-        const token = cookieStore.get("access_token")?.value;
-
-        if (!token) {
-            throw new Error("Not authenticated");
-        }
-
-        const data = await getAssignedChecklists(token);
+        const data = await getAssignedChecklists();
         return { success: true, data };
     } catch (error) {
         console.error('Error fetching assigned checklists:', error);

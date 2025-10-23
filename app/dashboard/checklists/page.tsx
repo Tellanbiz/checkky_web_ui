@@ -6,14 +6,30 @@ import { OngoingChecklist } from "../../../components/checklist/ongoing-checklis
 import { AvailableChecklist } from "../../../components/checklist/available-checklist";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Plus } from "lucide-react";
+import { Plus, Search, Filter } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { ChecklistDetailsModal } from "../components/modals/checklist-details-modal";
 import { DeleteConfirmationModal } from "@/components/team/delete-confirmation-modal";
+import { useOngoingFilterActions, useAvailableFilterActions, useChecklistFilterStore } from "@/lib/provider/checklists/index";
 
 export default function ChecklistsPage() {
+  return <ChecklistsPageContent />;
+}
+
+function ChecklistsPageContent() {
   const { toast } = useToast();
+  const ongoingActions = useOngoingFilterActions();
+  const availableActions = useAvailableFilterActions();
+  const { deleteChecklist } = useChecklistFilterStore();
   const [selectedChecklist, setSelectedChecklist] = useState<any>(null);
   const [showEditModal, setShowEditModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
@@ -22,6 +38,7 @@ export default function ChecklistsPage() {
   const [showDetailsModal, setShowDetailsModal] = useState(false);
   const [selectedChecklistForDetails, setSelectedChecklistForDetails] =
     useState<any>(null);
+  const [activeTab, setActiveTab] = useState("ongoing");
 
   const handleEditChecklist = (checklist: any) => {
     setSelectedChecklist(checklist);
@@ -35,20 +52,23 @@ export default function ChecklistsPage() {
   const handleDeleteChecklist = (checklist: any) => {
     setChecklistToDelete(checklist);
     setShowDeleteModal(true);
-    toast({
-      title: "Delete Confirmation",
-      description: `Preparing to delete: ${checklist.title}`,
-      variant: "destructive",
-    });
   };
 
-  const confirmDelete = () => {
+  const confirmDelete = async () => {
     if (checklistToDelete) {
-      // Here you would actually delete the checklist
-      toast({
-        title: "Checklist Deleted",
-        description: `${checklistToDelete.title} has been deleted successfully.`,
-      });
+      try {
+        await deleteChecklist(checklistToDelete.id);
+        toast({
+          title: "Checklist Deleted",
+          description: `${checklistToDelete.title} has been deleted successfully.`,
+        });
+      } catch (error) {
+        toast({
+          title: "Error",
+          description: "Failed to delete checklist. Please try again.",
+          variant: "destructive",
+        });
+      }
       setShowDeleteModal(false);
       setChecklistToDelete(null);
     }
@@ -57,40 +77,86 @@ export default function ChecklistsPage() {
   const handleViewDetails = (checklist: any) => {
     setSelectedChecklistForDetails(checklist);
     setShowDetailsModal(true);
-    toast({
-      title: "Viewing Details",
-      description: `Opening details for: ${checklist.title}`,
-    });
   };
 
   const handleNewChecklist = () => {
     setShowNewModal(true);
-    toast({
-      title: "Create New Checklist",
-      description: "Opening checklist creation form...",
-    });
   };
 
   return (
     <div className="flex-1 space-y-4 p-4 md:p-8 pt-6">
-      <div className="flex items-center justify-between">
-        <h2 className="text-3xl font-bold tracking-tight">Checklists</h2>
-        <Button onClick={() => handleNewChecklist()}>
-          <Plus className="mr-2 h-4 w-4" />
-          New Checklist
-        </Button>
-      </div>
-
       {/* Tabs */}
-      <Tabs defaultValue="ongoing" className="space-y-4">
-        <TabsList className="w-fit">
-          <TabsTrigger value="ongoing" className="px-6">
-            Ongoing Checklists
-          </TabsTrigger>
-          <TabsTrigger value="available" className="px-6">
-            Available Checklists
-          </TabsTrigger>
-        </TabsList>
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
+        <div className="flex items-center justify-between">
+          <TabsList className="w-fit">
+            <TabsTrigger value="ongoing" className="px-6">
+              Ongoing Checklists
+            </TabsTrigger>
+            <TabsTrigger value="available" className="px-6">
+              Availabe Checklist
+            </TabsTrigger>
+          </TabsList>
+
+          <div className="flex items-center space-x-4">
+            {/* Tab-specific Filters */}
+            {activeTab === "ongoing" && (
+              <div className="flex flex-col sm:flex-row items-start sm:items-center space-y-3 sm:space-y-0 sm:space-x-4">
+                <div className="relative w-full sm:max-w-xs">
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                  <Input
+                    placeholder="Search checklists..."
+                    className="pl-10 bg-white"
+                    onChange={(e) => ongoingActions.setSearchTerm(e.target.value)}
+                  />
+                </div>
+
+                <div className="flex space-x-2 w-full sm:w-auto">
+                  <Select onValueChange={ongoingActions.setStatus}>
+                    <SelectTrigger className="w-[140px] bg-white">
+                      <SelectValue placeholder="Status" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All Status</SelectItem>
+                      <SelectItem value="pending">Pending</SelectItem>
+                      <SelectItem value="progress">In Progress</SelectItem>
+                      <SelectItem value="completed">Completed</SelectItem>
+                      <SelectItem value="overdue">Overdue</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <Button variant="outline" className="bg-white">
+                    <Filter className="mr-2 h-4 w-4" />
+                    Filters
+                  </Button>
+                </div>
+              </div>
+            )}
+
+            {activeTab === "available" && (
+              <div className="flex flex-col sm:flex-row items-start sm:items-center space-y-3 sm:space-y-0 sm:space-x-4">
+                <div className="relative w-full sm:max-w-xs">
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                  <Input
+                    placeholder="Search checklists..."
+                    className="pl-10 bg-white"
+                    onChange={(e) => availableActions.setSearchTerm(e.target.value)}
+                  />
+                </div>
+
+                <div className="flex space-x-2 w-full sm:w-auto">
+                  <Button variant="outline" className="bg-white">
+                    <Filter className="mr-2 h-4 w-4" />
+                    Filters
+                  </Button>
+                </div>
+              </div>
+            )}
+
+              <Button onClick={() => handleNewChecklist()}>
+                <Plus className="mr-2 h-4 w-4" />
+                Upload New Checklist
+              </Button>
+          </div>
+        </div>
 
         <TabsContent value="ongoing" className="space-y-4">
           <OngoingChecklist

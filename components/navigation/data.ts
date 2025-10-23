@@ -22,15 +22,14 @@ export const navigation: NavigationSection[] = [
                 icon: LayoutDashboard,
             },
             {
-                name: "Area Sections",
+                name: "Area Management",
                 href: "/dashboard/sections",
                 icon: MapPin,
             },
             {
-                name: "Checklists",
+                name: "Checklist Management",
                 href: "/dashboard/checklists",
                 icon: CheckSquare,
-                badge: "12",
             },
         ],
     },
@@ -38,7 +37,7 @@ export const navigation: NavigationSection[] = [
         title: "Team & Communication",
         items: [
             {
-                name: "Team",
+                name: "Team Members",
                 href: "/dashboard/team",
                 icon: Users,
             },
@@ -46,7 +45,6 @@ export const navigation: NavigationSection[] = [
                 name: "Team Chat",
                 href: "/dashboard/chat",
                 icon: MessageSquare,
-                badge: "3",
             },
         ],
     },
@@ -54,17 +52,17 @@ export const navigation: NavigationSection[] = [
         title: "Business",
         items: [
             {
-                name: "Analytics",
+                name: "Business Analytics",
                 href: "/dashboard/analytics",
                 icon: BarChart3,
             },
             {
-                name: "Companies",
+                name: "Company Partners",
                 href: "/dashboard/companies",
                 icon: Building2,
             },
             {
-                name: "Guidelines",
+                name: "Business Guidelines",
                 href: "/dashboard/guidelines",
                 icon: FileText,
             },
@@ -74,12 +72,7 @@ export const navigation: NavigationSection[] = [
         title: "System",
         items: [
             {
-                name: "Admin Tools",
-                href: "/dashboard/admin",
-                icon: Shield,
-            },
-            {
-                name: "Settings",
+                name: "System Settings",
                 href: "/dashboard/settings",
                 icon: Settings,
             },

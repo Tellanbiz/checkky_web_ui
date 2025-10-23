@@ -87,16 +87,8 @@ export function Sidebar({ initialCompanies, account }: SidebarProps) {
                         : "text-gray-700 hover:bg-gray-100"
                     )}
                   >
-                    <item.icon className="w-5 h-5 mr-3 flex-shrink-0" />
+                    <item.icon className="w-4 h-4 mr-3 flex-shrink-0" />
                     <span className="truncate">{item.name}</span>
-                    {item.badge && (
-                      <Badge
-                        variant="secondary"
-                        className="ml-auto bg-gray-100 text-gray-600 flex-shrink-0"
-                      >
-                        {item.badge}
-                      </Badge>
-                    )}
                   </Link>
                 );
               })}

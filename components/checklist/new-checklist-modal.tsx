@@ -23,7 +23,7 @@ import { Card, CardContent } from "@/components/ui/card";
 
 import { useToast } from "@/hooks/use-toast";
 import { createChecklist } from "@/lib/services/checklist/actions";
-import { CreateChecklistData } from "@/lib/services/checklist/service-post";
+import { CreateChecklistData } from "@/lib/services/checklist/post";
 
 interface NewChecklistModalProps {
   isOpen: boolean;

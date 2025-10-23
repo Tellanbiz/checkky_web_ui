@@ -25,15 +25,16 @@ import { useEffect, useState } from "react";
 import { getAllChecklists } from "@/lib/services/checklist/actions";
 import { CheckList } from "@/lib/services/checklist/models";
 import { useRouter } from "next/navigation";
+import { useAvailableFilters } from "@/lib/provider/checklists/index";
 
 export function AvailableChecklist() {
   const { toast } = useToast();
   const router = useRouter();
   const [checklists, setChecklists] = useState<CheckList[]>([]);
   const [loading, setLoading] = useState(true);
-  const [searchTerm, setSearchTerm] = useState("");
-  const [selectedCategory, setSelectedCategory] = useState("all");
-  const [sortBy, setSortBy] = useState("recent");
+
+  // Get filter state from context
+  const filters = useAvailableFilters();
 
   // Fetch checklists on component mount
   useEffect(() => {
@@ -60,25 +61,28 @@ export function AvailableChecklist() {
     }
   };
 
-  // Handle search
-  const handleSearch = (value: string) => {
-    setSearchTerm(value);
-    if (value.trim()) {
-      fetchChecklists(value);
-    } else {
-      fetchChecklists();
-    }
-  };
-
-  // Filter and sort checklists
+  // Apply filters and sorting
   const filteredAndSortedChecklists = checklists
     .filter((checklist) => {
-      if (selectedCategory === "all") return true;
-      // Note: category filtering will work when you add category field to API
-      return true; // Placeholder until category is added to API
+      // Search filter
+      if (filters.searchTerm) {
+        const searchLower = filters.searchTerm.toLowerCase();
+        const nameMatch = checklist.name.toLowerCase().includes(searchLower);
+        const descriptionMatch = checklist.description?.toLowerCase().includes(searchLower);
+        if (!nameMatch && !descriptionMatch) {
+          return false;
+        }
+      }
+
+      // Category filter (if available in checklist data)
+      if (filters.category !== 'all') {
+        // Add category filtering logic here if checklist has category field
+      }
+
+      return true;
     })
     .sort((a, b) => {
-      switch (sortBy) {
+      switch (filters.sortBy) {
         case "recent":
           return (
             new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
@@ -116,44 +120,8 @@ export function AvailableChecklist() {
 
   return (
     <div className="space-y-4">
-      {/* Filters */}
-      <div className="flex items-center space-x-4">
-        <div className="relative flex-1 max-w-sm">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-          <Input
-            placeholder="Search available checklists..."
-            className="pl-10"
-            value={searchTerm}
-            onChange={(e) => handleSearch(e.target.value)}
-          />
-        </div>
-        <Select value={selectedCategory} onValueChange={setSelectedCategory}>
-          <SelectTrigger className="w-[180px]">
-            <SelectValue placeholder="Category" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All Categories</SelectItem>
-            <SelectItem value="livestock">Livestock</SelectItem>
-            <SelectItem value="crop">Crop Farming</SelectItem>
-            <SelectItem value="flower">Flower Farming</SelectItem>
-            <SelectItem value="general">General</SelectItem>
-          </SelectContent>
-        </Select>
-        <Select value={sortBy} onValueChange={setSortBy}>
-          <SelectTrigger className="w-[180px]">
-            <SelectValue placeholder="Sort By" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="recent">Recently Updated</SelectItem>
-            <SelectItem value="name">Name A-Z</SelectItem>
-          </SelectContent>
-        </Select>
-        <Button variant="outline">
-          <Filter className="mr-2 h-4 w-4" />
-          More Filters
-        </Button>
-      </div>
-
+      {/* Empty filters section - filters are now handled at page level */}
+      
       {/* Loading State */}
       {loading && (
         <div className="flex items-center justify-center py-12">
@@ -247,8 +215,8 @@ export function AvailableChecklist() {
           <div className="text-muted-foreground">
             <p className="text-lg font-medium mb-2">No available checklists</p>
             <p className="text-sm">
-              {searchTerm
-                ? `No checklists found for "${searchTerm}"`
+              {filters.searchTerm
+                ? `No checklists found for "${filters.searchTerm}"`
                 : "Check back later for new templates and standards."}
             </p>
           </div>

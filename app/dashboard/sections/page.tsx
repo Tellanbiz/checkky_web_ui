@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -13,24 +12,14 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import {
   MapPin,
   Plus,
   Search,
-  MoreVertical,
   Loader2,
-  Eye,
-  Edit,
-  Users,
-  History,
 } from "lucide-react";
 import { EditSectionModal } from "@/components/sections/edit-section-modal";
 import { SectionDetailsModal } from "@/components/sections/section-details-modal";
+import { SectionCard } from "@/components/sections/section-card";
 import { getAllSections } from "@/lib/services/sections/actions";
 import { Farm } from "@/lib/services/sections/models";
 import { useToast } from "@/hooks/use-toast";
@@ -121,15 +110,14 @@ export default function SectionsPage() {
     }
   };
 
-  const handleDeleteSection = (section: Farm) => {
-    if (confirm(`Are you sure you want to delete section "${section.name}"?`)) {
-      setSections(sections.filter((s) => s.id !== section.id));
-      toast({
-        title: "Section deleted",
-        description: `Section "${section.name}" has been deleted.`,
-        variant: "destructive",
-      });
-    }
+  const handleViewDetails = (section: Farm) => {
+    setSelectedSection(section);
+    setShowDetailsModal(true);
+  };
+
+  const handleEditSection = (section: Farm) => {
+    setSelectedSection(section);
+    setShowEditModal(true);
   };
 
   const handleAssignTasks = (section: Farm) => {
@@ -152,25 +140,6 @@ export default function SectionsPage() {
 
   return (
     <div className="space-y-6 p-8">
-      {/* Header */}
-      <div className="flex justify-between items-center">
-        <h1 className="text-3xl font-bold tracking-tight">Area Sections</h1>
-
-        <div className="flex space-x-2">
-          <Button variant="outline" onClick={fetchFarms} disabled={loading}>
-            <Loader2
-              className={`mr-2 h-4 w-4 ${loading ? "animate-spin" : ""}`}
-            />
-            Refresh
-          </Button>
-          <Button onClick={() => router.push("/dashboard/sections/new")}>
-            <Plus className="mr-2 h-4 w-4" />
-            Add Section
-          </Button>
-        </div>
-      </div>
-
-      {/* Filters */}
       <div className="flex flex-col sm:flex-row gap-4">
         <div className="relative w-[300px]">
           <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
@@ -192,6 +161,19 @@ export default function SectionsPage() {
             <SelectItem value="inactive">Inactive</SelectItem>
           </SelectContent>
         </Select>
+
+        <div className="flex space-x-2">
+          <Button variant="outline" onClick={fetchFarms} disabled={loading}>
+            <Loader2
+              className={`mr-2 h-4 w-4 ${loading ? "animate-spin" : ""}`}
+            />
+            Refresh
+          </Button>
+          <Button onClick={() => router.push("/dashboard/sections/new")}>
+            <Plus className="mr-2 h-4 w-4" />
+            Add Section
+          </Button>
+        </div>
       </div>
 
       {/* Sections Grid */}
@@ -228,73 +210,11 @@ export default function SectionsPage() {
           </div>
         ) : (
           filteredSections.map((section) => (
-            <Card
+            <SectionCard
               key={section.id}
-              className="group hover:shadow-md transition-shadow duration-200 border border-gray-200"
-            >
-              <div className="p-5">
-                {/* Header */}
-                <div className="flex items-center justify-between mb-4">
-                  <div className="flex items-center space-x-3">
-                    <div className="w-10 h-10 bg-gray-100 rounded-lg flex items-center justify-center">
-                      <MapPin className="h-5 w-5 text-gray-600" />
-                    </div>
-                    <div>
-                      <h3 className="text-sm font-semibold text-gray-900">
-                        {section.name}
-                      </h3>
-                      <p className="text-xs text-gray-600">
-                        {section.location}
-                      </p>
-                    </div>
-                  </div>
-
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
-                        <MoreVertical className="h-4 w-4" />
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end">
-                      <DropdownMenuItem>View Details</DropdownMenuItem>
-                      <DropdownMenuItem>Edit Section</DropdownMenuItem>
-                      <DropdownMenuItem>Assign Tasks</DropdownMenuItem>
-                      <DropdownMenuItem>View History</DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                </div>
-
-                {/* Content */}
-                <div className="space-y-4">
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm text-gray-600">
-                      {section.size_ha ? section.size_ha.toFixed(1) : "0"} ha
-                    </span>
-                  </div>
-
-                  <div className="grid grid-cols-3 gap-3">
-                    <div className="text-center">
-                      <div className="text-lg font-semibold text-gray-900">
-                        {section.live?.workers || 0}
-                      </div>
-                      <div className="text-xs text-gray-500">Workers</div>
-                    </div>
-                    <div className="text-center">
-                      <div className="text-lg font-semibold text-gray-900">
-                        {section.live?.active || 0}
-                      </div>
-                      <div className="text-xs text-gray-500">Active</div>
-                    </div>
-                    <div className="text-center">
-                      <div className="text-lg font-semibold text-gray-900">
-                        {section.live?.complete || 0}
-                      </div>
-                      <div className="text-xs text-gray-500">Complete</div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </Card>
+              section={section}
+              onViewDetails={handleViewDetails}
+            />
           ))
         )}
       </div>
