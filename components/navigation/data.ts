@@ -1,4 +1,4 @@
-import { LayoutDashboard, CheckSquare, MapPin, Users, MessageSquare, BarChart3, Building2, FileText, Shield, Settings } from "lucide-react";
+import { LayoutDashboard, CheckSquare, MapPin, Users, BarChart3, Building2, Settings } from "lucide-react";
 
 export interface NavigationSection {
     title: string;
@@ -41,11 +41,6 @@ export const navigation: NavigationSection[] = [
                 href: "/dashboard/team",
                 icon: Users,
             },
-            {
-                name: "Team Chat",
-                href: "/dashboard/chat",
-                icon: MessageSquare,
-            },
         ],
     },
     {
@@ -57,14 +52,9 @@ export const navigation: NavigationSection[] = [
                 icon: BarChart3,
             },
             {
-                name: "Company Partners",
+                name: "Company Management",
                 href: "/dashboard/companies",
                 icon: Building2,
-            },
-            {
-                name: "Business Guidelines",
-                href: "/dashboard/guidelines",
-                icon: FileText,
             },
         ],
     },

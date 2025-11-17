@@ -150,6 +150,9 @@ export function MapComponent({
               ]);
               onPolygonComplete(boundaryPoints);
             }
+
+            // Disable drawing mode after completing shape
+            drawingManager.setDrawingMode(null);
           }
         );
 
@@ -185,6 +188,9 @@ export function MapComponent({
               ]);
               onPolygonComplete(boundaryPoints);
             }
+
+            // Disable drawing mode after completing shape
+            drawingManager.setDrawingMode(null);
           }
         );
 
@@ -220,6 +226,9 @@ export function MapComponent({
               ]);
               onPolygonComplete(boundaryPoints);
             }
+
+            // Disable drawing mode after completing shape
+            drawingManager.setDrawingMode(null);
           }
         );
 

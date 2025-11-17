@@ -1,101 +1,112 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Plus, Save } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { MapComponent } from "@/components/maps/map";
 import { submitSection } from "@/lib/services/sections/actions";
+import { BasicInfoForm } from "@/components/sections/forms/basic-info-form";
+import { SectionMapForm } from "@/components/sections/forms/section-map-form";
+import { ClearSectionDialog } from "@/components/sections/forms/clear-section-dialog";
 
 interface FarmSectionForm {
   name: string;
   location: string;
-  country: string;
   size: string;
   points: string;
   active: string;
+  type: string;
 }
 
 export default function NewSectionPage() {
   const router = useRouter();
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
+  const [initialMapPosition, setInitialMapPosition] = useState<{
+    lat: string;
+    lng: string;
+  }>({ lat: "", lng: "" });
+  const [isSelectingNew, setIsSelectingNew] = useState(false);
+  const [showClearDialog, setShowClearDialog] = useState(false);
 
   const [formData, setFormData] = useState<FarmSectionForm>({
     name: "",
     location: "",
-    country: "",
     size: "",
     points: "",
     active: "true",
+    type: "cropland",
   });
 
-  // Debug logging for form data changes
-  useEffect(() => {
-    console.log("Form data updated:", formData);
-  }, [formData]);
-
   const handleInputChange = (field: string, value: string) => {
-    console.log("handleInputChange called:", { field, value });
-
-    setFormData((prev) => {
-      const newData = {
-        ...prev,
-        [field]: value,
-      };
-      console.log("Updated form data:", newData);
-      return newData;
-    });
+    setFormData((prev) => ({ ...prev, [field]: value }));
   };
 
   const handleCoordinatesChange = (lat: string, lng: string) => {
-    // This function is called when coordinates change, but for polygon boundaries
-    // we need to get the complete drawn boundary from the map component
-    // For now, we'll store a single point but the map should provide the full polygon
-    const newPoint: [number, number] = [Number(lng), Number(lat)];
-
-    setFormData((prev) => ({
-      ...prev,
-      points: JSON.stringify([newPoint]),
-    }));
+    if (!isSelectingNew && formData.points) {
+      setShowClearDialog(true);
+      return;
+    }
+    if (!isSelectingNew) setIsSelectingNew(true);
   };
 
-  // Function to get the complete polygon boundary from the map
-  const getPolygonBoundary = () => {
-    // This should be called after the polygon is drawn to get all boundary points
-    // The MapComponent already has drawnBoundaryPoints that we need to access
-    console.log("Need to get complete polygon boundary from map");
+  const handleConfirmClear = () => {
+    setFormData((prev) => ({ ...prev, points: "" }));
+    setIsSelectingNew(true);
+    setShowClearDialog(false);
   };
 
-  // Handle complete polygon boundary from map
+  const handleCancelClear = () => {
+    setShowClearDialog(false);
+  };
+
   const handlePolygonComplete = (boundaryPoints: [number, number][]) => {
-    console.log("Received complete polygon boundary:", boundaryPoints);
-    setFormData((prev) => ({
-      ...prev,
-      points: JSON.stringify(boundaryPoints),
-    }));
+    setFormData((prev) => ({ ...prev, points: JSON.stringify(boundaryPoints) }));
   };
 
-  // Debug logging for preview boundary data
-  console.log("Form data for preview:", {
-    points: formData.points,
-    size: formData.size,
-  });
+  const getCurrentLocation = () => {
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          const lat = position.coords.latitude.toString();
+          const lng = position.coords.longitude.toString();
+          setInitialMapPosition({ lat, lng });
+          setFormData((prev) => ({
+            ...prev,
+            location: `${position.coords.latitude.toFixed(6)}, ${position.coords.longitude.toFixed(6)}`,
+          }));
+          if (!formData.points) {
+            setFormData((prev) => ({
+              ...prev,
+              points: JSON.stringify([[position.coords.longitude, position.coords.latitude]]),
+            }));
+          }
+          toast({
+            title: "Location Retrieved",
+            description: "Your current location has been set.",
+          });
+        },
+        (error) => {
+          console.error("Error getting location:", error);
+          toast({
+            title: "Location Error",
+            description: "Unable to retrieve your current location. Please check permissions.",
+            variant: "destructive",
+          });
+        }
+      );
+    } else {
+      toast({
+        title: "Geolocation Not Supported",
+        description: "Your browser doesn't support geolocation.",
+        variant: "destructive",
+      });
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-
     if (!formData.name || !formData.size) {
       toast({
         title: "Validation Error",
@@ -104,10 +115,8 @@ export default function NewSectionPage() {
       });
       return;
     }
-
     setLoading(true);
     try {
-      // Parse points from string to [number, number][] format
       let parsedPoints: [number, number][] = [];
       if (formData.points) {
         try {
@@ -119,7 +128,6 @@ export default function NewSectionPage() {
           console.error("Failed to parse points:", error);
         }
       }
-
       const farmParams = {
         name: formData.name,
         location: formData.location,
@@ -127,15 +135,11 @@ export default function NewSectionPage() {
         points: parsedPoints,
         active: formData.active === "true",
       };
-
       await submitSection(farmParams);
-
       toast({
         title: "Section Created",
         description: `Section "${formData.name}" has been created successfully.`,
       });
-
-      // Redirect back to sections page
       router.push("/dashboard/sections");
     } catch (error) {
       console.error("Failed to create section:", error);
@@ -169,123 +173,31 @@ export default function NewSectionPage() {
         </Button>
       </div>
 
-      <div className="px-8">
+      <div className="px-32">
         <form id="section-form" onSubmit={handleSubmit} className="space-y-6">
-          {/* Basic Information */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Basic Information</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="name">Section Name *</Label>
-                  <Input
-                    id="name"
-                    placeholder="Enter section name..."
-                    value={formData.name}
-                    onChange={(e) => handleInputChange("name", e.target.value)}
-                    required
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="location">Location *</Label>
-                  <Input
-                    id="location"
-                    placeholder="Enter location..."
-                    value={formData.location}
-                    onChange={(e) =>
-                      handleInputChange("location", e.target.value)
-                    }
-                    required
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="size">Size (hectares) *</Label>
-                  <Input
-                    id="size"
-                    type="number"
-                    step="0.1"
-                    placeholder="0.0"
-                    value={formData.size}
-                    onChange={(e) => handleInputChange("size", e.target.value)}
-                    required
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <Label>Status *</Label>
-                  <Select
-                    value={formData.active}
-                    onValueChange={(value) =>
-                      handleInputChange("active", value)
-                    }
-                  >
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="true">Active</SelectItem>
-                      <SelectItem value="false">Inactive</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Google Maps */}
-          {(() => {
-            const previewData = {
-              lat: formData.points
-                ? JSON.parse(formData.points)[0]?.[1] || ""
-                : "",
-              lng: formData.points
-                ? JSON.parse(formData.points)[0]?.[0] || ""
-                : "",
-              acreage: formData.size,
-              type: "cropland" as const,
-            };
-            console.log("Passing preview data to MapComponent:", previewData);
-            return null;
-          })()}
-
-          <MapComponent
-            onCoordinatesChange={handleCoordinatesChange}
-            onPolygonComplete={handlePolygonComplete}
-            initialLat={
-              formData.points ? JSON.parse(formData.points)[0]?.[1] || "" : ""
-            }
-            initialLng={
-              formData.points ? JSON.parse(formData.points)[0]?.[0] || "" : ""
-            }
-            previewBoundary={{
-              lat: formData.points
-                ? JSON.parse(formData.points)[0]?.[1] || ""
-                : "",
-              lng: formData.points
-                ? JSON.parse(formData.points)[0]?.[0] || ""
-                : "",
-              acreage: formData.size,
-              type: "cropland" as const,
-            }}
+          <BasicInfoForm
+            formData={formData}
+            onInputChange={handleInputChange}
+            onGetCurrentLocation={getCurrentLocation}
           />
 
-          {/* Form Actions */}
-          <div className="flex justify-end space-x-2">
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => router.push("/dashboard/sections")}
-              disabled={loading}
-            >
-              Cancel
-            </Button>
-          </div>
+          <SectionMapForm
+            formData={formData}
+            initialMapPosition={initialMapPosition}
+            loading={loading}
+            onCoordinatesChange={handleCoordinatesChange}
+            onPolygonComplete={handlePolygonComplete}
+            onCancel={() => router.push("/dashboard/sections")}
+          />
         </form>
       </div>
+
+      <ClearSectionDialog
+        open={showClearDialog}
+        onOpenChange={setShowClearDialog}
+        onConfirm={handleConfirmClear}
+        onCancel={handleCancelClear}
+      />
     </div>
   );
 }

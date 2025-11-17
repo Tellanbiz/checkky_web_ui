@@ -10,6 +10,8 @@ import {
 } from "@/components/ui/sheet";
 import { CheckCircle, Clock, User, Calendar } from "lucide-react";
 import { AssignedChecklist } from "@/lib/services/checklist/models";
+import router from 'next/router';
+import Link from 'next/link';
 
 interface OngoingSidebarProps {
   checklist: AssignedChecklist | null;
@@ -175,12 +177,13 @@ export function OngoingSidebar({ checklist, isOpen, onClose, onCompleteChecklist
         {/* Footer with Action Button */}
         <div className="pt-6 border-t space-y-3">
           {checklist.assigned_member.can_answer && (
-            <Button
-              className="w-full bg-gradient-to-r from-green-600 to-green-600 hover:from-green-700 hover:to-green-700 text-white font-semibold py-2.5 rounded-lg transition-all"
-              onClick={() => onCompleteChecklist(checklist)}
-            >
-              Complete the Checklist
-            </Button>
+            <Link href={`/dashboard/checklists/answers/${checklist.id}`}>
+              <Button
+                className="w-full bg-gradient-to-r from-green-600 to-green-600 hover:from-green-700 hover:to-green-700 text-white font-semibold py-2.5 rounded-lg transition-all"
+              >
+                Complete the Checklist
+              </Button>
+            </Link>
           )}
         </div>
       </SheetContent>
