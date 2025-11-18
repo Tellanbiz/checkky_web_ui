@@ -16,7 +16,7 @@ export async function createChecklist(token: string, data: CreateChecklistData):
 
     const res = await clientV1.postForm('/checklist/upload', formData, {
         headers: {
-            Authorization: `Bearer ${token}`,
+            Authorization: `Bearer ${await getAccessToken()}`,
         },
     });
     return res.status != 200 ? { error: res.data.error } : res.data;
