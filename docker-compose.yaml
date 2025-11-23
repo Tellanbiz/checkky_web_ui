@@ -7,4 +7,5 @@ services:
       - "3000:3000"
     environment:
       - NEXT_PUBLIC_API_URL=https://api.checkky.com
+      - NEXT_PUBLIC_API_KEY=checkkysignupkey
     restart: unless-stopped
