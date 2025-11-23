@@ -18,5 +18,5 @@ export interface FarmParams {
     location: string;
     size_ha: number;
     points: [number, number][];
-    active: boolean;
+    active?: boolean;
 }

@@ -28,24 +28,26 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { EditCompanyModal } from "../components/modals/edit-company-modal";
-import { getAllCompanies } from "@/lib/services/company/actions";
-import type { Company } from "@/lib/services/company/models";
+import { getAllCompaniesWithStats } from "@/lib/services/company/actions";
+import type { CompanyWithStats } from "@/lib/services/company/models";
 import { DeleteConfirmationModal } from "@/components/team/delete-confirmation-modal";
 import { CompanyNewDialog } from "@/components/company/company_new_dialog";
 
 export default function CompaniesPage() {
   const router = useRouter();
-  const [selectedCompany, setSelectedCompany] = useState<Company | null>(null);
+  const [selectedCompany, setSelectedCompany] =
+    useState<CompanyWithStats | null>(null);
   const [showDetailsModal, setShowDetailsModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
-  const [companyToDelete, setCompanyToDelete] = useState<Company | null>(null);
+  const [companyToDelete, setCompanyToDelete] =
+    useState<CompanyWithStats | null>(null);
   const [showEditModal, setShowEditModal] = useState(false);
   const [showBillingModal, setShowBillingModal] = useState(false);
   const [selectedCompanyForEdit, setSelectedCompanyForEdit] =
-    useState<Company | null>(null);
+    useState<CompanyWithStats | null>(null);
   const [selectedCompanyForBilling, setSelectedCompanyForBilling] =
-    useState<Company | null>(null);
-  const [companies, setCompanies] = useState<Company[]>([]);
+    useState<CompanyWithStats | null>(null);
+  const [companies, setCompanies] = useState<CompanyWithStats[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [showNewCompanyDialog, setShowNewCompanyDialog] = useState(false);
@@ -54,7 +56,7 @@ export default function CompaniesPage() {
     const fetchCompanies = async () => {
       try {
         setLoading(true);
-        const fetchedCompanies = await getAllCompanies();
+        const fetchedCompanies = await getAllCompaniesWithStats();
         setCompanies(fetchedCompanies);
         setError(null);
       } catch (err) {
@@ -70,27 +72,27 @@ export default function CompaniesPage() {
     fetchCompanies();
   }, []);
 
-  const handleViewDetails = (company: Company) => {
+  const handleViewDetails = (company: CompanyWithStats) => {
     setSelectedCompany(company);
     setShowDetailsModal(true);
   };
 
-  const handleEditCompany = (company: Company) => {
+  const handleEditCompany = (company: CompanyWithStats) => {
     setSelectedCompanyForEdit(company);
     setShowEditModal(true);
   };
 
-  const handleBilling = (company: Company) => {
+  const handleBilling = (company: CompanyWithStats) => {
     setSelectedCompanyForBilling(company);
     setShowBillingModal(true);
   };
 
-  const handleExportData = (company: Company) => {
+  const handleExportData = (company: CompanyWithStats) => {
     console.log("Exporting data for:", company.name);
     // Here you would export company data
   };
 
-  const handleSuspendCompany = (company: Company) => {
+  const handleSuspendCompany = (company: CompanyWithStats) => {
     setCompanyToDelete(company);
     setShowDeleteModal(true);
   };
@@ -109,7 +111,7 @@ export default function CompaniesPage() {
     const fetchCompanies = async () => {
       try {
         setLoading(true);
-        const fetchedCompanies = await getAllCompanies();
+        const fetchedCompanies = await getAllCompaniesWithStats();
         setCompanies(fetchedCompanies);
         setError(null);
       } catch (err) {
@@ -144,6 +146,33 @@ export default function CompaniesPage() {
         return <Badge variant="outline">{plan}</Badge>;
       default:
         return <Badge variant="outline">{plan}</Badge>;
+    }
+  };
+
+  const getStatusBadge = (status: string) => {
+    switch (status) {
+      case "Active":
+        return (
+          <Badge className="bg-green-100 text-green-800 text-xs">
+            {status}
+          </Badge>
+        );
+      case "Inactive":
+        return (
+          <Badge className="bg-red-100 text-red-800 text-xs">{status}</Badge>
+        );
+      case "Suspended":
+        return (
+          <Badge className="bg-yellow-100 text-yellow-800 text-xs">
+            {status}
+          </Badge>
+        );
+      default:
+        return (
+          <Badge variant="outline" className="text-xs">
+            {status}
+          </Badge>
+        );
     }
   };
 
@@ -213,31 +242,31 @@ export default function CompaniesPage() {
           </div>
         </div>
       ) : (
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+        <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-3">
           {companies.map((company) => (
             <Card
               key={company.id}
               className="hover:shadow-md transition-shadow"
             >
               <CardHeader className="pb-3">
-                <div className="flex items-start justify-between">
+                <div className="flex items-center justify-between">
                   <div className="flex items-center space-x-3">
-                    <Avatar className="h-12 w-12">
-                      <AvatarFallback className="bg-[#16A34A] text-white font-semibold">
+                    <Avatar className="h-10 w-10">
+                      <AvatarFallback className="bg-[#16A34A] text-white font-semibold text-sm">
                         {company.name.charAt(0).toUpperCase()}
                       </AvatarFallback>
                     </Avatar>
-                    <div>
-                      <h3 className="font-semibold">{company.name}</h3>
-                      <p className="text-sm text-muted-foreground">
-                        {company.email}
+                    <div className="flex-1">
+                      <h3 className="font-semibold text-sm">{company.name}</h3>
+                      <p className="text-xs text-muted-foreground">
+                        {new Date(company.created_at).toLocaleDateString()}
                       </p>
                     </div>
                   </div>
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
-                      <Button variant="ghost" size="icon">
-                        <MoreHorizontal className="h-4 w-4" />
+                      <Button variant="ghost" size="icon" className="h-8 w-8">
+                        <MoreHorizontal className="h-3 w-3" />
                       </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end">
@@ -269,60 +298,28 @@ export default function CompaniesPage() {
                   </DropdownMenu>
                 </div>
               </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  {/* Plan and Status */}
+              <CardContent className="pt-0">
+                <div className="space-y-3">
+                  {/* Status */}
                   <div className="flex items-center justify-between">
-                    <Badge variant="outline">Standard</Badge>
-                    <Badge className="bg-green-100 text-green-800">
-                      Active
-                    </Badge>
+                    {getPlanBadge(company.plan)}
+                    {getStatusBadge(company.status)}
                   </div>
 
-                  {/* Stats */}
-                  <div className="grid grid-cols-2 gap-4 text-sm">
+                  {/* Quick Stats */}
+                  <div className="grid grid-cols-2 gap-3 text-xs">
                     <div className="flex items-center space-x-2">
-                      <Users className="h-4 w-4 text-muted-foreground" />
-                      <span>0 members</span>
+                      <Users className="h-3 w-3 text-muted-foreground" />
+                      <span>{company.member_count} members</span>
                     </div>
                     <div className="flex items-center space-x-2">
-                      <CheckSquare className="h-4 w-4 text-muted-foreground" />
-                      <span>0 checklists</span>
-                    </div>
-                  </div>
-
-                  {/* Completion Rate */}
-                  <div className="space-y-2">
-                    <div className="flex justify-between text-sm">
-                      <span>Completion Rate</span>
-                      <span className="font-medium">0%</span>
-                    </div>
-                    <div className="w-full bg-gray-200 rounded-full h-2">
-                      <div
-                        className="bg-[#16A34A] h-2 rounded-full transition-all"
-                        style={{ width: "0%" }}
-                      />
-                    </div>
-                  </div>
-
-                  {/* Contact Info and Join Date */}
-                  <div className="space-y-2 text-sm text-muted-foreground">
-                    {company.phone_number && (
-                      <div className="flex justify-between">
-                        <span>Phone:</span>
-                        <span>{company.phone_number}</span>
-                      </div>
-                    )}
-                    <div className="flex justify-between">
-                      <span>Joined:</span>
-                      <span>
-                        {new Date(company.created_at).toLocaleDateString()}
-                      </span>
+                      <CheckSquare className="h-3 w-3 text-muted-foreground" />
+                      <span>{company.checklist_count} checklists</span>
                     </div>
                   </div>
 
                   <Button
-                    className="w-full bg-transparent"
+                    className="w-full bg-transparent h-8 text-xs"
                     variant="outline"
                     onClick={() => handleViewDetails(company)}
                   >

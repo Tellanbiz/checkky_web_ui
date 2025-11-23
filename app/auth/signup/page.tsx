@@ -4,8 +4,10 @@ import { useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 import { signUpWithEmail } from "@/lib/services/auth/auth-post";
 import { SignUpParams } from "@/lib/services/auth/models";
+import { encryptData } from "@/lib/utils/encryption";
 
 export default function SignUpPage() {
   const [isLoading, setIsLoading] = useState(false);
@@ -13,13 +15,65 @@ export default function SignUpPage() {
   const [formData, setFormData] = useState<SignUpParams>({
     email: "",
     password: "",
+    repassword: "",
     full_name: "",
   });
+  const [agreeToTerms, setAgreeToTerms] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setIsLoading(true);
     setError("");
+
+    // Validation
+    if (!formData.full_name.trim()) {
+      setError("Full name is required");
+      setIsLoading(false);
+      return;
+    }
+
+    if (!formData.email.trim()) {
+      setError("Email is required");
+      setIsLoading(false);
+      return;
+    }
+
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(formData.email)) {
+      setError("Please enter a valid email address");
+      setIsLoading(false);
+      return;
+    }
+
+    if (!formData.password) {
+      setError("Password is required");
+      setIsLoading(false);
+      return;
+    }
+
+    if (formData.password.length < 8) {
+      setError("Password must be at least 8 characters long");
+      setIsLoading(false);
+      return;
+    }
+
+    if (!formData.repassword) {
+      setError("Please confirm your password");
+      setIsLoading(false);
+      return;
+    }
+
+    if (formData.password !== formData.repassword) {
+      setError("Passwords do not match");
+      setIsLoading(false);
+      return;
+    }
+
+    if (!agreeToTerms) {
+      setError("You must agree to the terms and conditions");
+      setIsLoading(false);
+      return;
+    }
 
     try {
       await signUpWithEmail(formData);
@@ -79,22 +133,65 @@ export default function SignUpPage() {
               />
             </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="password">Password</Label>
-              <Input
-                id="password"
-                name="password"
-                type="password"
-                placeholder="Create a password"
-                value={formData.password}
-                onChange={handleInputChange("password")}
-                required
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="password">Password</Label>
+                <Input
+                  id="password"
+                  name="password"
+                  type="password"
+                  placeholder="Create a password"
+                  value={formData.password}
+                  onChange={handleInputChange("password")}
+                  required
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="repassword">Confirm Password</Label>
+                <Input
+                  id="repassword"
+                  name="repassword"
+                  type="password"
+                  placeholder="Confirm your password"
+                  value={formData.repassword}
+                  onChange={handleInputChange("repassword")}
+                  required
+                />
+              </div>
+            </div>
+
+            <div className="flex items-center space-x-2">
+              <Checkbox
+                id="terms"
+                checked={agreeToTerms}
+                onCheckedChange={(checked) =>
+                  setAgreeToTerms(checked as boolean)
+                }
               />
+              <Label
+                htmlFor="terms"
+                className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+              >
+                I agree to the{" "}
+                <a
+                  href="https://checkky.com/terms-of-service"
+                  className="text-emerald-600 hover:underline"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  Terms and Conditions
+                </a>
+              </Label>
             </div>
 
             {error && <div className="text-red-500 text-sm">{error}</div>}
 
-            <Button type="submit" disabled={isLoading} className="w-full">
+            <Button
+              type="submit"
+              disabled={isLoading || !agreeToTerms}
+              className="w-full"
+            >
               {isLoading ? (
                 <>
                   <svg
@@ -126,10 +223,17 @@ export default function SignUpPage() {
           </form>
 
           <p className="text-center text-xs text-gray-500 mt-8">
-            By creating an account, you agree to our{" "}
-            <a href="#" className="text-emerald-600 hover:underline">
+            By creating an account, you acknowledge that you have read and agree
+            to our{" "}
+            <a
+              href="https://checkky.com/terms-of-service"
+              className="text-emerald-600 hover:underline"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
               Terms and Conditions
             </a>
+            .
           </p>
         </div>
       </div>

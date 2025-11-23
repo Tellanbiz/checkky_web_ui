@@ -11,12 +11,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import {
-  MapPin,
-  Plus,
-  Search,
-  Loader2,
-} from "lucide-react";
+import { MapPin, Plus, Search, Loader2 } from "lucide-react";
 import { EditSectionModal } from "@/components/sections/edit-section-modal";
 import { SectionDetailsModal } from "@/components/sections/section-details-modal";
 import { SectionCard } from "@/components/sections/section-card";
@@ -177,7 +172,7 @@ export default function SectionsPage() {
       </div>
 
       {/* Sections Grid */}
-      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+      <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
         {loading ? (
           <div className="col-span-full text-center py-12">
             <Loader2 className="mx-auto h-12 w-12 text-blue-500 animate-spin" />

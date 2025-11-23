@@ -1,4 +1,4 @@
-import { LayoutDashboard, CheckSquare, MapPin, Users, BarChart3, Building2, Settings } from "lucide-react";
+import { LayoutDashboard, CheckSquare, MapPin, Users, BarChart3, Building2, Settings, User } from "lucide-react";
 
 export interface NavigationSection {
     title: string;
@@ -43,28 +43,39 @@ export const navigation: NavigationSection[] = [
             },
         ],
     },
+    // {
+    //     title: "Business",
+    //     items: [
+    //         {
+    //             name: "Business Analytics",
+    //             href: "/dashboard/analytics",
+    //             icon: BarChart3,
+    //         },
+
+    //     ],
+    // },
+    // {
+    //     title: "System",
+    //     items: [
+    //         {
+    //             name: "System Settings",
+    //             href: "/dashboard/settings",
+    //             icon: Settings,
+    //         },
+    //     ],
+    // },
     {
-        title: "Business",
+        title: "Account",
         items: [
-            {
-                name: "Business Analytics",
-                href: "/dashboard/analytics",
-                icon: BarChart3,
-            },
             {
                 name: "Company Management",
                 href: "/dashboard/companies",
                 icon: Building2,
             },
-        ],
-    },
-    {
-        title: "System",
-        items: [
             {
-                name: "System Settings",
-                href: "/dashboard/settings",
-                icon: Settings,
+                name: "Account Information",
+                href: "/dashboard/profile",
+                icon: User,
             },
         ],
     },

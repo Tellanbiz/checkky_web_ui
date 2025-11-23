@@ -1,9 +1,9 @@
 "use server";
 
 import { cookies } from "next/headers";
-import { getCompanies } from "./get";
+import { getCompanies, getCompaniesWithStats } from "./get";
 import { createCompany as createCompanyPost, updateCurrentCompany as updateCurrentCompanyPost } from "./post";
-import type { Company, CompanyParams } from "./models";
+import type { Company, CompanyWithStats, CompanyParams } from "./models";
 
 export async function getAllCompanies(): Promise<Company[]> {
     try {
@@ -15,6 +15,20 @@ export async function getAllCompanies(): Promise<Company[]> {
         return await getCompanies(token);
     } catch (error) {
         console.error("Failed to get companies:", error);
+        return [];
+    }
+}
+
+export async function getAllCompaniesWithStats(): Promise<CompanyWithStats[]> {
+    try {
+        const cookieStore = await cookies();
+        const token = cookieStore.get("access_token")?.value;
+        if (!token) {
+            throw new Error("Not authenticated");
+        }
+        return await getCompaniesWithStats(token);
+    } catch (error) {
+        console.error("Failed to get companies with stats:", error);
         return [];
     }
 }

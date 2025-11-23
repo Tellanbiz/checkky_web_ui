@@ -4,6 +4,7 @@ import { clientV1 } from "@/lib/client/client";
 import { redirect, RedirectType } from "next/navigation";
 import { cookies } from "next/headers";
 import { AuthResult, SignUpParams, SignUpVerificationParams } from "./models";
+import { encryptData } from "@/lib/utils/encryption";
 
 
 export async function signInWithEmail(formData: FormData) {
@@ -34,7 +35,9 @@ export async function signUpWithEmail(params: SignUpParams) {
     const res = await clientV1.post("/auth/email/signup", params);
 
     if (res.status === 200) {
-        redirect(`/auth/signup/complete`, RedirectType.push);
+        const encryptedData = encryptData(JSON.stringify(params));
+
+        redirect(`/auth/signup/complete?data=${encryptedData}`, RedirectType.push);
     } else {
         redirect(`/?error=unable to authenticate`, RedirectType.replace);
     }

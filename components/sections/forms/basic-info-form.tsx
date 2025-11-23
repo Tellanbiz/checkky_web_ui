@@ -16,8 +16,6 @@ interface FarmSectionForm {
   location: string;
   size: string;
   points: string;
-  active: string;
-  type: string;
 }
 
 interface BasicInfoFormProps {
@@ -26,7 +24,11 @@ interface BasicInfoFormProps {
   onGetCurrentLocation: () => void;
 }
 
-export function BasicInfoForm({ formData, onInputChange, onGetCurrentLocation }: BasicInfoFormProps) {
+export function BasicInfoForm({
+  formData,
+  onInputChange,
+  onGetCurrentLocation,
+}: BasicInfoFormProps) {
   return (
     <Card>
       <CardHeader>
@@ -49,14 +51,21 @@ export function BasicInfoForm({ formData, onInputChange, onGetCurrentLocation }:
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="location">Location *</Label>
+            <Label htmlFor="location">
+              {formData.location ? "Selected Farm Area" : "Farm Area *"}
+            </Label>
             <div className="flex gap-2">
               <Input
                 id="location"
-                placeholder="Enter location..."
+                placeholder="Select farm area from map..."
                 value={formData.location}
-                onChange={(e) => onInputChange("location", e.target.value)}
-                required
+                readOnly
+                disabled
+                className={`bg-gray-50 cursor-not-allowed ${
+                  formData.location
+                    ? "bg-green-50 border-green-200 text-green-900"
+                    : "text-gray-500"
+                }`}
               />
               <Button
                 type="button"
@@ -64,12 +73,15 @@ export function BasicInfoForm({ formData, onInputChange, onGetCurrentLocation }:
                 size="sm"
                 onClick={onGetCurrentLocation}
                 className="shrink-0"
+                title="Get current GPS location"
               >
                 <MapPin className="h-4 w-4" />
               </Button>
             </div>
             <p className="text-sm text-muted-foreground">
-              Specify the location or use GPS to get current position.
+              {formData.location
+                ? `Selected: ${formData.location}`
+                : "Select a farm area from the map to populate this field automatically."}
             </p>
           </div>
 
@@ -83,49 +95,11 @@ export function BasicInfoForm({ formData, onInputChange, onGetCurrentLocation }:
               value={formData.size}
               onChange={(e) => onInputChange("size", e.target.value)}
               required
+              readOnly
+              disabled
             />
             <p className="text-sm text-muted-foreground">
               Enter the area size in hectares.
-            </p>
-          </div>
-
-          <div className="space-y-2">
-            <Label>Section Type *</Label>
-            <Select
-              value={formData.type}
-              onValueChange={(value) => onInputChange("type", value)}
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="Select section type" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="cropland">Cropland</SelectItem>
-                <SelectItem value="pasture">Pasture</SelectItem>
-                <SelectItem value="facility">Facility</SelectItem>
-                <SelectItem value="water">Water</SelectItem>
-              </SelectContent>
-            </Select>
-            <p className="text-sm text-muted-foreground">
-              Choose the type of land use for this section.
-            </p>
-          </div>
-
-          <div className="space-y-2">
-            <Label>Status *</Label>
-            <Select
-              value={formData.active}
-              onValueChange={(value) => onInputChange("active", value)}
-            >
-              <SelectTrigger>
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="true">Active</SelectItem>
-                <SelectItem value="false">Inactive</SelectItem>
-              </SelectContent>
-            </Select>
-            <p className="text-sm text-muted-foreground">
-              Set the section as active or inactive.
             </p>
           </div>
         </div>

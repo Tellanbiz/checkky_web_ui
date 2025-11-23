@@ -23,14 +23,11 @@ export default function NewCompanyPage() {
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState<CompanyParams>({
     name: "",
-    email: "",
-    phone_number: "",
-    address: "",
   });
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!formData.name || !formData.email) {
+    if (!formData.name) {
       toast({
         title: "Validation Error",
         description: "Please fill in the required fields.",
@@ -112,63 +109,10 @@ export default function NewCompanyPage() {
                 />
               </div>
 
-              <div className="space-y-2">
-                <Label
-                  htmlFor="email"
-                  className="text-sm font-medium text-gray-700"
-                >
-                  Email *
-                </Label>
-                <Input
-                  id="email"
-                  type="email"
-                  value={formData.email}
-                  onChange={(e) => handleInputChange("email", e.target.value)}
-                  placeholder="company@example.com"
-                  required
-                  className="w-full"
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label
-                  htmlFor="phone"
-                  className="text-sm font-medium text-gray-700"
-                >
-                  Phone Number
-                </Label>
-                <Input
-                  id="phone"
-                  type="tel"
-                  value={formData.phone_number}
-                  onChange={(e) =>
-                    handleInputChange("phone_number", e.target.value)
-                  }
-                  placeholder="+1 (555) 123-4567"
-                  className="w-full"
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label
-                  htmlFor="address"
-                  className="text-sm font-medium text-gray-700"
-                >
-                  Address
-                </Label>
-                <Input
-                  id="address"
-                  value={formData.address}
-                  onChange={(e) => handleInputChange("address", e.target.value)}
-                  placeholder="123 Business St, City, State"
-                  className="w-full"
-                />
-              </div>
-
               <div className="pt-4">
                 <Button
                   type="submit"
-                  disabled={loading || !formData.name || !formData.email}
+                  disabled={loading || !formData.name}
                   className="w-full h-11 bg-green-600 hover:bg-green-700"
                 >
                   {loading ? (

@@ -10,13 +10,7 @@ export async function getAccessToken(): Promise<string | null> {
 }
 
 export async function getAccount(): Promise<Account> {
-    const cookieStore = await cookies();
-    const token = cookieStore.get("access_token")?.value;
 
-    if (!token) {
-        throw new Error("Not authenticated");
-    }
-
-    return getAccountByToken(token);
+    return getAccountByToken();
 }
 

@@ -26,14 +26,11 @@ export function CompanySetupDialog({
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState<CompanyParams>({
     name: "",
-    email: "",
-    phone_number: "",
-    address: "",
   });
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!formData.name || !formData.email) {
+    if (!formData.name) {
       return;
     }
 
@@ -57,15 +54,14 @@ export function CompanySetupDialog({
 
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
-      <DialogContent className="sm:max-w-[425px]">
-        <DialogHeader>
+      <DialogContent className="sm:max-w-[380px]">
+        <DialogHeader className="pb-3">
           <div className="flex items-center space-x-2">
-            <Building2 className="w-6 h-6 text-blue-600" />
-            <DialogTitle>Welcome to CheckIt!</DialogTitle>
+            <Building2 className="w-5 h-5 text-blue-600" />
+            <DialogTitle className="text-lg">Welcome to CheckIt!</DialogTitle>
           </div>
-          <DialogDescription>
-            Let's get started by setting up your first company. This will be
-            your main workspace.
+          <DialogDescription className="text-sm">
+            Let's get started by setting up your first company.
           </DialogDescription>
         </DialogHeader>
 
@@ -81,55 +77,20 @@ export function CompanySetupDialog({
             />
           </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="email">Email *</Label>
-            <Input
-              id="email"
-              type="email"
-              value={formData.email}
-              onChange={(e) => handleInputChange("email", e.target.value)}
-              placeholder="company@example.com"
-              required
-            />
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="phone">Phone Number</Label>
-            <Input
-              id="phone"
-              type="tel"
-              value={formData.phone_number}
-              onChange={(e) =>
-                handleInputChange("phone_number", e.target.value)
-              }
-              placeholder="+1 (555) 123-4567"
-            />
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="address">Address</Label>
-            <Input
-              id="address"
-              value={formData.address}
-              onChange={(e) => handleInputChange("address", e.target.value)}
-              placeholder="123 Business St, City, State"
-            />
-          </div>
-
-          <DialogFooter>
+          <DialogFooter className="pt-2">
             <Button
               type="submit"
-              disabled={loading || !formData.name || !formData.email}
-              className="w-full"
+              disabled={loading || !formData.name}
+              className="w-full h-9"
             >
               {loading ? (
                 <div className="flex items-center space-x-2">
-                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                  <div className="w-3 h-3 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
                   <span>Creating Company...</span>
                 </div>
               ) : (
                 <div className="flex items-center space-x-2">
-                  <Plus className="w-4 h-4" />
+                  <Plus className="w-3 h-3" />
                   <span>Create Company</span>
                 </div>
               )}

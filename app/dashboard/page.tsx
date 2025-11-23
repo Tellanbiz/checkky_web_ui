@@ -24,7 +24,6 @@ import {
   Calendar,
 } from "lucide-react";
 import { DashboardCharts } from "./components/dashboard-charts";
-import { RecentActivity } from "./components/recent-activity";
 import { QuickActions } from "./components/quick-actions";
 import {
   getMonthlyReportAction,
@@ -130,14 +129,13 @@ export default function Dashboard() {
     fetchData();
   }, []);
 
-  // Calculate completion rate
+  // Calculate completion rate (handle NaN)
   const completionRate = monthlyReport
     ? Math.round(
         (monthlyReport.completed_checklists /
           (monthlyReport.completed_checklists +
-            monthlyReport.pending_checklists)) *
-          100
-      )
+            monthlyReport.pending_checklists) || 1) * 100
+      ) || 0
     : 0;
 
   // Get priority tasks (high priority checklists)
@@ -244,9 +242,9 @@ export default function Dashboard() {
         </Card>
       </div>
 
-      {/* Charts and Activity */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7">
-        <Card className="col-span-4">
+      {/* Charts */}
+      <div className="grid gap-4 md:grid-cols-1">
+        <Card>
           <CardHeader>
             <CardTitle>Checklist Completion Overview</CardTitle>
           </CardHeader>
@@ -254,16 +252,6 @@ export default function Dashboard() {
             <Suspense fallback={<div>Loading charts...</div>}>
               <DashboardCharts yearlyData={yearlyReport} />
             </Suspense>
-          </CardContent>
-        </Card>
-
-        <Card className="col-span-3">
-          <CardHeader>
-            <CardTitle>Recent Activity</CardTitle>
-            <CardDescription>Latest updates from your team</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <RecentActivity />
           </CardContent>
         </Card>
       </div>

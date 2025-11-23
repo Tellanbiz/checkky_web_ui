@@ -132,6 +132,18 @@ export default function LoginPage() {
             Sign up
           </Link>
         </p>
+
+        <p className="text-center text-xs text-gray-500 mt-4">
+          By continuing, you acknowledge that you have read and agree to our{" "}
+          <a
+            href="https://checkky.com/terms-of-service"
+            className="text-emerald-600 hover:underline"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            Terms and Conditions
+          </a>
+        </p>
       </div>
     </>
   );

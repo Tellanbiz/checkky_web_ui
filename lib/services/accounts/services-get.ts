@@ -1,10 +1,12 @@
+"use server"
 import { clientV1 } from "@/lib/client/client";
 import { Account, Farm } from "./models";
+import { getAccessToken } from "../auth/auth-get";
 
-export async function getAccount(token: string): Promise<Account> {
+export async function getAccount(): Promise<Account> {
     const res = await clientV1.get("/account/my", {
         headers: {
-            Authorization: `Bearer ${token}`,
+            Authorization: `Bearer ${await getAccessToken()}`,
         },
     });
     const r: Account = res.data as Account;

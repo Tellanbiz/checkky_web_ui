@@ -2,10 +2,16 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { CheckCircle, Building2, Mail, Phone, MapPin, Plus, ArrowRight } from "lucide-react";
+import { CheckCircle, Building2, Plus, ArrowRight } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import type { Company } from "@/lib/services/company/models";
 import { updateCurrentCompanyAction } from "@/lib/services/company/actions";
@@ -19,8 +25,12 @@ export default function CompaniesPage() {
   const [companies, setCompanies] = useState<Company[]>([]);
   const [account, setAccount] = useState<Account | undefined>(undefined);
   const [loading, setLoading] = useState(true);
-  const [selectedCompanyId, setSelectedCompanyId] = useState<string | null>(null);
-  const [processingCompanyId, setProcessingCompanyId] = useState<string | null>(null);
+  const [selectedCompanyId, setSelectedCompanyId] = useState<string | null>(
+    null
+  );
+  const [processingCompanyId, setProcessingCompanyId] = useState<string | null>(
+    null
+  );
 
   useEffect(() => {
     const loadData = async () => {
@@ -28,12 +38,12 @@ export default function CompaniesPage() {
         setLoading(true);
         const [companiesData, accountData] = await Promise.all([
           getAllCompanies(),
-          getAccount()
+          getAccount(),
         ]);
-        
+
         setCompanies(companiesData);
         setAccount(accountData);
-        
+
         // Set the current company ID if account has one
         if (accountData?.current_company_id) {
           setSelectedCompanyId(accountData.current_company_id);
@@ -56,16 +66,16 @@ export default function CompaniesPage() {
   const handleSelectCompany = async (companyId: string) => {
     try {
       setProcessingCompanyId(companyId);
-      
+
       const success = await updateCurrentCompanyAction(companyId);
-      
+
       if (success) {
         setSelectedCompanyId(companyId);
         toast({
           title: "Success",
           description: "Company selected successfully!",
         });
-        
+
         // Redirect to dashboard after a short delay
         setTimeout(() => {
           router.push("/dashboard");
@@ -107,12 +117,17 @@ export default function CompaniesPage() {
         <div className="mb-8">
           <div className="flex items-center justify-between mb-4">
             <div>
-              <h1 className="text-3xl font-bold text-gray-900">Your Companies</h1>
+              <h1 className="text-3xl font-bold text-gray-900">
+                Your Companies
+              </h1>
               <p className="text-gray-600 mt-2">
                 Select a company to continue or create a new one
               </p>
             </div>
-            <Button onClick={handleCreateCompany} className="bg-green-600 hover:bg-green-700">
+            <Button
+              onClick={handleCreateCompany}
+              className="bg-green-600 hover:bg-green-700"
+            >
               <Plus className="mr-2 h-4 w-4" />
               Create Company
             </Button>
@@ -120,99 +135,74 @@ export default function CompaniesPage() {
         </div>
 
         {/* Companies Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {companies.map((company) => {
             const isSelected = selectedCompanyId === company.id;
             const isProcessing = processingCompanyId === company.id;
-            
+
             return (
-              <Card 
-                key={company.id} 
+              <Card
+                key={company.id}
                 className={`relative transition-all duration-200 hover:shadow-lg ${
-                  isSelected 
-                    ? 'ring-2 ring-green-500 bg-green-50' 
-                    : 'hover:ring-2 hover:ring-gray-200'
+                  isSelected
+                    ? "ring-2 ring-green-500 bg-green-50"
+                    : "hover:ring-2 hover:ring-gray-200"
                 }`}
               >
                 {isSelected && (
-                  <div className="absolute top-4 right-4">
-                    <Badge className="bg-green-600 text-white">
-                      <CheckCircle className="mr-1 h-3 w-3" />
+                  <div className="absolute top-2 right-2">
+                    <Badge className="bg-green-600 text-white text-xs px-2 py-1">
+                      <CheckCircle className="mr-1 h-2 w-2" />
                       Current
                     </Badge>
                   </div>
                 )}
-                
-                <CardHeader className="pb-4">
-                  <div className="flex items-start justify-between">
-                    <div className="flex items-center space-x-3">
-                      <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
-                        <Building2 className="w-6 h-6 text-green-600" />
-                      </div>
-                      <div>
-                        <CardTitle className="text-lg text-gray-900">
-                          {company.name}
-                        </CardTitle>
-                        <CardDescription className="text-sm text-gray-600">
-                          Created {new Date(company.created_at).toLocaleDateString()}
-                        </CardDescription>
-                      </div>
+
+                <CardHeader className="pb-3">
+                  <div className="flex items-center space-x-3">
+                    <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
+                      <Building2 className="w-5 h-5 text-green-600" />
+                    </div>
+                    <div className="flex-1">
+                      <CardTitle className="text-base text-gray-900">
+                        {company.name}
+                      </CardTitle>
+                      <CardDescription className="text-xs text-gray-600">
+                        {new Date(company.created_at).toLocaleDateString()}
+                      </CardDescription>
                     </div>
                   </div>
                 </CardHeader>
 
-                <CardContent className="space-y-3">
-                  {/* Company Details */}
-                  <div className="space-y-2 text-sm">
-                    <div className="flex items-center space-x-2 text-gray-600">
-                      <Mail className="w-4 h-4" />
-                      <span>{company.email}</span>
-                    </div>
-                    {company.phone_number && (
-                      <div className="flex items-center space-x-2 text-gray-600">
-                        <Phone className="w-4 h-4" />
-                        <span>{company.phone_number}</span>
-                      </div>
-                    )}
-                    {company.address && (
-                      <div className="flex items-center space-x-2 text-gray-600">
-                        <MapPin className="w-4 h-4" />
-                        <span className="truncate">{company.address}</span>
-                      </div>
-                    )}
-                  </div>
-
-                  {/* Action Button */}
-                  <div className="pt-4">
-                    {isSelected ? (
-                      <Button 
-                        variant="outline" 
-                        className="w-full border-green-200 text-green-700 bg-green-50"
-                        disabled
-                      >
-                        <CheckCircle className="mr-2 h-4 w-4" />
-                        Currently Selected
-                      </Button>
-                    ) : (
-                      <Button 
-                        onClick={() => handleSelectCompany(company.id)}
-                        disabled={isProcessing}
-                        className="w-full bg-green-600 hover:bg-green-700"
-                      >
-                        {isProcessing ? (
-                          <>
-                            <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2" />
-                            Selecting...
-                          </>
-                        ) : (
-                          <>
-                            Select Company
-                            <ArrowRight className="ml-2 h-4 w-4" />
-                          </>
-                        )}
-                      </Button>
-                    )}
-                  </div>
+                <CardContent className="pt-0">
+                  {isSelected ? (
+                    <Button
+                      variant="outline"
+                      className="w-full border-green-200 text-green-700 bg-green-50 h-9 text-sm"
+                      disabled
+                    >
+                      <CheckCircle className="mr-2 h-3 w-3" />
+                      Currently Selected
+                    </Button>
+                  ) : (
+                    <Button
+                      onClick={() => handleSelectCompany(company.id)}
+                      disabled={isProcessing}
+                      className="w-full bg-green-600 hover:bg-green-700 h-9 text-sm"
+                    >
+                      {isProcessing ? (
+                        <>
+                          <div className="w-3 h-3 border-2 border-white border-t-transparent rounded-full animate-spin mr-2" />
+                          Selecting...
+                        </>
+                      ) : (
+                        <>
+                          Select Company
+                          <ArrowRight className="ml-2 h-3 w-3" />
+                        </>
+                      )}
+                    </Button>
+                  )}
                 </CardContent>
               </Card>
             );
@@ -225,11 +215,16 @@ export default function CompaniesPage() {
             <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
               <Building2 className="w-8 h-8 text-gray-400" />
             </div>
-            <h3 className="text-lg font-medium text-gray-900 mb-2">No companies yet</h3>
+            <h3 className="text-lg font-medium text-gray-900 mb-2">
+              No companies yet
+            </h3>
             <p className="text-gray-600 mb-6">
               Get started by creating your first company
             </p>
-            <Button onClick={handleCreateCompany} className="bg-green-600 hover:bg-green-700">
+            <Button
+              onClick={handleCreateCompany}
+              className="bg-green-600 hover:bg-green-700"
+            >
               <Plus className="mr-2 h-4 w-4" />
               Create Your First Company
             </Button>

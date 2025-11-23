@@ -1,5 +1,7 @@
 "use client";
 
+import { useState, useEffect } from "react";
+import type { DateRange } from "react-day-picker";
 import {
   Card,
   CardContent,
@@ -16,6 +18,7 @@ import {
   CheckCircle,
   Clock,
   AlertTriangle,
+  Loader2,
 } from "lucide-react";
 import {
   Bar,
@@ -32,32 +35,118 @@ import {
   Tooltip,
   Legend,
 } from "recharts";
-
-const performanceData = [
-  { month: "Jan", completed: 85, pending: 15, overdue: 5 },
-  { month: "Feb", completed: 88, pending: 12, overdue: 3 },
-  { month: "Mar", completed: 92, pending: 8, overdue: 2 },
-  { month: "Apr", completed: 87, pending: 13, overdue: 4 },
-  { month: "May", completed: 94, pending: 6, overdue: 1 },
-  { month: "Jun", completed: 89, pending: 11, overdue: 3 },
-];
-
-const categoryData = [
-  { name: "Livestock", value: 35, color: "#16A34A" },
-  { name: "Crop Farming", value: 28, color: "#3B82F6" },
-  { name: "Flower Farming", value: 22, color: "#F59E0B" },
-  { name: "General", value: 15, color: "#8B5CF6" },
-];
-
-const teamPerformance = [
-  { name: "John Smith", completed: 45, quality: 95, efficiency: 88 },
-  { name: "Sarah Johnson", completed: 38, quality: 92, efficiency: 90 },
-  { name: "Mike Wilson", completed: 28, quality: 85, efficiency: 82 },
-  { name: "Emma Davis", completed: 33, quality: 98, efficiency: 94 },
-  { name: "Lisa Brown", completed: 22, quality: 87, efficiency: 79 },
-];
+import {
+  getAnalyticsData,
+  exportAnalyticsData,
+  type AnalyticsData,
+} from "@/lib/services/analytics/actions";
+import { useToast } from "@/hooks/use-toast";
 
 export default function AnalyticsPage() {
+  const { toast } = useToast();
+  const [analyticsData, setAnalyticsData] = useState<AnalyticsData | null>(
+    null
+  );
+  const [loading, setLoading] = useState(true);
+  const [dateRange, setDateRange] = useState<DateRange | undefined>();
+
+  useEffect(() => {
+    loadAnalyticsData();
+  }, [dateRange]);
+
+  const loadAnalyticsData = async () => {
+    try {
+      setLoading(true);
+      const params = {
+        start_date: dateRange?.from?.toISOString().split("T")[0],
+        end_date: dateRange?.to?.toISOString().split("T")[0],
+      };
+      const data = await getAnalyticsData(params);
+      setAnalyticsData(data);
+    } catch (error) {
+      console.error("Failed to load analytics data:", error);
+      toast({
+        title: "Error",
+        description: "Failed to load analytics data. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleExport = async (format: "json" | "csv" = "json") => {
+    try {
+      const params = {
+        start_date: dateRange?.from?.toISOString().split("T")[0],
+        end_date: dateRange?.to?.toISOString().split("T")[0],
+      };
+      await exportAnalyticsData(format, params);
+      toast({
+        title: "Success",
+        description: `Analytics data exported as ${format.toUpperCase()}`,
+      });
+    } catch (error) {
+      console.error("Failed to export analytics:", error);
+      toast({
+        title: "Error",
+        description: "Failed to export analytics data. Please try again.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="flex-1 space-y-4 p-4 md:p-8 pt-6">
+        <div className="flex items-center justify-center h-64">
+          <div className="flex flex-col items-center space-y-4">
+            <Loader2 className="h-8 w-8 animate-spin text-gray-500" />
+            <p className="text-gray-500">Loading analytics data...</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (!analyticsData) {
+    return (
+      <div className="flex-1 space-y-4 p-4 md:p-8 pt-6">
+        <div className="flex items-center justify-center h-64">
+          <div className="text-center">
+            <p className="text-gray-500">No analytics data available</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+  // Ensure data arrays are never null and add additional safety checks
+  const safePerformanceData = (analyticsData?.performance_data || []).filter(
+    Boolean
+  );
+  const safeCategoryData = (analyticsData?.category_data || []).filter(Boolean);
+  const safeTeamPerformance = (analyticsData?.team_performance || []).filter(
+    Boolean
+  );
+
+  // Additional safety: don't render charts if analyticsData is not fully loaded
+  if (
+    !analyticsData ||
+    !Array.isArray(analyticsData.performance_data) ||
+    !Array.isArray(analyticsData.category_data) ||
+    !Array.isArray(analyticsData.team_performance)
+  ) {
+    return (
+      <div className="flex-1 space-y-4 p-4 md:p-8 pt-6">
+        <div className="flex items-center justify-center h-64">
+          <div className="text-center">
+            <p className="text-gray-500">Loading analytics data...</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="flex-1 space-y-4 p-4 md:p-8 pt-6">
       <div className="flex items-center justify-between">
@@ -65,8 +154,11 @@ export default function AnalyticsPage() {
           Analytics & Reports
         </h2>
         <div className="flex items-center space-x-2">
-          <DatePickerWithRange />
-          <Button>
+          <DatePickerWithRange
+            value={dateRange}
+            onChange={(range: DateRange | undefined) => setDateRange(range)}
+          />
+          <Button onClick={() => handleExport("csv")}>
             <Download className="mr-2 h-4 w-4" />
             Export Report
           </Button>
@@ -83,7 +175,9 @@ export default function AnalyticsPage() {
             <TrendingUp className="h-4 w-4 text-green-600" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">89.5%</div>
+            <div className="text-2xl font-bold">
+              {analyticsData.completion_rate.toFixed(1)}%
+            </div>
             <p className="text-xs text-green-600">+2.1% from last month</p>
           </CardContent>
         </Card>
@@ -96,7 +190,9 @@ export default function AnalyticsPage() {
             <Clock className="h-4 w-4 text-blue-600" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">2.4h</div>
+            <div className="text-2xl font-bold">
+              {analyticsData.avg_response_time.toFixed(1)}h
+            </div>
             <p className="text-xs text-green-600">-0.3h from last month</p>
           </CardContent>
         </Card>
@@ -107,8 +203,10 @@ export default function AnalyticsPage() {
             <CheckCircle className="h-4 w-4 text-green-600" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">91.2%</div>
-            <p className="text-xs text-green-600">+1.8% from last month</p>
+            <div className="text-2xl font-bold">
+              {analyticsData.total_checklists}
+            </div>
+            <p className="text-xs text-green-600">+12 from last month</p>
           </CardContent>
         </Card>
 
@@ -118,7 +216,9 @@ export default function AnalyticsPage() {
             <AlertTriangle className="h-4 w-4 text-red-600" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">8</div>
+            <div className="text-2xl font-bold">
+              {analyticsData.active_tasks}
+            </div>
             <p className="text-xs text-red-600">+2 from last month</p>
           </CardContent>
         </Card>
@@ -135,36 +235,42 @@ export default function AnalyticsPage() {
           </CardHeader>
           <CardContent>
             <div className="h-[300px]">
-              <ResponsiveContainer width="100%" height="100%">
-                <LineChart data={performanceData}>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="month" />
-                  <YAxis />
-                  <Tooltip />
-                  <Legend />
-                  <Line
-                    type="monotone"
-                    dataKey="completed"
-                    stroke="#16A34A"
-                    name="Completed"
-                    strokeWidth={2}
-                  />
-                  <Line
-                    type="monotone"
-                    dataKey="pending"
-                    stroke="#F59E0B"
-                    name="Pending"
-                    strokeWidth={2}
-                  />
-                  <Line
-                    type="monotone"
-                    dataKey="overdue"
-                    stroke="#EF4444"
-                    name="Overdue"
-                    strokeWidth={2}
-                  />
-                </LineChart>
-              </ResponsiveContainer>
+              {safePerformanceData.length > 0 ? (
+                <ResponsiveContainer width="100%" height="100%">
+                  <LineChart data={safePerformanceData}>
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis dataKey="month" />
+                    <YAxis />
+                    <Tooltip />
+                    <Legend />
+                    <Line
+                      type="monotone"
+                      dataKey="completed"
+                      stroke="#16A34A"
+                      name="Completed"
+                      strokeWidth={2}
+                    />
+                    <Line
+                      type="monotone"
+                      dataKey="pending"
+                      stroke="#F59E0B"
+                      name="Pending"
+                      strokeWidth={2}
+                    />
+                    <Line
+                      type="monotone"
+                      dataKey="overdue"
+                      stroke="#EF4444"
+                      name="Overdue"
+                      strokeWidth={2}
+                    />
+                  </LineChart>
+                </ResponsiveContainer>
+              ) : (
+                <div className="flex items-center justify-center h-full">
+                  <p className="text-gray-500">No performance data available</p>
+                </div>
+              )}
             </div>
           </CardContent>
         </Card>
@@ -178,24 +284,33 @@ export default function AnalyticsPage() {
           </CardHeader>
           <CardContent>
             <div className="h-[300px]">
-              <ResponsiveContainer width="100%" height="100%">
-                <PieChart>
-                  <Pie
-                    data={categoryData}
-                    cx="50%"
-                    cy="50%"
-                    innerRadius={60}
-                    outerRadius={100}
-                    dataKey="value"
-                    label={({ name, value }) => `${name}: ${value}%`}
-                  >
-                    {categoryData.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={entry.color} />
-                    ))}
-                  </Pie>
-                  <Tooltip />
-                </PieChart>
-              </ResponsiveContainer>
+              {safeCategoryData.length > 0 ? (
+                <ResponsiveContainer width="100%" height="100%">
+                  <PieChart>
+                    <Pie
+                      data={safeCategoryData}
+                      cx="50%"
+                      cy="50%"
+                      labelLine={false}
+                      label={({ name, percent }: any) =>
+                        `${name} ${(percent * 100).toFixed(0)}%`
+                      }
+                      outerRadius={80}
+                      fill="#8884d8"
+                      dataKey="value"
+                    >
+                      {safeCategoryData.map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill={entry.color} />
+                      ))}
+                    </Pie>
+                    <Tooltip />
+                  </PieChart>
+                </ResponsiveContainer>
+              ) : (
+                <div className="flex items-center justify-center h-full">
+                  <p className="text-gray-500">No category data available</p>
+                </div>
+              )}
             </div>
           </CardContent>
         </Card>
@@ -211,29 +326,37 @@ export default function AnalyticsPage() {
         </CardHeader>
         <CardContent>
           <div className="h-[400px]">
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart
-                data={teamPerformance}
-                margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
-              >
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="name" />
-                <YAxis />
-                <Tooltip />
-                <Legend />
-                <Bar
-                  dataKey="completed"
-                  fill="#16A34A"
-                  name="Tasks Completed"
-                />
-                <Bar dataKey="quality" fill="#3B82F6" name="Quality Score" />
-                <Bar
-                  dataKey="efficiency"
-                  fill="#F59E0B"
-                  name="Efficiency Score"
-                />
-              </BarChart>
-            </ResponsiveContainer>
+            {safeTeamPerformance.length > 0 ? (
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart
+                  data={safeTeamPerformance}
+                  margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
+                >
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="name" />
+                  <YAxis />
+                  <Tooltip />
+                  <Legend />
+                  <Bar
+                    dataKey="completed"
+                    fill="#16A34A"
+                    name="Tasks Completed"
+                  />
+                  <Bar dataKey="quality" fill="#3B82F6" name="Quality Score" />
+                  <Bar
+                    dataKey="efficiency"
+                    fill="#F59E0B"
+                    name="Efficiency Score"
+                  />
+                </BarChart>
+              </ResponsiveContainer>
+            ) : (
+              <div className="flex items-center justify-center h-full">
+                <p className="text-gray-500">
+                  No team performance data available
+                </p>
+              </div>
+            )}
           </div>
         </CardContent>
       </Card>
@@ -246,7 +369,7 @@ export default function AnalyticsPage() {
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
-              {teamPerformance
+              {safeTeamPerformance
                 .sort((a, b) => b.quality - a.quality)
                 .slice(0, 3)
                 .map((member, index) => (

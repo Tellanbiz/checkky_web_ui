@@ -98,9 +98,6 @@ export function DashboardWrapper({
       const newCompany: Company = {
         id: `company_${Date.now()}`, // This would come from the API response
         name: companyData.name,
-        email: companyData.email,
-        phone_number: companyData.phone_number,
-        address: companyData.address,
         created_at: new Date().toISOString(),
       };
 

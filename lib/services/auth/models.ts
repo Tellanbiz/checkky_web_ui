@@ -6,6 +6,7 @@ export interface SignUpParams {
     full_name: string;
     email: string;
     password: string;
+    repassword: string;
 }
 
 export interface SignUpVerificationParams {

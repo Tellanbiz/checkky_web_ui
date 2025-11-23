@@ -4,6 +4,28 @@ import { clientV1 } from "@/lib/client/client";
 import { redirect, RedirectType } from "next/navigation";
 import { cookies } from "next/headers";
 import { AuthResult } from "@/lib/services/auth/models";
+import { UpdateProfileParams } from "./models";
+
+export async function updateProfile(params: UpdateProfileParams) {
+    const cookieStore = await cookies();
+    const token = cookieStore.get("access_token")?.value;
+
+    if (!token) {
+        throw new Error("Not authenticated");
+    }
+
+    const res = await clientV1.put("/account/profile", params, {
+        headers: {
+            Authorization: `Bearer ${token}`,
+        },
+    });
+
+    if (res.status !== 200) {
+        throw new Error("Failed to update profile");
+    }
+
+    return res.data;
+}
 
 export async function updateCurrentFarm(formData: FormData) {
     const res = await clientV1.post("/account/farm", {

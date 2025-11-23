@@ -1,6 +1,12 @@
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import {
   Dialog,
   DialogContent,
@@ -11,15 +17,13 @@ import {
 import { Save, Plus, X, MapPin } from "lucide-react";
 import { LeafletMap } from "@/components/maps/leaflet-map";
 import { MapContainer, TileLayer, Polygon, useMap } from "react-leaflet";
-import L from 'leaflet';
+import L from "leaflet";
 
 interface FarmSectionForm {
   name: string;
   location: string;
   size: string;
   points: string;
-  active: string;
-  type: string;
 }
 
 interface SectionMapFormProps {
@@ -43,7 +47,9 @@ export function SectionMapForm({
   onCancel,
 }: SectionMapFormProps) {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [selectedBoundary, setSelectedBoundary] = useState<[number, number][] | null>(null);
+  const [selectedBoundary, setSelectedBoundary] = useState<
+    [number, number][] | null
+  >(null);
 
   const handlePolygonComplete = (boundaryPoints: [number, number][]) => {
     onPolygonComplete(boundaryPoints);
@@ -55,7 +61,9 @@ export function SectionMapForm({
     const map = useMap();
     useEffect(() => {
       if (boundary.length > 0) {
-        const latlngs = boundary.map(([lng, lat]) => [lat, lng] as [number, number]);
+        const latlngs = boundary.map(
+          ([lng, lat]) => [lat, lng] as [number, number]
+        );
         const polygon = L.polygon(latlngs);
         map.fitBounds(polygon.getBounds());
       }
@@ -69,7 +77,8 @@ export function SectionMapForm({
         <CardHeader>
           <CardTitle>Farm Area Selection</CardTitle>
           <CardDescription>
-            Select the boundaries of your farm section by drawing on the map. You can draw polygons, rectangles, or circles to define the area.
+            Select the boundaries of your farm section by drawing on the map.
+            You can draw polygons, rectangles, or circles to define the area.
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -93,7 +102,6 @@ export function SectionMapForm({
                   lat: initialMapPosition.lat,
                   lng: initialMapPosition.lng,
                   acreage: formData.size,
-                  type: formData.type,
                 }}
               />
             </DialogContent>
@@ -110,7 +118,7 @@ export function SectionMapForm({
                   <MapContainer
                     center={[40.7128, -74.006]}
                     zoom={10}
-                    style={{ height: '100%', width: '100%' }}
+                    style={{ height: "100%", width: "100%" }}
                   >
                     <TileLayer
                       url={`https://mt1.google.com/vt/lyrs=s&x={x}&y={y}&z={z}&key=${process.env.NEXT_PUBLIC_GOOGLE_KEY}`}
@@ -118,7 +126,10 @@ export function SectionMapForm({
                       maxZoom={20}
                     />
                     <Polygon
-                      positions={selectedBoundary.map(([lng, lat]) => [lat, lng])}
+                      positions={selectedBoundary.map(([lng, lat]) => [
+                        lat,
+                        lng,
+                      ])}
                       color="green"
                       fillColor="lightgreen"
                       fillOpacity={0.3}
@@ -131,7 +142,6 @@ export function SectionMapForm({
           )}
         </CardContent>
       </Card>
-
     </>
   );
 }

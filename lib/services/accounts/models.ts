@@ -5,6 +5,11 @@ export interface Account {
     current_company_id: string;
 }
 
+export interface UpdateProfileParams {
+    full_name: string;
+    email: string;
+    picture?: string;
+}
 
 export interface Farm {
     id: string;

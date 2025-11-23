@@ -1,16 +1,25 @@
-import { useEffect, useRef, useState } from 'react';
-import { MapContainer, TileLayer, FeatureGroup, useMap, useMapEvents } from 'react-leaflet';
-import { EditControl } from 'react-leaflet-draw';
-import L from 'leaflet';
-import 'leaflet/dist/leaflet.css';
-import 'leaflet-draw/dist/leaflet.draw.css';
+import { useEffect, useRef, useState } from "react";
+import {
+  MapContainer,
+  TileLayer,
+  FeatureGroup,
+  useMap,
+  useMapEvents,
+} from "react-leaflet";
+import { EditControl } from "react-leaflet-draw";
+import L from "leaflet";
+import "leaflet/dist/leaflet.css";
+import "leaflet-draw/dist/leaflet.draw.css";
 
 // Fix for default markers in react-leaflet
 delete (L.Icon.Default.prototype as any)._getIconUrl;
 L.Icon.Default.mergeOptions({
-  iconRetinaUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon-2x.png',
-  iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon.png',
-  shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png',
+  iconRetinaUrl:
+    "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon-2x.png",
+  iconUrl:
+    "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon.png",
+  shadowUrl:
+    "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png",
 });
 
 interface LeafletMapProps {
@@ -22,11 +31,19 @@ interface LeafletMapProps {
     lat: string;
     lng: string;
     acreage: string;
-    type: string;
+    type?: string;
   };
 }
 
-function MapController({ initialLat, initialLng, onCoordinatesChange }: { initialLat?: string; initialLng?: string; onCoordinatesChange: (lat: string, lng: string) => void }) {
+function MapController({
+  initialLat,
+  initialLng,
+  onCoordinatesChange,
+}: {
+  initialLat?: string;
+  initialLng?: string;
+  onCoordinatesChange: (lat: string, lng: string) => void;
+}) {
   const map = useMap();
 
   useEffect(() => {
@@ -67,10 +84,10 @@ export function LeafletMap({
 
     let boundaryPoints: [number, number][] = [];
 
-    if (layerType === 'polygon') {
+    if (layerType === "polygon") {
       const latlngs = (layer as L.Polygon).getLatLngs()[0] as L.LatLng[];
-      boundaryPoints = latlngs.map(latlng => [latlng.lng, latlng.lat]);
-    } else if (layerType === 'rectangle') {
+      boundaryPoints = latlngs.map((latlng) => [latlng.lng, latlng.lat]);
+    } else if (layerType === "rectangle") {
       const bounds = (layer as L.Rectangle).getBounds();
       const sw = bounds.getSouthWest();
       const ne = bounds.getNorthEast();
@@ -80,7 +97,7 @@ export function LeafletMap({
         [ne.lng, ne.lat], // top-right
         [sw.lng, ne.lat], // top-left
       ];
-    } else if (layerType === 'circle') {
+    } else if (layerType === "circle") {
       const center = (layer as L.Circle).getLatLng();
       const radius = (layer as L.Circle).getRadius();
       // Approximate circle with 8 points
@@ -102,7 +119,9 @@ export function LeafletMap({
 
     try {
       const response = await fetch(
-        `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(searchQuery)}&limit=5`
+        `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(
+          searchQuery
+        )}&limit=5`
       );
       const results = await response.json();
       setSearchResults(results);
@@ -179,8 +198,13 @@ export function LeafletMap({
         <div className="text-sm text-blue-800">
           <p className="font-medium mb-2">How to use the map:</p>
           <ul className="list-disc list-inside space-y-1">
-            <li>Use the drawing tools to create farm boundaries (polygon, rectangle, circle)</li>
-            <li>Only one shape at a time; drawing a new one replaces the previous</li>
+            <li>
+              Use the drawing tools to create farm boundaries (polygon,
+              rectangle, circle)
+            </li>
+            <li>
+              Only one shape at a time; drawing a new one replaces the previous
+            </li>
             <li>Coordinates update automatically when you draw a shape</li>
           </ul>
         </div>
@@ -191,9 +215,13 @@ export function LeafletMap({
         style={{ height: "600px", minHeight: "600px" }}
       >
         <MapContainer
-          center={initialLat && initialLng ? [parseFloat(initialLat), parseFloat(initialLng)] : [40.7128, -74.006]}
+          center={
+            initialLat && initialLng
+              ? [parseFloat(initialLat), parseFloat(initialLng)]
+              : [40.7128, -74.006]
+          }
           zoom={13}
-          style={{ height: '100%', width: '100%' }}
+          style={{ height: "100%", width: "100%" }}
           ref={mapRef}
         >
           <TileLayer
@@ -201,7 +229,11 @@ export function LeafletMap({
             attribution='&copy; <a href="https://www.google.com/maps">Google Maps</a>'
             maxZoom={20}
           />
-          <MapController initialLat={initialLat} initialLng={initialLng} onCoordinatesChange={onCoordinatesChange} />
+          <MapController
+            initialLat={initialLat}
+            initialLng={initialLng}
+            onCoordinatesChange={onCoordinatesChange}
+          />
           <FeatureGroup
             ref={(ref: L.FeatureGroup | null) => {
               if (ref && !drawnItems) {
