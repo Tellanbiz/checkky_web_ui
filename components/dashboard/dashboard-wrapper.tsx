@@ -76,7 +76,7 @@ export function DashboardWrapper({
       !account.current_company_id &&
       !onCompaniesPage
     ) {
-      router.replace("/companies");
+      router.replace("/dashboard");
       return;
     }
 

@@ -51,7 +51,7 @@ export default async function DashboardLayout({
     account &&
     !account.current_company_id
   ) {
-    redirect("/companies");
+    redirect("/dashboard");
   }
 
   return (
