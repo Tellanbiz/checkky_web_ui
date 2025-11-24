@@ -58,6 +58,7 @@ export default function NewSectionPage() {
   };
 
   const handlePolygonComplete = (boundaryPoints: [number, number][]) => {
+    
     // Calculate center point for location name
     if (boundaryPoints.length > 0) {
       const avgLat =
