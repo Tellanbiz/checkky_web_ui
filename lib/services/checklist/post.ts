@@ -22,17 +22,17 @@ export async function createChecklist(token: string, data: CreateChecklistData):
     return res.status != 200 ? { error: res.data.error } : res.data;
 }
 
-export async function assignChecklist(token: string, data: AssignedChecklistParams): Promise<any> {
+export async function assignChecklist(data: AssignedChecklistParams): Promise<any> {
     const res = await clientV1.post('/checklist/assign', data, {
         headers: {
-            Authorization: `Bearer ${token}`,
+            Authorization: `Bearer ${await getAccessToken()}`,
         },
     });
     return res.status != 200 ? { error: res.data.error } : res.data;
 }
 
-export async function updateAssignedPriority(id :string, priority: "low" | "mid" | "high"): Promise<any> {
-    const res = await clientV1.post('/checklist/assign/priority', {id, priority}, {
+export async function updateAssignedPriority(id: string, priority: "low" | "mid" | "high"): Promise<any> {
+    const res = await clientV1.post('/checklist/assign/priority', { id, priority }, {
         headers: {
             Authorization: `Bearer ${await getAccessToken()}`,
         },

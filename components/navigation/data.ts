@@ -1,4 +1,4 @@
-import { LayoutDashboard, CheckSquare, MapPin, Users, BarChart3, Building2, Settings, User } from "lucide-react";
+import { LayoutDashboard, CheckSquare, MapPin, Users, BarChart3, Building2, Settings, User, Workflow, FileText } from "lucide-react";
 
 export interface NavigationSection {
     title: string;
@@ -14,27 +14,42 @@ export interface NavigationItem {
 
 export const navigation: NavigationSection[] = [
     {
-        title: "Main",
+        title: "",
         items: [
             {
                 name: "Dashboard",
                 href: "/dashboard",
                 icon: LayoutDashboard,
             },
+        ],
+    },
+    {
+        title: "Operations",
+        items: [
             {
-                name: "Area Management",
-                href: "/dashboard/sections",
-                icon: MapPin,
-            },
+                name: "Workflow Automation",
+                href: "/dashboard/workflows",
+                icon: Workflow,
+            },   
             {
                 name: "Checklist Management",
                 href: "/dashboard/checklists",
                 icon: CheckSquare,
             },
+            {
+                name: "Template Library",
+                href: "/dashboard/templates",
+                icon: FileText,
+            },
+            {
+                name: "Area Management",
+                href: "/dashboard/sections",
+                icon: MapPin,
+            },
         ],
     },
     {
-        title: "Team & Communication",
+        title: "Team Management",
         items: [
             {
                 name: "Team Members",
@@ -43,29 +58,8 @@ export const navigation: NavigationSection[] = [
             },
         ],
     },
-    // {
-    //     title: "Business",
-    //     items: [
-    //         {
-    //             name: "Business Analytics",
-    //             href: "/dashboard/analytics",
-    //             icon: BarChart3,
-    //         },
-
-    //     ],
-    // },
-    // {
-    //     title: "System",
-    //     items: [
-    //         {
-    //             name: "System Settings",
-    //             href: "/dashboard/settings",
-    //             icon: Settings,
-    //         },
-    //     ],
-    // },
     {
-        title: "Account",
+        title: "Account Settings",
         items: [
             {
                 name: "Company Management",

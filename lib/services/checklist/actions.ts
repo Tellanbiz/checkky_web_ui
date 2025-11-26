@@ -17,14 +17,8 @@ export async function createChecklist(data: CreateChecklistData): Promise<any> {
 }
 
 export async function getAllChecklists(name?: string): Promise<any> {
-    const cookieStore = await cookies();
-    const token = cookieStore.get("access_token")?.value;
 
-    if (!token) {
-        throw new Error("Not authenticated");
-    }
-
-    return getChecklists(token, name);
+    return getChecklists( name);
 }
 
 export async function getAssignedChecklistsAction(): Promise<any> {
@@ -41,32 +35,10 @@ export async function getAssignedChecklistsAction(): Promise<any> {
 }
 
 export async function getChecklistsInfo(id: string): Promise<any> {
-    const cookieStore = await cookies();
-    const token = cookieStore.get("access_token")?.value;
-
-    if (!token) {
-        throw new Error("Not authenticated");
-    }
-
-    return getChecklistInfo(token, id);
+    return getChecklistInfo( id);
 }
 
 export async function assignChecklist(data: AssignedChecklistParams): Promise<any> {
-    try {
-        const cookieStore = await cookies();
-        const token = cookieStore.get("access_token")?.value;
-
-        if (!token) {
-            throw new Error("Not authenticated");
-        }
-
-        const result = await assignChecklistService(token, data);
+const result = await assignChecklistService(data);
         return { success: true, data: result };
-    } catch (error) {
-        console.error('Error assigning checklist:', error);
-        return {
-            success: false,
-            error: error instanceof Error ? error.message : 'Failed to assign checklist'
-        };
-    }
 }
