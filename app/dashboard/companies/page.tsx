@@ -1,6 +1,6 @@
 "use client";
 
-import { CompanyDetailsModal } from "../components/modals/company-details-modal";
+import { CompanyDetailsModal } from "@/components/modals/company-details-modal";
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -27,7 +27,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { EditCompanyModal } from "../components/modals/edit-company-modal";
+import { EditCompanyModal } from "@/components/modals/edit-company-modal";
 import { getAllCompaniesWithStats } from "@/lib/services/company/actions";
 import type { CompanyWithStats } from "@/lib/services/company/models";
 import { DeleteConfirmationModal } from "@/components/team/delete-confirmation-modal";

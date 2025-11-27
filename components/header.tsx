@@ -21,11 +21,12 @@ import {
   BreadcrumbPage,
   BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb";
-import { Sidebar } from "../../../components/navigation/sidebar";
+
 import { useEffect, useState } from "react";
 import { getClientAccount } from "@/lib/services/auth/client-auth";
 import { Account } from "@/lib/services/accounts/models";
 import { usePathname, useRouter } from "next/navigation";
+import { Sidebar } from "./navigation/sidebar";
 
 export function Header() {
   const [account, setAccount] = useState<Account | null>(null);

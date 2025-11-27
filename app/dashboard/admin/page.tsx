@@ -21,12 +21,12 @@ import {
   Zap,
 } from "lucide-react";
 import { useState } from "react";
-import { AdminReviewModal } from "../components/modals/admin-review-modal";
-import { ManageUsersModal } from "../components/modals/manage-users-modal";
-import { RolePermissionsModal } from "../components/modals/role-permissions-modal";
-import { BillingResolveModal } from "../components/modals/billing-resolve-modal";
-import { SystemLogsModal } from "../components/modals/system-logs-modal";
-import { DatabaseToolsModal } from "../components/modals/database-tools-modal";
+import { AdminReviewModal } from "@/components/modals/admin-review-modal";
+import { ManageUsersModal } from "@/components/modals/manage-users-modal";
+import { RolePermissionsModal } from "@/components/modals/role-permissions-modal";
+import { BillingResolveModal } from "@/components/modals/billing-resolve-modal";
+import { SystemLogsModal } from "@/components/modals/system-logs-modal";
+import { DatabaseToolsModal } from "@/components/modals/database-tools-modal";
 
 const AdminPage = () => {
   const [showReviewModal, setShowReviewModal] = useState(false);

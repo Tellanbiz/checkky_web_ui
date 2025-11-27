@@ -23,8 +23,7 @@ import {
   User,
   Calendar,
 } from "lucide-react";
-import { DashboardCharts } from "./components/dashboard-charts";
-import { QuickActions } from "./components/quick-actions";
+
 import {
   getMonthlyReportAction,
   getYearlyReportAction,
@@ -33,6 +32,8 @@ import { getAssignedChecklistsAction } from "@/lib/services/checklist/actions";
 import { MonthlyReport, MonthlyTasks } from "@/lib/services/reports/models";
 import { AssignedChecklist } from "@/lib/services/checklist/models";
 import { useRouter } from "next/navigation";
+import { DashboardCharts } from "@/components/dashboard-charts";
+import { QuickActions } from "@/components/quick-actions";
 
 const getPriorityDisplayName = (priority: string) => {
   switch (priority) {

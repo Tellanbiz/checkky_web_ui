@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import { Sidebar } from "@/components/navigation/sidebar";
-import { Header } from "@/app/dashboard/components/header";
+import { Header } from "@/components/header";
 import { CompanySetupDialog } from "@/components/company/company-setup-dialog";
 import type { Company, CompanyParams } from "@/lib/services/company/models";
 import {
