@@ -1,21 +1,14 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Plus, Search, Filter, PlayCircle, PauseCircle } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
-import {
-  getWorkflows,
-  searchWorkflows,
-} from "@/lib/services/workflows/services-get";
-import {
-  Workflow,
-  WorkflowStatus,
-  ChecklistPriority,
-} from "@/lib/services/workflows/models";
+import { getWorkflows } from "@/lib/services/workflows/get";
+import { Workflow } from "@/lib/services/workflows/models";
 import { WorkflowCard } from "@/components/workflow/workflow_card";
 
 export default function WorkflowsPage() {
@@ -23,30 +16,42 @@ export default function WorkflowsPage() {
   const [activeTab, setActiveTab] = useState("running");
   const [searchTerm, setSearchTerm] = useState("");
 
-  // Query for workflows by status
+  // Single query for workflows using getWorkflows
   const {
     data: workflows = [],
     isLoading,
     refetch,
   } = useQuery({
-    queryKey: ["workflows", activeTab],
-    queryFn: () => getWorkflows(activeTab),
-    enabled: !searchTerm.trim(),
+    queryKey: ["workflows", searchTerm, activeTab],
+    queryFn: () => getWorkflows(searchTerm || undefined, activeTab),
   });
 
-  // Query for searched workflows
-  const { data: searchResults = [], isLoading: isSearching } = useQuery({
-    queryKey: ["workflows", "search", searchTerm, activeTab],
-    queryFn: () =>
-      searchWorkflows({
-        title: searchTerm,
-        status: activeTab,
-      }),
-    enabled: searchTerm.trim().length > 0,
-  });
+  // Refresh data when page becomes visible (e.g., after navigation back from new workflow page)
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === "visible") {
+        refetch();
+      }
+    };
 
-  const loading = searchTerm.trim() ? isSearching : isLoading;
-  const displayWorkflows = searchTerm.trim() ? searchResults : workflows;
+    // Listen for visibility changes
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+
+    // Also listen for focus events (when user switches back to the tab)
+    window.addEventListener("focus", handleVisibilityChange);
+
+    // Initial refresh when component mounts
+    handleVisibilityChange();
+
+    // Cleanup listeners
+    return () => {
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+      window.removeEventListener("focus", handleVisibilityChange);
+    };
+  }, [refetch]);
+
+  const loading = isLoading;
+  const displayWorkflows = workflows;
 
   const handleNewWorkflow = () => {
     router.push("/dashboard/workflows/new");
@@ -95,11 +100,6 @@ export default function WorkflowsPage() {
                 onChange={(e) => setSearchTerm(e.target.value)}
               />
             </div>
-
-            <Button variant="outline" className="bg-white">
-              <Filter className="mr-2 h-4 w-4" />
-              Filters
-            </Button>
 
             <Button onClick={() => handleNewWorkflow()}>
               <Plus className="mr-2 h-4 w-4" />

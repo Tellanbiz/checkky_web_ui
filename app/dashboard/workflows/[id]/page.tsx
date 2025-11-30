@@ -19,9 +19,9 @@ import {
 import {
   getWorkflowById,
   getWorkflowMembers,
-} from "@/lib/services/workflows/services-get";
+} from "@/lib/services/workflows/get";
 import {
-  WorkflowDetail,
+  WorkspaceInfo,
   WorkflowMember,
   WorkflowStatus,
   ChecklistPriority,
@@ -64,7 +64,7 @@ const formatTime = (
   return date.toLocaleTimeString();
 };
 
-const formatScheduleInfo = (workflow: WorkflowDetail) => {
+const formatScheduleInfo = (workflow: WorkspaceInfo) => {
   const { schedule_type, scheduled_time, day_of_week, day_of_month, month } =
     workflow;
 
@@ -162,7 +162,7 @@ const formatRole = (role: string | { team_roles: string; valid: boolean }) => {
 export default function WorkflowDetailPage() {
   const params = useParams();
   const router = useRouter();
-  const [workflow, setWorkflow] = useState<WorkflowDetail | null>(null);
+  const [workflow, setWorkflow] = useState<WorkspaceInfo | null>(null);
   const [members, setMembers] = useState<WorkflowMember[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -189,10 +189,6 @@ export default function WorkflowDetailPage() {
     fetchData();
   }, [params.id]);
 
-  const handleBack = () => {
-    router.back();
-  };
-
   const handleEdit = () => {
     router.push(`/dashboard/workflows/${params.id}/edit`);
   };
@@ -215,229 +211,274 @@ export default function WorkflowDetailPage() {
           <h3 className="text-lg font-medium text-gray-900 mb-2">
             Workflow Not Found
           </h3>
-          <p className="text-sm text-gray-600 mb-4">
+          <p className="text-sm text-gray-600">
             The workflow you're looking for doesn't exist.
           </p>
-          <Button onClick={handleBack}>
-            <ArrowLeft className="mr-2 h-4 w-4" />
-            Go Back
-          </Button>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8">
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-        {/* Header */}
-        <div className="mb-8">
-          <Button variant="ghost" onClick={handleBack} className="mb-4">
-            <ArrowLeft className="mr-2 h-4 w-4" />
-            Back to Workflows
-          </Button>
+    <div className="min-h-full bg-white">
+      {/* Page Header - Sticky */}
+      <div className="sticky top-0 z-10 bg-white border-b border-gray-200 shadow-sm">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex items-center justify-between py-3">
+            <div>
+              <h1 className="text-xl font-semibold text-gray-900">
+                {workflow.title}
+              </h1>
+            </div>
+            <div className="flex items-center space-x-3">
+              <Button variant="outline" onClick={handleEdit}>
+                <Edit className="mr-2 h-4 w-4" />
+                Edit Workflow
+              </Button>
+              <Button>
+                {workflow.status === "running" ? (
+                  <>
+                    <PauseCircle className="mr-2 h-4 w-4" />
+                    Pause Workflow
+                  </>
+                ) : (
+                  <>
+                    <PlayCircle className="mr-2 h-4 w-4" />
+                    Start Workflow
+                  </>
+                )}
+              </Button>
+            </div>
+          </div>
+        </div>
+      </div>
 
-          <div className="bg-white rounded-lg shadow-sm border p-6">
-            <div className="flex items-start justify-between">
-              <div className="flex-1">
-                <h1 className="text-2xl font-bold text-gray-900 mb-2">
-                  {workflow.title}
-                </h1>
-                <p className="text-gray-600 mb-4">
-                  {workflow.notes || "No description provided"}
+      {/* Content */}
+      <div className="max-w-4xl mx-auto p-6 pb-12 space-y-6">
+        {/* Status and Priority */}
+        <div className="border border-gray-200 rounded-lg p-6">
+          <h2 className="text-lg font-semibold text-gray-900 mb-2">
+            Status & Priority
+          </h2>
+          <p className="text-sm text-gray-600 mb-4">
+            Current workflow status and priority level for execution and
+            monitoring.
+          </p>
+          <div className="flex items-center space-x-4">
+            <Badge className={statusColors[workflow.status]}>
+              {workflow.status === "running" ? (
+                <>
+                  <PlayCircle className="mr-1 h-3 w-3" />
+                  Running
+                </>
+              ) : (
+                <>
+                  <PauseCircle className="mr-1 h-3 w-3" />
+                  Stopped
+                </>
+              )}
+            </Badge>
+            <Badge className={priorityColors[workflow.priority]}>
+              {workflow.priority} priority
+            </Badge>
+          </div>
+          <p className="mt-4 text-gray-600">
+            {workflow.notes || "No description provided"}
+          </p>
+        </div>
+
+        {/* Schedule Information */}
+        <div className="border border-gray-200 rounded-lg p-6">
+          <h2 className="text-lg font-semibold text-gray-900 mb-2">
+            Schedule Information
+          </h2>
+          <p className="text-sm text-gray-600 mb-4">
+            Automated execution schedule including timing, frequency, and
+            timezone settings.
+          </p>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label className="text-sm font-medium text-gray-500">
+                Schedule Type
+              </label>
+              <p className="mt-1 text-sm text-gray-900">
+                {workflow.schedule_type.charAt(0).toUpperCase() +
+                  workflow.schedule_type.slice(1)}
+              </p>
+            </div>
+            <div>
+              <label className="text-sm font-medium text-gray-500">
+                Scheduled Time
+              </label>
+              <p className="mt-1 text-sm text-gray-900">
+                {workflow.scheduled_time}
+              </p>
+            </div>
+            {workflow.schedule_type === "monthly" && (
+              <div>
+                <label className="text-sm font-medium text-gray-500">
+                  Day of Month
+                </label>
+                <p className="mt-1 text-sm text-gray-900">
+                  {workflow.day_of_month}
+                  {getDaySuffix(workflow.day_of_month)}
                 </p>
-
-                {/* Status and Priority Badges */}
-                <div className="flex items-center space-x-4 mb-4">
-                  <Badge className={statusColors[workflow.status]}>
-                    {workflow.status === "running" ? (
-                      <>
-                        <PlayCircle className="mr-1 h-3 w-3" />
-                        Running
-                      </>
-                    ) : (
-                      <>
-                        <PauseCircle className="mr-1 h-3 w-3" />
-                        Stopped
-                      </>
-                    )}
-                  </Badge>
-                  <Badge className={priorityColors[workflow.priority]}>
-                    {workflow.priority} priority
-                  </Badge>
-                </div>
-
-                {/* Action Buttons */}
-                <div className="flex items-center space-x-3">
-                  <Button variant="outline" onClick={handleEdit}>
-                    <Edit className="mr-2 h-4 w-4" />
-                    Edit Workflow
-                  </Button>
-                  <Button>
-                    {workflow.status === "running" ? (
-                      <>
-                        <PauseCircle className="mr-2 h-4 w-4" />
-                        Stop Workflow
-                      </>
-                    ) : (
-                      <>
-                        <PlayCircle className="mr-2 h-4 w-4" />
-                        Start Workflow
-                      </>
-                    )}
-                  </Button>
-                </div>
               </div>
+            )}
+            {workflow.schedule_type === "yearly" && (
+              <>
+                <div>
+                  <label className="text-sm font-medium text-gray-500">
+                    Day of Month
+                  </label>
+                  <p className="mt-1 text-sm text-gray-900">
+                    {workflow.day_of_month}
+                    {getDaySuffix(workflow.day_of_month)}
+                  </p>
+                </div>
+                <div>
+                  <label className="text-sm font-medium text-gray-500">
+                    Month
+                  </label>
+                  <p className="mt-1 text-sm text-gray-900">
+                    {new Date(2000, workflow.month - 1).toLocaleString(
+                      "default",
+                      { month: "long" }
+                    )}
+                  </p>
+                </div>
+              </>
+            )}
+            <div>
+              <label className="text-sm font-medium text-gray-500">
+                Timezone
+              </label>
+              <p className="mt-1 text-sm text-gray-900">{workflow.timezone}</p>
+            </div>
+            <div>
+              <label className="text-sm font-medium text-gray-500">
+                Created
+              </label>
+              <p className="mt-1 text-sm text-gray-900">
+                {formatDate(workflow.created_at)} at{" "}
+                {formatTime(workflow.created_at)}
+              </p>
             </div>
           </div>
         </div>
 
-        {/* Main Content Grid */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Left Column - Main Info */}
-          <div className="lg:col-span-2 space-y-6">
-            {/* Workflow Information */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center">
-                  <FileText className="mr-2 h-5 w-5" />
-                  Workflow Information
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <div>
-                    <label className="text-sm font-medium text-gray-500">
-                      Checklist
-                    </label>
-                    <p className="mt-1 text-sm font-medium text-gray-900">
-                      {workflow.checklist_title}
-                    </p>
-                    {workflow.checklist_description && (
-                      <p className="mt-1 text-xs text-gray-500">
-                        {workflow.checklist_description}
-                      </p>
-                    )}
-                  </div>
-                  <div>
-                    <label className="text-sm font-medium text-gray-500">
-                      Created
-                    </label>
-                    <p className="mt-1 text-sm text-gray-900">
-                      {formatDate(workflow.created_at)} at{" "}
-                      {formatTime(workflow.created_at)}
-                    </p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Schedule Information */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center">
-                  <Calendar className="mr-2 h-5 w-5" />
-                  Schedule Information
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="text-sm text-gray-900">
-                  {formatScheduleInfo(workflow)}
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Team Members */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center justify-between">
-                  <div className="flex items-center">
-                    <Users className="mr-2 h-5 w-5" />
-                    Team Members ({members.length})
-                  </div>
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                {members.length === 0 ? (
-                  <p className="text-sm text-gray-500">
-                    No team members assigned
-                  </p>
-                ) : (
-                  <div className="space-y-3">
-                    {members.map((member) => (
-                      <div
-                        key={member.id}
-                        className="flex items-center justify-between p-3 bg-gray-50 rounded-lg"
-                      >
-                        <div className="flex items-center space-x-3">
-                          <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
-                            <span className="text-xs font-medium text-blue-600">
-                              {member.full_name.charAt(0).toUpperCase()}
-                            </span>
-                          </div>
-                          <div>
-                            <p className="text-sm font-medium text-gray-900">
-                              {member.full_name}
-                            </p>
-                            <p className="text-xs text-gray-500">
-                              {member.email}
-                            </p>
-                          </div>
-                        </div>
-                        <div className="text-right">
-                          <Badge variant="outline">
-                            {formatRole(member.role)}
-                          </Badge>
-                          <p className="text-xs text-gray-500 mt-1">
-                            Joined {formatDate(member.created_at)}
-                          </p>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </CardContent>
-            </Card>
+        {/* Location Information */}
+        <div className="border border-gray-200 rounded-lg p-6">
+          <h2 className="text-lg font-semibold text-gray-900 mb-2">
+            Location Information
+          </h2>
+          <p className="text-sm text-gray-600 mb-4">
+            Geographic location and section details where this workflow is
+            assigned to run.
+          </p>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label className="text-sm font-medium text-gray-500">
+                Section Name
+              </label>
+              <p className="mt-1 text-sm font-medium text-gray-900">
+                {workflow.section.name}
+              </p>
+            </div>
+            <div>
+              <label className="text-sm font-medium text-gray-500">
+                Location
+              </label>
+              <p className="mt-1 text-sm text-gray-900">
+                {workflow.section.location}
+              </p>
+            </div>
           </div>
+        </div>
 
-          {/* Right Column - Quick Stats */}
-          <div className="space-y-6">
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center">
-                  <Settings className="mr-2 h-5 w-5" />
-                  Quick Stats
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center space-x-2">
-                    <Clock className="h-4 w-4 text-gray-400" />
-                    <span className="text-sm">Schedule Type</span>
-                  </div>
-                  <span className="text-sm font-medium capitalize">
-                    {workflow.schedule_type}
-                  </span>
-                </div>
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center space-x-2">
-                    <Users className="h-4 w-4 text-gray-400" />
-                    <span className="text-sm">Team Members</span>
-                  </div>
-                  <span className="text-sm font-medium">{members.length}</span>
-                </div>
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center space-x-2">
-                    <Calendar className="h-4 w-4 text-gray-400" />
-                    <span className="text-sm">Job ID</span>
-                  </div>
-                  <span className="text-sm font-medium">
-                    #{workflow.job_id}
-                  </span>
-                </div>
-              </CardContent>
-            </Card>
+        {/* Checklist Information */}
+        <div className="border border-gray-200 rounded-lg p-6">
+          <h2 className="text-lg font-semibold text-gray-900 mb-2">
+            Checklist Information
+          </h2>
+          <p className="text-sm text-gray-600 mb-4">
+            The checklist template that defines the tasks and procedures for
+            this workflow.
+          </p>
+          <div>
+            <label className="text-sm font-medium text-gray-500">
+              Checklist
+            </label>
+            <p className="mt-1 text-sm font-medium text-gray-900">
+              {workflow.checklist.name}
+            </p>
+            {workflow.checklist.description && (
+              <p className="mt-1 text-xs text-gray-500">
+                {workflow.checklist.description}
+              </p>
+            )}
           </div>
+        </div>
+
+        {/* Team Members */}
+        <div className="border border-gray-200 rounded-lg p-6">
+          <h2 className="text-lg font-semibold text-gray-900 mb-2">
+            Team Members ({members.length})
+          </h2>
+          <p className="text-sm text-gray-600 mb-4">
+            Team members assigned to this workflow who will receive
+            notifications and handle execution.
+          </p>
+          {members.length === 0 ? (
+            <p className="text-sm text-gray-500">No team members assigned</p>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="min-w-full divide-y divide-gray-200">
+                <thead className="bg-gray-50">
+                  <tr>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Name
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Role
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Email
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Phone
+                    </th>
+                  </tr>
+                </thead>
+                <tbody className="bg-white divide-y divide-gray-200">
+                  {members.map((member) => (
+                    <tr key={member.id} className="hover:bg-gray-50">
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="text-sm font-medium text-gray-900">
+                          {member.full_name}
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="text-sm text-gray-900">
+                          {formatRole(member.role)}
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="text-sm text-gray-900">
+                          {member.email}
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="text-sm text-gray-900">
+                          {member.phone}
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
         </div>
       </div>
     </div>

@@ -1,24 +1,27 @@
 "use client";
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useState, useEffect } from "react";
+import { useRouter, useParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Loader2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { WorkflowParams } from "@/lib/services/workflows/models";
 import { useAvailableChecklistsForWorkflows } from "@/lib/services/workflows/hooks";
-import { createWorkflow } from "@/lib/services/workflows/post";
+import { getWorkflowById } from "@/lib/services/workflows/get";
 import { BasicInfoForm } from "@/components/workflow/forms/basic-info-form";
 import { ChecklistTableForm } from "@/components/workflow/forms/checklist-table-form";
 import { ScheduleForm } from "@/components/workflow/forms/schedule-form";
 import { LocationTableForm } from "@/components/workflow/forms/location-table-form";
 import { GeofencingForm } from "@/components/workflow/forms/geofencing-form";
 import { MembersTableForm } from "@/components/workflow/forms/members-table-form";
+import { updateWorkflow } from "@/lib/services/workflows/update";
 
-export default function NewWorkflowPage() {
+export default function UpdateWorkflowPage() {
+  const params = useParams();
   const router = useRouter();
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
 
   // Fetch available checklists using TanStack Query
   const {
@@ -49,6 +52,49 @@ export default function NewWorkflowPage() {
     "low" | "mid" | "high"
   >("low");
 
+  // Load existing workflow data
+  useEffect(() => {
+    const loadWorkflowData = async () => {
+      if (!params.id) return;
+
+      try {
+        const workflowData = await getWorkflowById(params.id as string);
+
+        // Set form data with existing values
+        setFormData({
+          title: workflowData.title,
+          notes: workflowData.notes,
+          priority: workflowData.priority,
+          checklist_id: workflowData.checklist_id,
+          schedule_type: workflowData.schedule_type,
+          scheduled_time: workflowData.scheduled_time,
+          day_of_month: workflowData.day_of_month,
+          month: workflowData.month,
+          geofence_enabled: true, // Default value, might need to be added to WorkspaceInfo
+          timezone: workflowData.timezone,
+          section_id: workflowData.section.id,
+          members: [], // Will need to fetch members separately
+        });
+
+        // Set local state
+        setWorkflowName(workflowData.title);
+        setWorkflowDescription(workflowData.notes);
+        setWorkflowPriority(workflowData.priority);
+      } catch (error) {
+        console.error("Failed to load workflow data:", error);
+        toast({
+          title: "Error",
+          description: "Failed to load workflow data. Please try again.",
+          variant: "destructive",
+        });
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    loadWorkflowData();
+  }, [params.id, toast]);
+
   const handleSubmit = async (e?: React.FormEvent) => {
     if (e) {
       e.preventDefault();
@@ -72,8 +118,8 @@ export default function NewWorkflowPage() {
     setIsSubmitting(true);
 
     try {
-      // Create workflow using the service function
-      await createWorkflow({
+      // Update workflow using the service function
+      await updateWorkflow(params.id as string, {
         ...formData,
         title: workflowName,
         notes: workflowDescription,
@@ -81,15 +127,15 @@ export default function NewWorkflowPage() {
       });
 
       toast({
-        title: "Workflow Created Successfully!",
-        description: `Your workflow "${workflowName}" has been set up and will start running automatically.`,
+        title: "Workflow Updated Successfully!",
+        description: `Your workflow "${workflowName}" has been updated successfully.`,
       });
 
-      router.push("/dashboard/workflows");
+      router.push(`/dashboard/workflows/${params.id}`);
     } catch (error) {
       toast({
         title: "Error",
-        description: "Failed to create workflow. Please try again.",
+        description: "Failed to update workflow. Please try again.",
         variant: "destructive",
       });
     } finally {
@@ -109,6 +155,17 @@ export default function NewWorkflowPage() {
   const handleFormDataChange = (updates: Partial<WorkflowParams>) => {
     setFormData((prev) => ({ ...prev, ...updates }));
   };
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+          <p className="text-gray-500 mt-4">Loading workflow data...</p>
+        </div>
+      </div>
+    );
+  }
 
   if (checklistsError) {
     return (
@@ -136,10 +193,10 @@ export default function NewWorkflowPage() {
             Failed to load available checklists. Please try again.
           </p>
           <Button
-            onClick={() => router.push("/dashboard/workflows")}
+            onClick={() => router.push(`/dashboard/workflows/${params.id}`)}
             className="mt-4"
           >
-            Back to Workflows
+            Back to Workflow
           </Button>
         </div>
       </div>
@@ -154,7 +211,7 @@ export default function NewWorkflowPage() {
           <div className="flex items-center justify-between py-3">
             <div>
               <h1 className="text-xl font-semibold text-gray-900">
-                Create New Workflow
+                Update Workflow
               </h1>
             </div>
             <Button
@@ -172,10 +229,10 @@ export default function NewWorkflowPage() {
               {isSubmitting ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Creating...
+                  Updating...
                 </>
               ) : (
-                "Create Workflow"
+                "Update Workflow"
               )}
             </Button>
           </div>

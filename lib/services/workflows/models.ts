@@ -2,6 +2,32 @@ export type ScheduleType = "once" | "daily" | "weekly" | "monthly" | "yearly";
 export type WorkflowStatus = "running" | "stopped";
 export type ChecklistPriority = "high" | "mid" | "low";
 
+export interface WorkspaceInfo {
+  id: string;
+  title: string;
+  notes: string;
+  priority: ChecklistPriority;
+  status: WorkflowStatus;
+  schedule_type: ScheduleType;
+  scheduled_time: string;
+  day_of_week: number;
+  day_of_month: number;
+  month: number;
+  timezone: string;
+  checklist_id: string;
+  created_at: string;
+  section: {
+    id: string;
+    name: string;
+    location: string;
+  };
+  checklist: {
+    id: string;
+    name: string;
+    description: string;
+  };
+}
+
 export interface TeamMember {
   id: string;
   name: string;
@@ -26,25 +52,16 @@ export interface WorkflowParams {
 export interface Workflow {
   id: string;
   title: string;
-  notes: string;
   priority: ChecklistPriority;
   status: WorkflowStatus;
   schedule_type: ScheduleType;
-  scheduled_time: string | null;
-  day_of_week: number | null;
-  day_of_month: number | null;
-  month: number | null;
+  scheduled_time: string;
+  day_of_week: number;
+  day_of_month: number;
+  month: number;
   timezone: string;
-  checklist_id: string;
-  section_id: string | null;
-  job_id: number;
-  created_at: string | { Microseconds: number; Valid: boolean };
+  created_at: string;
   checklist_title: string;
-  checklist_description?: string; // Make optional for Workflow, required for WorkflowDetail
-}
-
-export interface WorkflowDetail extends Omit<Workflow, 'checklist_description'> {
-  checklist_description: string; // Required for detail view
 }
 
 export interface WorkflowMember {
