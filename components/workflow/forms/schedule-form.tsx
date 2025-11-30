@@ -2,21 +2,30 @@
 
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { 
-  Select, 
-  SelectContent, 
-  SelectItem, 
-  SelectTrigger, 
-  SelectValue 
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
 } from "@/components/ui/select";
 import { Clock, Repeat, CalendarDays } from "lucide-react";
 import { ScheduleType, WorkflowParams } from "@/lib/services/workflows/models";
 import { TIMEZONES, getDefaultTimezone } from "@/lib/shared/timezones";
 
 interface ScheduleFormProps {
-  formData: Pick<WorkflowParams, 'ScheduledTime' | 'ScheduleType' | 'DayOfWeek' | 'DayOfMonth' | 'Month' | 'Timezone'>;
+  formData: Pick<
+    WorkflowParams,
+    "scheduled_time" | "schedule_type" | "day_of_month" | "month" | "timezone"
+  >;
   onFormDataChange: (updates: Partial<WorkflowParams>) => void;
 }
 
@@ -24,17 +33,48 @@ export function ScheduleForm({
   formData,
   onFormDataChange,
 }: ScheduleFormProps) {
+  // Convert time from 24h "09:00" format to 12h "9:00AM" format for API
+  const convertTo12HourFormat = (time24: string): string => {
+    const [hours, minutes] = time24.split(":");
+    const hour = parseInt(hours);
+    const ampm = hour >= 12 ? "PM" : "AM";
+    const hour12 = hour % 12 || 12; // Convert 0 to 12 for 12AM
+    return `${hour12}:${minutes}${ampm}`;
+  };
+
+  // Convert time from 12h "9:00AM" format to 24h "09:00" format for input
+  const convertTo24HourFormat = (time12: string): string => {
+    const match = time12.match(/(\d+):(\d+)(AM|PM)/);
+    if (!match) return "09:00";
+
+    let [, hours, minutes, ampm] = match;
+    let hour = parseInt(hours);
+
+    if (ampm === "PM" && hour !== 12) hour += 12;
+    if (ampm === "AM" && hour === 12) hour = 0;
+
+    return `${hour.toString().padStart(2, "0")}:${minutes}`;
+  };
+
   const getScheduleDescription = () => {
-    switch (formData.ScheduleType) {
+    switch (formData.schedule_type) {
       case "daily":
-        return "Every day at " + formData.ScheduledTime;
+        return "Every day at " + formData.scheduled_time;
       case "weekly":
-        const days = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
-        return `Every ${days[formData.DayOfWeek]} at ${formData.ScheduledTime}`;
+        const days = [
+          "Sunday",
+          "Monday",
+          "Tuesday",
+          "Wednesday",
+          "Thursday",
+          "Friday",
+          "Saturday",
+        ];
+        return `Every ${days[0]} at ${formData.scheduled_time}`; // Default to Monday since DayOfWeek was removed
       case "monthly":
-        return `On day ${formData.DayOfMonth} of each month at ${formData.ScheduledTime}`;
+        return `On day ${formData.day_of_month} of each month at ${formData.scheduled_time}`;
       case "yearly":
-        return `On ${formData.Month}/${formData.DayOfMonth} each year at ${formData.ScheduledTime}`;
+        return `On ${formData.month}/${formData.day_of_month} each year at ${formData.scheduled_time}`;
       default:
         return "";
     }
@@ -45,17 +85,18 @@ export function ScheduleForm({
       <CardHeader>
         <CardTitle className="text-lg">Schedule Configuration</CardTitle>
         <CardDescription>
-          Set when and how often this workflow should run. The system will automatically create and assign checklists based on this schedule.
+          Set when and how often this workflow should run. The system will
+          automatically create and assign checklists based on this schedule.
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div className="space-y-2">
             <Label htmlFor="schedule-type">Schedule Type *</Label>
-            <Select 
-              value={formData.ScheduleType} 
-              onValueChange={(value: ScheduleType) => 
-                onFormDataChange({ ScheduleType: value })
+            <Select
+              value={formData.schedule_type}
+              onValueChange={(value: ScheduleType) =>
+                onFormDataChange({ schedule_type: value })
               }
             >
               <SelectTrigger>
@@ -95,24 +136,27 @@ export function ScheduleForm({
             <Input
               id="scheduled-time"
               type="time"
-              value={formData.ScheduledTime.slice(0, 5)}
-              onChange={(e) => onFormDataChange({ 
-                ScheduledTime: e.target.value + ":00" 
-              })}
+              value={convertTo24HourFormat(formData.scheduled_time)}
+              onChange={(e) =>
+                onFormDataChange({
+                  scheduled_time: convertTo12HourFormat(e.target.value),
+                })
+              }
               required
             />
           </div>
         </div>
 
         {/* Schedule-specific options */}
-        {formData.ScheduleType === "weekly" && (
+        {/* Note: DayOfWeek was removed from the API, so weekly schedules default to Monday */}
+        {formData.schedule_type === "weekly" && (
           <div className="space-y-2">
             <Label>Day of Week</Label>
-            <Select 
-              value={formData.DayOfWeek.toString()} 
-              onValueChange={(value) => 
-                onFormDataChange({ DayOfWeek: parseInt(value) })
-              }
+            <Select
+              value="1" // Default to Monday
+              onValueChange={(value) => {
+                // Store the day of week locally if needed, but it's not sent to API
+              }}
             >
               <SelectTrigger>
                 <SelectValue />
@@ -130,20 +174,20 @@ export function ScheduleForm({
           </div>
         )}
 
-        {formData.ScheduleType === "monthly" && (
+        {formData.schedule_type === "monthly" && (
           <div className="space-y-2">
             <Label>Day of Month</Label>
-            <Select 
-              value={formData.DayOfMonth.toString()} 
-              onValueChange={(value) => 
-                onFormDataChange({ DayOfMonth: parseInt(value) })
+            <Select
+              value={formData.day_of_month.toString()}
+              onValueChange={(value) =>
+                onFormDataChange({ day_of_month: parseInt(value) })
               }
             >
               <SelectTrigger>
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                {Array.from({ length: 31 }, (_, i) => i + 1).map(day => (
+                {Array.from({ length: 31 }, (_, i) => i + 1).map((day) => (
                   <SelectItem key={day} value={day.toString()}>
                     Day {day}
                   </SelectItem>
@@ -153,14 +197,14 @@ export function ScheduleForm({
           </div>
         )}
 
-        {formData.ScheduleType === "yearly" && (
+        {formData.schedule_type === "yearly" && (
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label>Month</Label>
-              <Select 
-                value={formData.Month.toString()} 
-                onValueChange={(value) => 
-                  onFormDataChange({ Month: parseInt(value) })
+              <Select
+                value={formData.month.toString()}
+                onValueChange={(value) =>
+                  onFormDataChange({ month: parseInt(value) })
                 }
               >
                 <SelectTrigger>
@@ -184,17 +228,17 @@ export function ScheduleForm({
             </div>
             <div className="space-y-2">
               <Label>Day of Month</Label>
-              <Select 
-                value={formData.DayOfMonth.toString()} 
-                onValueChange={(value) => 
-                  onFormDataChange({ DayOfMonth: parseInt(value) })
+              <Select
+                value={formData.day_of_month.toString()}
+                onValueChange={(value) =>
+                  onFormDataChange({ day_of_month: parseInt(value) })
                 }
               >
                 <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  {Array.from({ length: 31 }, (_, i) => i + 1).map(day => (
+                  {Array.from({ length: 31 }, (_, i) => i + 1).map((day) => (
                     <SelectItem key={day} value={day.toString()}>
                       Day {day}
                     </SelectItem>
@@ -208,9 +252,9 @@ export function ScheduleForm({
         {/* Timezone */}
         <div className="space-y-2">
           <Label htmlFor="timezone">Timezone</Label>
-          <Select 
-            value={formData.Timezone} 
-            onValueChange={(value) => onFormDataChange({ Timezone: value })}
+          <Select
+            value={formData.timezone}
+            onValueChange={(value) => onFormDataChange({ timezone: value })}
           >
             <SelectTrigger>
               <SelectValue placeholder="Select timezone..." />
@@ -239,15 +283,21 @@ export function ScheduleForm({
           <ul className="space-y-1 text-sm text-gray-600">
             <li className="flex items-start">
               <span className="text-gray-400 mr-2">•</span>
-              <span>Set schedules during business hours for better team compliance</span>
+              <span>
+                Set schedules during business hours for better team compliance
+              </span>
             </li>
             <li className="flex items-start">
               <span className="text-gray-400 mr-2">•</span>
-              <span>Consider team workload when setting assignment frequencies</span>
+              <span>
+                Consider team workload when setting assignment frequencies
+              </span>
             </li>
             <li className="flex items-start">
               <span className="text-gray-400 mr-2">•</span>
-              <span>Test with daily schedules first, then adjust as needed</span>
+              <span>
+                Test with daily schedules first, then adjust as needed
+              </span>
             </li>
           </ul>
         </div>

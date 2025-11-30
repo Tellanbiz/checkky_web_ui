@@ -7,12 +7,13 @@ import { Loader2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { WorkflowParams, ScheduleType } from "@/lib/services/workflows/models";
 import { useAvailableChecklistsForWorkflows } from "@/lib/services/workflows/hooks";
+import { createWorkflow } from "@/lib/services/workflows/post";
 import { BasicInfoForm } from "@/components/workflow/forms/basic-info-form";
-import { ChecklistSelectForm } from "@/components/workflow/forms/checklist-select-form";
+import { ChecklistTableForm } from "@/components/workflow/forms/checklist-table-form";
 import { ScheduleForm } from "@/components/workflow/forms/schedule-form";
-import { LocationForm } from "@/components/workflow/forms/location-form";
-import { MemberAssignmentForm } from "@/components/workflow/forms/member-assignment-form";
-import { InfoSection } from "@/components/workflow/forms/info-section";
+import { LocationTableForm } from "@/components/workflow/forms/location-table-form";
+import { GeofencingForm } from "@/components/workflow/forms/geofencing-form";
+import { MembersTableForm } from "@/components/workflow/forms/members-table-form";
 
 export default function NewWorkflowPage() {
   const router = useRouter();
@@ -20,47 +21,49 @@ export default function NewWorkflowPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Fetch available checklists using TanStack Query
-  const { data: availableChecklists = [], isLoading: checklistsLoading, error: checklistsError } = useAvailableChecklistsForWorkflows();
+  const {
+    data: availableChecklists = [],
+    isLoading: checklistsLoading,
+    error: checklistsError,
+  } = useAvailableChecklistsForWorkflows();
 
   // Form state
   const [formData, setFormData] = useState<WorkflowParams>({
-    ChecklistID: "",
-    ScheduledTime: "09:00:00",
-    ScheduleType: "daily",
-    DayOfWeek: 1, // Monday
-    DayOfMonth: 1,
-    Month: 1,
-    Timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
-    SectionID: "",
-    MemberIDs: [],
+    title: "",
+    notes: "",
+    priority: "low",
+    checklist_id: "",
+    schedule_type: "daily",
+    scheduled_time: "09:00AM",
+    day_of_month: 1,
+    month: 1,
+    geofence_enabled: true,
+    timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+    section_id: "",
+    members: [],
   });
 
   const [workflowName, setWorkflowName] = useState("");
   const [workflowDescription, setWorkflowDescription] = useState("");
-
-  // Mock data - in real app, these would come from API
-  const availableSections = [
-    { id: "1", name: "Production Area A", description: "Main production floor" },
-    { id: "2", name: "Warehouse Section", description: "Storage and inventory area" },
-    { id: "3", name: "Office Complex", description: "Administrative areas" },
-  ];
-
-  const availableMembers = [
-    { id: "1", name: "John Smith", role: "Safety Officer" },
-    { id: "2", name: "Sarah Johnson", role: "Quality Manager" },
-    { id: "3", name: "Mike Wilson", role: "Maintenance Lead" },
-    { id: "4", name: "Emma Davis", role: "Production Supervisor" },
-  ];
+  const [workflowPriority, setWorkflowPriority] = useState<
+    "low" | "medium" | "high"
+  >("low");
 
   const handleSubmit = async (e?: React.FormEvent) => {
     if (e) {
       e.preventDefault();
     }
-    
-    if (!formData.ChecklistID || !formData.SectionID || formData.MemberIDs.length === 0) {
+
+    if (
+      !workflowName ||
+      !formData.checklist_id ||
+      !formData.section_id ||
+      formData.members.length === 0
+    ) {
       toast({
         title: "Validation Error",
-        description: "Please fill in all required fields and select at least one team member.",
+        description:
+          "Please fill in all required fields and select at least one team member.",
         variant: "destructive",
       });
       return;
@@ -69,29 +72,20 @@ export default function NewWorkflowPage() {
     setIsSubmitting(true);
 
     try {
-      // In a real app, this would call your backend API
-      const response = await fetch('/api/workflows', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          ...formData,
-          name: workflowName,
-          description: workflowDescription,
-        }),
+      // Create workflow using the service function
+      await createWorkflow({
+        ...formData,
+        title: workflowName,
+        notes: workflowDescription,
+        priority: workflowPriority,
       });
-
-      if (!response.ok) {
-        throw new Error('Failed to create workflow');
-      }
 
       toast({
         title: "Workflow Created Successfully!",
         description: `Your workflow "${workflowName}" has been set up and will start running automatically.`,
       });
 
-      router.push('/dashboard/workflows');
+      router.push("/dashboard/workflows");
     } catch (error) {
       toast({
         title: "Error",
@@ -104,16 +98,16 @@ export default function NewWorkflowPage() {
   };
 
   const handleMemberToggle = (memberId: string) => {
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
-      MemberIDs: prev.MemberIDs.includes(memberId)
-        ? prev.MemberIDs.filter(id => id !== memberId)
-        : [...prev.MemberIDs, memberId]
+      members: prev.members.includes(memberId)
+        ? prev.members.filter((id) => id !== memberId)
+        : [...prev.members, memberId],
     }));
   };
 
   const handleFormDataChange = (updates: Partial<WorkflowParams>) => {
-    setFormData(prev => ({ ...prev, ...updates }));
+    setFormData((prev) => ({ ...prev, ...updates }));
   };
 
   if (checklistsError) {
@@ -138,7 +132,9 @@ export default function NewWorkflowPage() {
           <h3 className="text-lg font-semibold text-gray-900 mb-2">
             Error Loading Checklists
           </h3>
-          <p className="text-sm text-red-600">Failed to load available checklists. Please try again.</p>
+          <p className="text-sm text-red-600">
+            Failed to load available checklists. Please try again.
+          </p>
           <Button
             onClick={() => router.push("/dashboard/workflows")}
             className="mt-4"
@@ -163,7 +159,14 @@ export default function NewWorkflowPage() {
             </div>
             <Button
               onClick={() => handleSubmit()}
-              disabled={isSubmitting || !workflowName || !formData.ChecklistID || !formData.SectionID || formData.MemberIDs.length === 0 || checklistsLoading}
+              disabled={
+                isSubmitting ||
+                !workflowName ||
+                !formData.checklist_id ||
+                !formData.section_id ||
+                formData.members.length === 0 ||
+                checklistsLoading
+              }
               className="px-4 py-2 text-sm"
             >
               {isSubmitting ? (
@@ -191,10 +194,11 @@ export default function NewWorkflowPage() {
           />
 
           {/* Checklist Selection */}
-          <ChecklistSelectForm
-            selectedChecklistId={formData.ChecklistID}
-            availableChecklists={availableChecklists}
-            onChecklistChange={(value) => handleFormDataChange({ ChecklistID: value })}
+          <ChecklistTableForm
+            selectedChecklistId={formData.checklist_id}
+            onChecklistChange={(value) =>
+              handleFormDataChange({ checklist_id: value })
+            }
           />
 
           {/* Schedule Configuration */}
@@ -204,25 +208,31 @@ export default function NewWorkflowPage() {
           />
 
           {/* Location Assignment */}
-          <LocationForm
-            selectedSectionId={formData.SectionID}
-            availableSections={availableSections}
-            onSectionChange={(value) => handleFormDataChange({ SectionID: value })}
+          <LocationTableForm
+            selectedSectionId={formData.section_id}
+            onSectionChange={(value) =>
+              handleFormDataChange({ section_id: value })
+            }
+          />
+
+          {/* Geofencing Requirements */}
+          <GeofencingForm
+            geofencing={formData.geofence_enabled}
+            onGeofencingChange={(value) =>
+              handleFormDataChange({ geofence_enabled: value })
+            }
           />
 
           {/* Team Member Assignment */}
-          <MemberAssignmentForm
-            selectedMemberIds={formData.MemberIDs}
+          <MembersTableForm
+            selectedMemberIds={formData.members}
             onMemberToggle={handleMemberToggle}
           />
 
           {/* Info Section */}
           {/* Removed - tips are now integrated into each form container */}
-
-          
         </form>
-        </div>
       </div>
-   
+    </div>
   );
 }
