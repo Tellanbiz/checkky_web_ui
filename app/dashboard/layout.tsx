@@ -58,17 +58,15 @@ export default async function DashboardLayout({
   return (
     <>
       <QueryProvider>
-        <WebSocketProvider>
-          <DashboardWrapper
-            companies={companies}
-            loading={loading}
-            error={error}
-            account={account}
-          >
-            {children}
-          </DashboardWrapper>
-          <Toaster />
-        </WebSocketProvider>
+        <DashboardWrapper
+          companies={companies}
+          loading={loading}
+          error={error}
+          account={account}
+        >
+          {children}
+        </DashboardWrapper>
+        <Toaster />
       </QueryProvider>
     </>
   );
