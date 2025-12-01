@@ -42,7 +42,7 @@ export default async function DashboardLayout({
 
   // If user has no companies, redirect to continue page
   if (!loading && companies.length === 0) {
-    redirect("/auth/continue");
+    redirect("/auth");
   }
 
   // If user has companies but none selected, redirect to companies page

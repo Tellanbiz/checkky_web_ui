@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
+import { Progress } from "@/components/ui/progress";
 import { Loader2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { WorkflowParams } from "@/lib/services/workflows/models";
@@ -19,6 +20,7 @@ export default function NewWorkflowPage() {
   const router = useRouter();
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0);
 
   // Fetch available checklists using TanStack Query
   const {
@@ -34,7 +36,7 @@ export default function NewWorkflowPage() {
     priority: "low",
     checklist_id: "",
     schedule_type: "daily",
-    scheduled_time: "09:00AM",
+    scheduled_time: "9:00AM",
     day_of_month: 1,
     month: 1,
     geofence_enabled: true,
@@ -70,8 +72,28 @@ export default function NewWorkflowPage() {
     }
 
     setIsSubmitting(true);
+    setUploadProgress(0);
 
     try {
+      // Simulate progress steps for workflow creation
+      const progressSteps = [
+        { progress: 20, delay: 300 },
+        { progress: 40, delay: 500 },
+        { progress: 60, delay: 400 },
+        { progress: 80, delay: 300 },
+        { progress: 95, delay: 200 },
+      ];
+
+      // Execute progress steps
+      for (const step of progressSteps) {
+        await new Promise(resolve => {
+          setTimeout(() => {
+            setUploadProgress(step.progress);
+            resolve(undefined);
+          }, step.delay);
+        });
+      }
+
       // Create workflow using the service function
       await createWorkflow({
         ...formData,
@@ -80,6 +102,10 @@ export default function NewWorkflowPage() {
         priority: workflowPriority,
       });
 
+      // Complete progress
+      setUploadProgress(100);
+      await new Promise(resolve => setTimeout(resolve, 200));
+
       toast({
         title: "Workflow Created Successfully!",
         description: `Your workflow "${workflowName}" has been set up and will start running automatically.`,
@@ -87,6 +113,7 @@ export default function NewWorkflowPage() {
 
       router.push("/dashboard/workflows");
     } catch (error) {
+      console.error("Workflow creation error:", error);
       toast({
         title: "Error",
         description: "Failed to create workflow. Please try again.",
@@ -94,6 +121,7 @@ export default function NewWorkflowPage() {
       });
     } finally {
       setIsSubmitting(false);
+      setUploadProgress(0);
     }
   };
 
@@ -181,6 +209,21 @@ export default function NewWorkflowPage() {
           </div>
         </div>
       </div>
+
+      {/* Progress Bar - Show only when submitting */}
+      {isSubmitting && (
+        <div className="bg-white border-b border-gray-200">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+            <div className="space-y-2">
+              <div className="flex items-center justify-between text-sm">
+                <span className="text-gray-600">Creating workflow...</span>
+                <span className="text-gray-900 font-medium">{uploadProgress}%</span>
+              </div>
+              <Progress value={uploadProgress} className="h-2" />
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Form Content */}
       <div className="max-w-4xl mx-auto p-6 pb-12">

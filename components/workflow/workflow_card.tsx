@@ -1,13 +1,10 @@
 import React from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import {
   PlayCircle,
   PauseCircle,
   Calendar,
-  MoreHorizontal,
-  Trash2,
   Settings,
 } from "lucide-react";
 import {
@@ -19,8 +16,6 @@ import {
 interface WorkflowCardProps {
   workflow: Workflow;
   onClick: (id: string) => void;
-  onDelete?: (workflow: Workflow) => void;
-  onMenu?: (workflow: Workflow) => void;
 }
 
 const getStatusIcon = (status: WorkflowStatus) => {
@@ -208,72 +203,33 @@ const formatDate = (
 export function WorkflowCard({
   workflow,
   onClick,
-  onDelete,
-  onMenu,
 }: WorkflowCardProps) {
   const handleCardClick = () => {
     onClick(workflow.id);
   };
 
-  const handleMenuClick = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    if (onMenu) {
-      onMenu(workflow);
-    }
-  };
-
-  const handleDeleteClick = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    if (onDelete) {
-      onDelete(workflow);
-    }
-  };
-
   return (
     <Card
-      className="relative cursor-pointer hover:shadow-sm transition-all duration-200 bg-white border border-gray-200 rounded-lg"
+      className="relative cursor-pointer transition-all duration-200 bg-white border border-gray-300 rounded-lg"
       onClick={handleCardClick}
     >
-      <CardHeader className="pb-2 px-3 pt-3 relative">
+      <CardHeader className="pb-2 px-4 pt-4">
         <div className="flex items-start justify-between gap-2">
           <div className="flex-1 min-w-0">
-            <CardTitle className="text-sm font-semibold truncate">
+            <CardTitle className="text-base font-semibold truncate">
               {safeRender(workflow.title)}
             </CardTitle>
-            {workflow.notes && (
-              <p className="text-xs text-gray-500 mt-1 line-clamp-2">
-                {safeRender(workflow.notes)}
-              </p>
-            )}
-          </div>
-          <div className="flex items-center gap-1">
-            <Button
-              variant="ghost"
-              size="icon"
-              className="h-6 w-6 p-0 hover:bg-gray-100"
-              onClick={handleMenuClick}
-            >
-              <MoreHorizontal className="h-4 w-4 text-gray-500" />
-            </Button>
-            <Button
-              variant="ghost"
-              size="icon"
-              className="h-6 w-6 p-0 hover:bg-red-100"
-              onClick={handleDeleteClick}
-            >
-              <Trash2 className="h-4 w-4 text-red-500" />
-            </Button>
           </div>
         </div>
       </CardHeader>
-      <CardContent className="px-3 pb-3 pt-0">
-        <div className="space-y-2.5">
+      <CardContent className="px-4 pb-4 pt-0">
+        <div className="space-y-3">
           {/* Status and Priority */}
           <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-1">
+            <div className="flex items-center space-x-2">
               {getStatusIcon(workflow.status)}
               <span
-                className={`text-xs font-medium ${getStatusColor(
+                className={`text-sm font-medium ${getStatusColor(
                   workflow.status
                 )}`}
               >
@@ -282,30 +238,30 @@ export function WorkflowCard({
             </div>
             <Badge
               variant={getPriorityBadgeVariant(workflow.priority)}
-              className="text-xs px-1.5 py-0.5 h-auto font-normal capitalize"
+              className="text-sm px-2 py-1 h-auto font-normal capitalize"
             >
               {safeRender(workflow.priority)}
             </Badge>
           </div>
 
           {/* Schedule Info */}
-          <div className="space-y-1.5">
-            <div className="text-xs text-gray-600">
+          <div className="space-y-2">
+            <div className="text-sm text-gray-600">
               <span className="font-medium">Schedule:</span>{" "}
               {formatScheduleInfo(workflow)}
             </div>
           </div>
 
           {/* Meta Info */}
-          <div className="flex items-center justify-between text-xs text-muted-foreground pt-1">
-            <div className="flex items-center space-x-1">
-              <Settings className="h-3 w-3" />
-              <span className="truncate max-w-[80px]">
+          <div className="flex items-center justify-between text-sm text-muted-foreground pt-1">
+            <div className="flex items-center space-x-2">
+              <Settings className="h-4 w-4" />
+              <span className="truncate max-w-[120px]">
                 {safeRender(workflow.checklist_title)}
               </span>
             </div>
-            <div className="flex items-center space-x-1">
-              <Calendar className="h-3 w-3" />
+            <div className="flex items-center space-x-2">
+              <Calendar className="h-4 w-4" />
               <span>{formatDate(workflow.created_at)}</span>
             </div>
           </div>

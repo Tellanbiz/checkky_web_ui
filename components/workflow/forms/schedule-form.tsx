@@ -35,8 +35,13 @@ export function ScheduleForm({
 }: ScheduleFormProps) {
   // Convert time from 24h "09:00" format to 12h "9:00AM" format for API
   const convertTo12HourFormat = (time24: string): string => {
+    if (!time24) return "9:00AM";
+    
     const [hours, minutes] = time24.split(":");
     const hour = parseInt(hours);
+    
+    if (isNaN(hour) || isNaN(parseInt(minutes))) return "9:00AM";
+    
     const ampm = hour >= 12 ? "PM" : "AM";
     const hour12 = hour % 12 || 12; // Convert 0 to 12 for 12AM
     return `${hour12}:${minutes}${ampm}`;
@@ -44,7 +49,9 @@ export function ScheduleForm({
 
   // Convert time from 12h "9:00AM" format to 24h "09:00" format for input
   const convertTo24HourFormat = (time12: string): string => {
-    const match = time12.match(/(\d+):(\d+)(AM|PM)/);
+    if (!time12) return "09:00";
+    
+    const match = time12.match(/(\d{1,2}):(\d{2})(AM|PM)/);
     if (!match) return "09:00";
 
     let [, hours, minutes, ampm] = match;

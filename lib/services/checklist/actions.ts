@@ -13,7 +13,7 @@ export async function createChecklist(data: CreateChecklistData): Promise<any> {
         throw new Error("Not authenticated");
     }
 
-    return createChecklistService(token, data);
+    return createChecklistService(data);
 }
 
 export async function getAllChecklists(name?: string): Promise<any> {

@@ -1,7 +1,6 @@
 "use client";
 
 import { EditChecklistModal } from "@/components/modals/edit-checklist-modal";
-import { NewChecklistModal } from "../../../components/checklist/new-checklist-modal";
 import { OngoingChecklist } from "../../../components/checklist/ongoing-checklist";
 import { AvailableChecklist } from "../../../components/checklist/available-checklist";
 import { useState } from "react";
@@ -17,6 +16,7 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Plus, Search, Filter } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { useRouter } from "next/navigation";
 import { ChecklistDetailsModal } from "@/components/modals/checklist-details-modal";
 import { DeleteConfirmationModal } from "@/components/team/delete-confirmation-modal";
 import { useOngoingFilterActions, useAvailableFilterActions, useChecklistFilterStore } from "@/lib/provider/checklists/index";
@@ -27,13 +27,13 @@ export default function ChecklistsPage() {
 
 function ChecklistsPageContent() {
   const { toast } = useToast();
+  const router = useRouter();
   const ongoingActions = useOngoingFilterActions();
   const availableActions = useAvailableFilterActions();
   const { deleteChecklist } = useChecklistFilterStore();
   const [selectedChecklist, setSelectedChecklist] = useState<any>(null);
   const [showEditModal, setShowEditModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
-  const [showNewModal, setShowNewModal] = useState(false);
   const [checklistToDelete, setChecklistToDelete] = useState<any>(null);
   const [showDetailsModal, setShowDetailsModal] = useState(false);
   const [selectedChecklistForDetails, setSelectedChecklistForDetails] =
@@ -80,7 +80,7 @@ function ChecklistsPageContent() {
   };
 
   const handleNewChecklist = () => {
-    setShowNewModal(true);
+    router.push("/dashboard/checklists/new");
   };
 
   return (
@@ -172,11 +172,6 @@ function ChecklistsPageContent() {
       </Tabs>
 
       {/* Modals */}
-      <NewChecklistModal
-        isOpen={showNewModal}
-        onClose={() => setShowNewModal(false)}
-      />
-
       {selectedChecklist && (
         <EditChecklistModal
           isOpen={showEditModal}

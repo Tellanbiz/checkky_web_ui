@@ -10,6 +10,7 @@ import { useQuery } from "@tanstack/react-query";
 import { getWorkflows } from "@/lib/services/workflows/get";
 import { Workflow } from "@/lib/services/workflows/models";
 import { WorkflowCard } from "@/components/workflow/workflow_card";
+import { WorkflowListShimmer } from "@/components/workflow/workflow_list_shimmer";
 
 export default function WorkflowsPage() {
   const router = useRouter();
@@ -27,6 +28,7 @@ export default function WorkflowsPage() {
   });
 
   // Refresh data when page becomes visible (e.g., after navigation back from new workflow page)
+  // Also refresh when switching tabs to ensure data is up-to-date
   useEffect(() => {
     const handleVisibilityChange = () => {
       if (document.visibilityState === "visible") {
@@ -49,6 +51,11 @@ export default function WorkflowsPage() {
       window.removeEventListener("focus", handleVisibilityChange);
     };
   }, [refetch]);
+
+  // Refresh data when tab changes to ensure stopped workflows are loaded
+  useEffect(() => {
+    refetch();
+  }, [activeTab, refetch]);
 
   const loading = isLoading;
   const displayWorkflows = workflows;
@@ -110,10 +117,7 @@ export default function WorkflowsPage() {
 
         <TabsContent value="running" className="space-y-4">
           {loading ? (
-            <div className="text-center py-12">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
-              <p className="text-gray-500 mt-4">Loading workflows...</p>
-            </div>
+            <WorkflowListShimmer />
           ) : displayWorkflows.length === 0 ? (
             <div className="text-center py-12 text-gray-500">
               <PlayCircle className="h-12 w-12 text-gray-300 mx-auto mb-4" />
@@ -141,8 +145,6 @@ export default function WorkflowsPage() {
                   key={workflow.id}
                   workflow={workflow}
                   onClick={handleWorkflowClick}
-                  onMenu={handleMenuAction}
-                  onDelete={handleDeleteWorkflow}
                 />
               ))}
             </div>
@@ -151,10 +153,7 @@ export default function WorkflowsPage() {
 
         <TabsContent value="stopped" className="space-y-4">
           {loading ? (
-            <div className="text-center py-12">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
-              <p className="text-gray-500 mt-4">Loading workflows...</p>
-            </div>
+            <WorkflowListShimmer />
           ) : displayWorkflows.length === 0 ? (
             <div className="text-center py-12 text-gray-500">
               <PauseCircle className="h-12 w-12 text-gray-300 mx-auto mb-4" />
@@ -176,8 +175,6 @@ export default function WorkflowsPage() {
                   key={workflow.id}
                   workflow={workflow}
                   onClick={handleWorkflowClick}
-                  onMenu={handleMenuAction}
-                  onDelete={handleDeleteWorkflow}
                 />
               ))}
             </div>
