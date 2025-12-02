@@ -7,7 +7,6 @@ import { Toaster } from "@/components/ui/toaster";
 import { Account } from "@/lib/services/accounts/models";
 import { getAccount } from "@/lib/services/auth/auth-get";
 import { redirect } from "next/navigation";
-import { WebSocketProvider } from "@/lib/socket/socket";
 import { QueryProvider } from "@/lib/shared/query_provider";
 
 // Force dynamic rendering to prevent static generation issues with cookies

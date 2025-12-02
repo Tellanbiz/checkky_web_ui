@@ -64,3 +64,14 @@ export async function deleteAssignedChecklist(id: string): Promise<any> {
     });
     return res.status != 200 ? { error: res.data.error } : res.data;
 }
+
+
+
+export async function copyChecklist(params: {name: string, description: string, checklist_id: string}): Promise<any> {
+    const res = await clientV1.post('/checklist/copy', params, {
+        headers: {
+            Authorization: `Bearer ${await getAccessToken()}`,
+        },
+    });
+    return res.status != 200 ? { error: res.data.error } : res.data;
+}
