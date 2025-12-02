@@ -4,7 +4,6 @@ import { useState } from "react";
 import { Input } from "@/components/ui/input";
 import { PublicChecklist } from "@/lib/services/checklist/models";
 import { getPublicChecklists } from "@/lib/services/checklist/get";
-import { assignChecklist } from "@/lib/services/checklist/actions";
 import { copyChecklist } from "@/lib/services/checklist/post";
 import { useToast } from "@/hooks/use-toast";
 import { Search } from "lucide-react";
