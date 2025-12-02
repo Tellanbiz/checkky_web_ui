@@ -75,21 +75,6 @@ export function OngoingChecklist({
     loadChecklists();
   }, []);
 
-  const handleDuplicateChecklist = (checklist: AssignedChecklist) => {
-    toast({
-      title: "Duplicate Checklist",
-      description: `Duplicating: ${checklist.title}`,
-    });
-    // Here you would duplicate the checklist
-  };
-
-  const handleArchiveChecklist = (checklist: AssignedChecklist) => {
-    toast({
-      title: "Archive Checklist",
-      description: `Archiving: ${checklist.title}`,
-    });
-    // Here you would archive the checklist
-  };
 
   const handleDragStart = (e: React.DragEvent, checklistId: string) => {
     setDraggedItem(checklistId);

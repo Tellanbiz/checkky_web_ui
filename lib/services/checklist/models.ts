@@ -59,3 +59,16 @@ export interface AssignedChecklistParams {
     section_id: string;
     deadline: string;
 }
+
+export interface PublicChecklist {
+  id: string;
+  name: string;
+  description: string;
+  created_at: string; // or Date
+  section_count: number;
+  item_count: number;
+  company: {
+    id: string;
+    name: string;
+  };
+}

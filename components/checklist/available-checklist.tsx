@@ -121,7 +121,7 @@ export function AvailableChecklist() {
   return (
     <div className="space-y-4">
       {/* Empty filters section - filters are now handled at page level */}
-      
+
       {/* Loading State */}
       {loading && (
         <div className="flex items-center justify-center py-12">
@@ -140,67 +140,38 @@ export function AvailableChecklist() {
               key={checklist.id}
               className="hover:shadow-md transition-shadow"
             >
-              <CardHeader className="pb-3">
-                <div className="space-y-2">
-                  <CardTitle className="text-lg">{checklist.name}</CardTitle>
-                </div>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  {/* Meta Info */}
-                  <div className="space-y-2 text-sm text-muted-foreground">
-                    <div className="flex items-center justify-between">
-                      <span>Created:</span>
-                      <span>
-                        {new Date(checklist.created_at).toLocaleDateString()}
-                      </span>
-                    </div>
-                    <div className="flex items-center justify-between">
-                      <span>Sections:</span>
-                      <span>{checklist.section_count}</span>
-                    </div>
-                    <div className="flex items-center justify-between">
-                      <span>Items:</span>
-                      <span>{checklist.item_count}</span>
-                    </div>
+              <CardContent className="p-4">
+                <div className="space-y-3">
+                  <div>
+                    <h3 className="font-medium text-lg">{checklist.name}</h3>
+                    {checklist.description && (
+                      <p className="text-sm text-muted-foreground line-clamp-1 mt-1">
+                        {checklist.description}
+                      </p>
+                    )}
+                  </div>
+                  
+                  <div className="flex items-center justify-between text-sm text-muted-foreground">
+                    <span>{checklist.section_count} sections</span>
+                    <span>{checklist.item_count} items</span>
                   </div>
 
-                  {/* Description */}
-                  {checklist.description && (
-                    <div className="text-sm text-muted-foreground">
-                      <p className="line-clamp-2">{checklist.description}</p>
-                    </div>
-                  )}
-
-                  {/* Action Buttons */}
-                  <div className="space-y-2">
+                  <div className="flex space-x-2">
                     <Button
-                      className="w-full"
+                      className="flex-1"
+                      size="sm"
                       onClick={() => handleAssignChecklist(checklist)}
                     >
-                      <Users className="mr-2 h-4 w-4" />
-                      Assign Checklist
+                      <Users className="mr-2 h-3 w-3" />
+                      Assign
                     </Button>
-                    <div className="flex space-x-2">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        className="flex-1"
-                        onClick={() => handlePreviewChecklist(checklist)}
-                      >
-                        <Eye className="mr-2 h-3 w-3" />
-                        Preview
-                      </Button>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        className="flex-1"
-                        onClick={() => handleDownloadChecklist(checklist)}
-                      >
-                        <Download className="mr-2 h-3 w-3" />
-                        Download
-                      </Button>
-                    </div>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handleDownloadChecklist(checklist)}
+                    >
+                      <Download className="h-3 w-3" />
+                    </Button>
                   </div>
                 </div>
               </CardContent>

@@ -12,7 +12,7 @@ import { Progress } from "@/components/ui/progress";
 import { Switch } from "@/components/ui/switch";
 import { Loader2, Plus, X, Paperclip, Upload, Trash2, FileText, Info, Share2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { createChecklist } from "@/lib/services/checklist/actions";
+import { createChecklistWithProgress } from "@/lib/services/checklist/upload-client";
 import { CreateChecklistData } from "@/lib/services/checklist/post";
 
 export default function NewChecklistPage() {
@@ -67,33 +67,17 @@ export default function NewChecklistPage() {
     setUploadProgress(0);
 
     try {
-      // Simulate progress steps for checklist creation with longer delays
-      const progressSteps = [
-        { progress: 25, delay: 500 },
-        { progress: 50, delay: 800 },
-        { progress: 75, delay: 600 },
-        { progress: 90, delay: 400 },
-        { progress: 100, delay: 300 },
-      ];
-
-      // Execute progress steps
-      for (const step of progressSteps) {
-        await new Promise(resolve => {
-          setTimeout(() => {
-            setUploadProgress(step.progress);
-            resolve(undefined);
-          }, step.delay);
-        });
-      }
-
-      const checklistData: CreateChecklistData = {
+      const result = await createChecklistWithProgress( {
         name: formData.name,
         description: formData.description,
         checklist: checklistFile,
         isPublic: formData.isPublic,
-      };
-
-      await createChecklist(checklistData);
+      });
+    
+      // Set progress from server response
+      if (result.progress !== undefined) {
+        setUploadProgress(result.progress);
+      }
 
       toast({
         title: "Checklist Created Successfully!",
@@ -162,7 +146,7 @@ export default function NewChecklistPage() {
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
             <div className="space-y-2">
               <div className="flex items-center justify-between text-sm">
-                <span className="text-gray-600">Creating checklist...</span>
+                <span className="text-gray-600">Uploading checklist file...</span>
                 <span className="text-gray-900 font-medium">{uploadProgress}%</span>
               </div>
               <Progress value={uploadProgress} className="h-2" />

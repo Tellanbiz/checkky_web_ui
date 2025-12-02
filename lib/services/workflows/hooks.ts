@@ -2,7 +2,7 @@
 
 import { useQuery } from "@tanstack/react-query";
 import { CheckList } from "@/lib/services/checklist/models";
-import { getChecklists } from "@/lib/services/checklist/services-get";
+import { getChecklists } from "@/lib/services/checklist/get";
 
 export function useAvailableChecklistsForWorkflows(name?: string) {
   return useQuery<CheckList[]>({
