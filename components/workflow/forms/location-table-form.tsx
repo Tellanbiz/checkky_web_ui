@@ -13,8 +13,8 @@ import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { MapPin, Search, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { getAllSections } from "@/lib/services/sections/actions";
-import { Farm } from "@/lib/services/sections/models";
+import { getSections } from "@/lib/services/sections/get";
+import { Section } from "@/lib/services/sections/models";
 import { useToast } from "@/hooks/use-toast";
 
 interface LocationTableFormProps {
@@ -27,7 +27,7 @@ export function LocationTableForm({
   onSectionChange,
 }: LocationTableFormProps) {
   const { toast } = useToast();
-  const [sections, setSections] = useState<Farm[]>([]);
+  const [sections, setSections] = useState<Section[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
 
@@ -35,7 +35,7 @@ export function LocationTableForm({
     const fetchSections = async () => {
       try {
         setLoading(true);
-        const farms = await getAllSections();
+        const farms = await getSections();
         setSections(farms);
       } catch (error) {
         console.error("Failed to fetch sections:", error);
