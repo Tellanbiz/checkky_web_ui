@@ -75,13 +75,9 @@ export function Sidebar({ initialCompanies, account }: SidebarProps) {
             )}
             <div className="space-y-1">
               {section.items.map((item) => {
-                // Check if the current pathname matches the navigation item
-                // For exact matches like /dashboard, use exact comparison
-                // For wildcard routes like /dashboard/checklists/*, check if pathname starts with the base href
-                const isActive = 
-                  item.href === "/dashboard" 
-                    ? pathname === item.href
-                    : pathname.startsWith(item.href + "/") || pathname === item.href;
+                // Check if the current pathname exactly matches the navigation item
+                // Use strict equality to prevent multiple items being active
+                const isActive = pathname === item.href;
                 
                 return (
                   <Link

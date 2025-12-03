@@ -27,7 +27,7 @@ interface EditMemberRoleModalProps {
   isOpen: boolean;
   onClose: () => void;
   member: TeamMember;
-  onRoleUpdated?: () => void;
+  onRoleUpdated?: (newRole: string) => void;
 }
 
 const getRoleDisplayName = (role: string) => {
@@ -128,7 +128,7 @@ export function EditMemberRoleModal({
         }'s role has been updated to ${getRoleDisplayName(selectedRole)}.`,
       });
 
-      onRoleUpdated?.();
+      onRoleUpdated?.(selectedRole);
       onClose();
     } catch (error) {
       toast({

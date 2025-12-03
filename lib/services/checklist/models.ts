@@ -55,9 +55,9 @@ export interface AssignedChecklistParams {
     notes: string;
     priority: 'high' | 'mid' | 'low';
     checklist_id: string;
-    member_id: string;
+    member_ids: string[];
     section_id: string;
-    deadline: string;
+    geofence_enabled: boolean;
 }
 
 export interface PublicChecklist {

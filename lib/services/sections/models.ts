@@ -1,9 +1,9 @@
-export interface Farm {
+export interface Section {
     id: string;
     name: string;
     location: string;
     size_ha: number;
-    status: string;
+    points?: [number, number][];
     live: {
         workers: number;
         active: number;
@@ -12,7 +12,7 @@ export interface Farm {
 }
 
 
-export interface FarmParams {
+export interface SectionParams {
     id?: string;
     name: string;
     location: string;

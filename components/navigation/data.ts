@@ -1,4 +1,22 @@
-import { LayoutDashboard, CheckSquare, MapPin, Users, BarChart3, Building2, Settings, User, Workflow, FileText } from "lucide-react";
+import { 
+    LayoutDashboard, 
+    CheckSquare, 
+    MapPin, 
+    Users, 
+    BarChart3, 
+    Building2, 
+    Settings, 
+    User, 
+    Workflow, 
+    FileText,
+    ListTodo,
+    Archive,
+    FolderOpen,
+    Map,
+    UserCircle,
+    Settings2,
+    Mail
+} from "lucide-react";
 
 export interface NavigationSection {
     title: string;
@@ -24,42 +42,57 @@ export const navigation: NavigationSection[] = [
         ],
     },
     {
+        title: "Checklist Management",
+        items: [
+            {
+                name: "Current Assignments",
+                href: "/dashboard/checklists",
+                icon: ListTodo,
+            },
+            {
+                name: "Available Templates",
+                href: "/dashboard/checklists/my",
+                icon: Archive,
+            },
+            {
+                name: "Template Library",
+                href: "/dashboard/templates",
+                icon: FolderOpen,
+            },
+        ],
+    },
+    {
         title: "Operations",
         items: [
             {
                 name: "Workflow Automation",
                 href: "/dashboard/workflows",
                 icon: Workflow,
-            },   
-            {
-                name: "Checklist Management",
-                href: "/dashboard/checklists",
-                icon: CheckSquare,
             },
             {
-                name: "Template Library",
-                href: "/dashboard/templates",
-                icon: FileText,
-            },
-            {
-                name: "Area Management",
+                name: "Location Management",
                 href: "/dashboard/sections",
-                icon: MapPin,
+                icon: Map,
             },
         ],
     },
     {
-        title: "Team Management",
+        title: "Team Administration",
         items: [
             {
                 name: "Team Members",
                 href: "/dashboard/team",
                 icon: Users,
             },
+            {
+                name: "Team Invites",
+                href: "/dashboard/team/invites",
+                icon: Mail,
+            },
         ],
     },
     {
-        title: "Account Settings",
+        title: "System Settings",
         items: [
             {
                 name: "Company Management",
@@ -67,10 +100,15 @@ export const navigation: NavigationSection[] = [
                 icon: Building2,
             },
             {
-                name: "Account Information",
+                name: "My Account",
                 href: "/dashboard/profile",
-                icon: User,
+                icon: UserCircle,
             },
+            // {
+            //     name: "Application Preferences",
+            //     href: "/dashboard/settings",
+            //     icon: Settings2,
+            // },
         ],
     },
 ];

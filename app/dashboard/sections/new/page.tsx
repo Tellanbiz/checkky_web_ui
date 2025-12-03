@@ -3,9 +3,11 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
-import { Plus, Save } from "lucide-react";
+import { Progress } from "@/components/ui/progress";
+import { Loader2, Plus } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { submitSection } from "@/lib/services/sections/actions";
+import { submitFarm } from "@/lib/services/sections/post";
+import { getAccessToken } from "@/lib/services/auth/auth-get";
 import { BasicInfoForm } from "@/components/sections/forms/basic-info-form";
 import { SectionMapForm } from "@/components/sections/forms/section-map-form";
 import { ClearSectionDialog } from "@/components/sections/forms/clear-section-dialog";
@@ -20,7 +22,8 @@ interface FarmSectionForm {
 export default function NewSectionPage() {
   const router = useRouter();
   const { toast } = useToast();
-  const [loading, setLoading] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0);
   const [initialMapPosition, setInitialMapPosition] = useState<{
     lat: string;
     lng: string;
@@ -198,8 +201,27 @@ export default function NewSectionPage() {
       });
       return;
     }
-    setLoading(true);
+    setIsSubmitting(true);
     try {
+      // Simulate progress steps for section creation
+      const progressSteps = [
+        { progress: 20, delay: 300 },
+        { progress: 40, delay: 500 },
+        { progress: 60, delay: 400 },
+        { progress: 80, delay: 300 },
+        { progress: 95, delay: 200 },
+      ];
+
+      // Execute progress steps
+      for (const step of progressSteps) {
+        await new Promise(resolve => {
+          setTimeout(() => {
+            setUploadProgress(step.progress);
+            resolve(undefined);
+          }, step.delay);
+        });
+      }
+
       let parsedPoints: [number, number][] = [];
       if (formData.points) {
         try {
@@ -216,10 +238,17 @@ export default function NewSectionPage() {
         location: formData.location,
         size_ha: Number(formData.size),
         points: parsedPoints,
+        active: true,
       };
-      await submitSection(farmParams);
+      
+      await submitFarm(farmParams);
+      
+      // Complete progress
+      setUploadProgress(100);
+      await new Promise(resolve => setTimeout(resolve, 200));
+
       toast({
-        title: "Section Created",
+        title: "Section Created Successfully!",
         description: `Section "${formData.name}" has been created successfully.`,
       });
       router.push("/dashboard/sections");
@@ -231,48 +260,60 @@ export default function NewSectionPage() {
         variant: "destructive",
       });
     } finally {
-      setLoading(false);
+      setIsSubmitting(false);
     }
   };
 
   return (
-    <div className="space-y-8">
-      {/* Header */}
-      <div className="border-b px-12 py-6 flex justify-between items-center bg-gradient-to-r from-white ">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight text-gray-900">
-            Add New Section
-          </h1>
-          <p className="text-sm text-gray-600 mt-1">
-            Create a new farm section with detailed information
-          </p>
+    <div className="min-h-full bg-white">
+      {/* Page Header - Sticky */}
+      <div className="sticky top-0 z-10 bg-white border-b border-gray-200 shadow-sm">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex items-center justify-between py-3">
+            <div>
+              <h1 className="text-xl font-semibold text-gray-900">
+                Add New Section
+              </h1>
+            </div>
+            <Button
+              type="submit"
+              disabled={isSubmitting || !formData.name || !formData.size}
+              className="px-4 py-2 text-sm"
+            >
+              {isSubmitting ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Creating...
+                </>
+              ) : (
+                <>
+                  <Plus className="mr-2 h-4 w-4" />
+                  Create Section
+                </>
+              )}
+            </Button>
+          </div>
         </div>
-        <Button
-          type="submit"
-          form="section-form"
-          disabled={loading}
-          className="px-6 py-2"
-        >
-          {loading ? (
-            <>
-              <Save className="mr-2 h-4 w-4 animate-spin" />
-              Creating...
-            </>
-          ) : (
-            <>
-              <Plus className="mr-2 h-4 w-4" />
-              Create Section
-            </>
-          )}
-        </Button>
       </div>
 
-      <div className="px-16 py-8">
-        <form
-          id="section-form"
-          onSubmit={handleSubmit}
-          className="space-y-8 max-w-6xl mx-auto"
-        >
+      {/* Progress Bar - Show only when submitting */}
+      {isSubmitting && (
+        <div className="bg-white border-b border-gray-200">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+            <div className="space-y-2">
+              <div className="flex items-center justify-between text-sm">
+                <span className="text-gray-600">Creating section...</span>
+                <span className="text-gray-900 font-medium">{uploadProgress}%</span>
+              </div>
+              <Progress value={uploadProgress} className="h-2" />
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Form Content */}
+      <div className="max-w-4xl mx-auto p-6 pb-12">
+        <form onSubmit={handleSubmit} className="space-y-6">
           <BasicInfoForm
             formData={formData}
             onInputChange={handleInputChange}
@@ -282,7 +323,7 @@ export default function NewSectionPage() {
           <SectionMapForm
             formData={formData}
             initialMapPosition={initialMapPosition}
-            loading={loading}
+            loading={isSubmitting}
             onCoordinatesChange={handleCoordinatesChange}
             onPolygonComplete={handlePolygonComplete}
             onCancel={() => router.push("/dashboard/sections")}

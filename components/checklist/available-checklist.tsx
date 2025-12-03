@@ -1,7 +1,6 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import {
@@ -102,7 +101,7 @@ export function AvailableChecklist() {
     // Here you would handle the actual download
   };
 
-  const handlePreviewChecklist = (checklist: CheckList) => {
+  const handleViewChecklist = (checklist: CheckList) => {
     router.push(`/dashboard/checklists/${checklist.id}`);
   };
 
@@ -136,46 +135,46 @@ export function AvailableChecklist() {
       {!loading && (
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
           {filteredAndSortedChecklists.map((checklist) => (
-            <Card
+            <div
               key={checklist.id}
-              className="hover:shadow-md transition-shadow"
+              className="bg-white rounded-lg border border-gray-200 p-4 hover:shadow-md transition-shadow cursor-pointer"
+              onClick={() => handleViewChecklist(checklist)}
             >
-              <CardContent className="p-4">
-                <div className="space-y-3">
-                  <div>
-                    <h3 className="font-medium text-lg">{checklist.name}</h3>
-                    {checklist.description && (
-                      <p className="text-sm text-muted-foreground line-clamp-1 mt-1">
-                        {checklist.description}
-                      </p>
-                    )}
-                  </div>
-                  
-                  <div className="flex items-center justify-between text-sm text-muted-foreground">
-                    <span>{checklist.section_count} sections</span>
-                    <span>{checklist.item_count} items</span>
-                  </div>
-
-                  <div className="flex space-x-2">
-                    <Button
-                      className="flex-1"
-                      size="sm"
-                      onClick={() => handleAssignChecklist(checklist)}
-                    >
-                      <Users className="mr-2 h-3 w-3" />
-                      Assign
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handleDownloadChecklist(checklist)}
-                    >
-                      <Download className="h-3 w-3" />
-                    </Button>
-                  </div>
+              <div className="space-y-3">
+                <div>
+                  <h3 className="font-medium text-lg">{checklist.name}</h3>
+                  {checklist.description && (
+                    <p className="text-sm text-muted-foreground line-clamp-1 mt-1">
+                      {checklist.description}
+                    </p>
+                  )}
                 </div>
-              </CardContent>
-            </Card>
+                
+                <div className="flex items-center justify-between text-sm text-muted-foreground">
+                  <span>{checklist.section_count} sections</span>
+                  <span>{checklist.item_count} items</span>
+                </div>
+
+                <div className="flex space-x-2" onClick={(e) => e.stopPropagation()}>
+                  <Button
+                    variant="outline"
+                    className="flex-1"
+                    size="sm"
+                    onClick={() => handleAssignChecklist(checklist)}
+                  >
+                    <Users className="mr-2 h-3 w-3" />
+                    Assign
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => handleViewChecklist(checklist)}
+                  >
+                    <Eye className="h-3 w-3" />
+                  </Button>
+                </div>
+              </div>
+            </div>
           ))}
         </div>
       )}

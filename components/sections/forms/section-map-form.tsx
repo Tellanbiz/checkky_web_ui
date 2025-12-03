@@ -36,6 +36,7 @@ interface SectionMapFormProps {
   onCoordinatesChange: (lat: string, lng: string) => void;
   onPolygonComplete: (boundaryPoints: [number, number][]) => void;
   onCancel: () => void;
+  existingPoints?: [number, number][];
 }
 
 export function SectionMapForm({
@@ -45,11 +46,12 @@ export function SectionMapForm({
   onCoordinatesChange,
   onPolygonComplete,
   onCancel,
+  existingPoints,
 }: SectionMapFormProps) {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [selectedBoundary, setSelectedBoundary] = useState<
     [number, number][] | null
-  >(null);
+  >(existingPoints || null);
 
   const handlePolygonComplete = (boundaryPoints: [number, number][]) => {
     onPolygonComplete(boundaryPoints);

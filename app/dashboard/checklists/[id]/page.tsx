@@ -2,11 +2,9 @@
 
 import { useState, useEffect, use } from "react";
 import { useRouter } from "next/navigation";
-import { getChecklistInfo } from "@/lib/services/checklist/get";
 import TextField from "@/components/common/text-field";
 import { ChecklistInfo } from "@/lib/services/checklist/models";
 import { CheckCircleIcon, SearchIcon, FileTextIcon } from "lucide-react";
-import Button from "@/components/common/button";
 import { getChecklistsInfo } from "@/lib/services/checklist/actions";
 
 export default function ChecklistDetailPage({

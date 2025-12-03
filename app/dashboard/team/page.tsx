@@ -2,60 +2,164 @@
 
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Users, Mail, Plus } from "lucide-react";
+import { Loader2, RefreshCw } from "lucide-react";
 import { InviteMemberModal } from "@/components/team/invite-member-modal";
-import { Page as TeamMemberPage } from "@/components/team/team-member-page";
-import { Page as TeamInvitesPage } from "@/components/team/team-invites-page";
+import { ViewProfileModal } from "@/components/team/view-profile-modal";
+import { DeleteConfirmationModal } from "@/components/team/delete-confirmation-modal";
+import { EditMemberRoleModal } from "@/components/team/edit-member-role-modal";
+import { TeamMember } from "@/lib/services/teams/data";
+import { useToast } from "@/hooks/use-toast";
+import {
+  TeamMembersHeader,
+  TeamMembersGrid,
+  useTeamMembers,
+  useUpdateTeamMemberRole,
+  useRemoveTeamMember,
+} from "@/components/team/members";
 
 export default function TeamPage() {
   const [showInviteModal, setShowInviteModal] = useState(false);
+  const [selectedMember, setSelectedMember] = useState<TeamMember | null>(null);
+  const [showProfileModal, setShowProfileModal] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [memberToDelete, setMemberToDelete] = useState<TeamMember | null>(null);
+  const [showEditRoleModal, setShowEditRoleModal] = useState(false);
+  const [memberToEditRole, setMemberToEditRole] = useState<TeamMember | null>(
+    null
+  );
+  const { toast } = useToast();
 
-  const handleInviteSent = () => {
-    console.log("Invitation sent, refreshing data...");
-    // Here you would refresh the data
+  // TanStack Query hooks
+  const { data: teamMembers = [], isLoading, error, refetch } = useTeamMembers();
+  const updateRoleMutation = useUpdateTeamMemberRole();
+  const removeMemberMutation = useRemoveTeamMember();
+
+  const handleViewProfile = (member: TeamMember) => {
+    setSelectedMember(member);
+    setShowProfileModal(true);
   };
 
-  return (
-    <div className="flex-1 space-y-4 p-4 md:p-8 pt-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h2 className="text-3xl font-bold tracking-tight">Team Management</h2>
-        </div>
-        <Button onClick={() => setShowInviteModal(true)}>
-          <Plus className="mr-2 h-4 w-4" />
-          Invite Member
-        </Button>
+  const handleDeleteMember = (member: TeamMember) => {
+    setMemberToDelete(member);
+    setShowDeleteModal(true);
+  };
+
+  const confirmDelete = () => {
+    if (memberToDelete) {
+      removeMemberMutation.mutate(memberToDelete.id);
+    }
+    setShowDeleteModal(false);
+    setMemberToDelete(null);
+  };
+
+  const handleSendMessage = (member: TeamMember) => {
+    console.log("Sending message to:", member.user.full_name);
+    // Here you would open a message modal or redirect
+  };
+
+  const handleEditRole = (member: TeamMember) => {
+    setMemberToEditRole(member);
+    setShowEditRoleModal(true);
+  };
+
+  const handleRoleUpdated = (newRole: string) => {
+    if (memberToEditRole) {
+      updateRoleMutation.mutate({
+        memberId: memberToEditRole.id,
+        newRole: newRole as "admin" | "auditor" | "assignee" | "viewer",
+      });
+    }
+    setShowEditRoleModal(false);
+    setMemberToEditRole(null);
+  };
+
+  const handleRefresh = async () => {
+    await refetch();
+  };
+
+  const handleInviteMember = () => {
+    setShowInviteModal(true);
+  };
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <Loader2 className="h-8 w-8 animate-spin" />
       </div>
+    );
+  }
 
-      {/* Tabs */}
-      <Tabs defaultValue="members" className="space-y-4">
-        <TabsList>
-          <TabsTrigger value="members" className="flex items-center space-x-2">
-            <Users className="h-4 w-4" />
-            <span>Team Members</span>
-          </TabsTrigger>
-          <TabsTrigger value="invites" className="flex items-center space-x-2">
-            <Mail className="h-4 w-4" />
-            <span>Team Invites</span>
-          </TabsTrigger>
-        </TabsList>
+  if (error) {
+    return (
+      <div className="space-y-6">
+        <div className="flex items-center justify-end">
+          <Button variant="outline" onClick={handleRefresh} disabled={isLoading}>
+            {isLoading ? (
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+            ) : (
+              <RefreshCw className="mr-2 h-4 w-4" />
+            )}
+            Refresh
+          </Button>
+        </div>
+        <div className="text-center py-8">
+          <p className="text-red-600 mb-4">{error.message}</p>
+          <Button onClick={handleRefresh} disabled={isLoading}>
+            Try Again
+          </Button>
+        </div>
+      </div>
+    );
+  }
 
-        <TabsContent value="members" className="space-y-4">
-          <TeamMemberPage />
-        </TabsContent>
+  return (
+    <div className="space-y-6 p-8">
+      {/* Header */}
+      <TeamMembersHeader
+        onInviteMember={handleInviteMember}
+        onRefresh={handleRefresh}
+        isLoading={isLoading}
+      />
 
-        <TabsContent value="invites" className="space-y-4">
-          <TeamInvitesPage />
-        </TabsContent>
-      </Tabs>
+      {/* Team Members Grid */}
+      <TeamMembersGrid
+        teamMembers={teamMembers}
+        onViewProfile={handleViewProfile}
+        onEditRole={handleEditRole}
+        onSendMessage={handleSendMessage}
+        onDeleteMember={handleDeleteMember}
+      />
 
-      {/* Invite Modal */}
+      {/* Modals */}
       <InviteMemberModal
         isOpen={showInviteModal}
         onClose={() => setShowInviteModal(false)}
       />
+      {selectedMember && (
+        <ViewProfileModal
+          isOpen={showProfileModal}
+          onClose={() => setShowProfileModal(false)}
+          member={selectedMember}
+        />
+      )}
+
+      <DeleteConfirmationModal
+        isOpen={showDeleteModal}
+        onClose={() => setShowDeleteModal(false)}
+        onConfirm={confirmDelete}
+        title="Remove Team Member"
+        description="Are you sure you want to remove this team member? They will lose access to all checklists and data."
+        itemName={memberToDelete?.user.full_name || ""}
+      />
+
+      {memberToEditRole && (
+        <EditMemberRoleModal
+          isOpen={showEditRoleModal}
+          onClose={() => setShowEditRoleModal(false)}
+          member={memberToEditRole}
+          onRoleUpdated={handleRoleUpdated}
+        />
+      )}
     </div>
   );
 }
