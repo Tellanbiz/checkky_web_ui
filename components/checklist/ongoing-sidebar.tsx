@@ -181,7 +181,7 @@ export function OngoingSidebar({ checklist, isOpen, onClose, onCompleteChecklist
               <Button
                 className="w-full bg-gradient-to-r from-green-600 to-green-600 hover:from-green-700 hover:to-green-700 text-white font-semibold py-2.5 rounded-lg transition-all"
               >
-                Complete the Checklist
+                Preview Checklist
               </Button>
             </Link>
           )}

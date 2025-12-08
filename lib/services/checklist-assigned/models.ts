@@ -23,6 +23,14 @@ export enum QuestionType {
   Time = "Time",
 }
 
+export enum AuditScore {
+  Pending = "pending",
+  NotCompliant = "not_compliant",
+  PartiallyCompliant = "partially_compliant",
+  MostlyCompliant = "mostly_compliant",
+  FullyCompliant = "fully_compliant",
+}
+
 export enum PhotoAvailability {
   Yes = "Yes",
   No = "No",
@@ -33,11 +41,20 @@ export interface AssignedChecklistWithAnswer {
   name: string;
   description: string;
   created_at: string;
+  status: 'pending' | 'in_progress' | 'completed';
+  auditor?: {
+    email: string;
+    full_name: string;
+    id: string;
+    member_id: string;
+    role: string;
+  },
   sections: {
     order_index: number;
     question_group: string;
     questions: {
       id: number;
+      checklist_answer_id?: string;
       question_group: string;
       checklist_item_caption: string;
       question_type: QuestionType;
@@ -48,6 +65,8 @@ export interface AssignedChecklistWithAnswer {
       policy: string | null;
       answer: string | null;
       is_answered: boolean;
+      score: AuditScore;
+      perc_score: number;
     }[];
   }[];
 }
