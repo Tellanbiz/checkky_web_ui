@@ -203,25 +203,6 @@ export default function NewSectionPage() {
     }
     setIsSubmitting(true);
     try {
-      // Simulate progress steps for section creation
-      const progressSteps = [
-        { progress: 20, delay: 300 },
-        { progress: 40, delay: 500 },
-        { progress: 60, delay: 400 },
-        { progress: 80, delay: 300 },
-        { progress: 95, delay: 200 },
-      ];
-
-      // Execute progress steps
-      for (const step of progressSteps) {
-        await new Promise(resolve => {
-          setTimeout(() => {
-            setUploadProgress(step.progress);
-            resolve(undefined);
-          }, step.delay);
-        });
-      }
-
       let parsedPoints: [number, number][] = [];
       if (formData.points) {
         try {
@@ -242,10 +223,6 @@ export default function NewSectionPage() {
       };
       
       await submitFarm(farmParams);
-      
-      // Complete progress
-      setUploadProgress(100);
-      await new Promise(resolve => setTimeout(resolve, 200));
 
       toast({
         title: "Section Created Successfully!",
@@ -277,6 +254,7 @@ export default function NewSectionPage() {
             </div>
             <Button
               type="submit"
+              onClick={handleSubmit}
               disabled={isSubmitting || !formData.name || !formData.size}
               className="px-4 py-2 text-sm"
             >
