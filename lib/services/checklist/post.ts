@@ -7,21 +7,29 @@ import { getAccessToken } from "../auth/auth-get";
 export interface CreateChecklistData {
     name: string;
     description: string;
+    category: string;
+    checklistGroupId?: string;
     checklist: File;
     isPublic?: boolean;
 }
 
 export async function createChecklist(data: CreateChecklistData): Promise<any> {
     // Validate required fields
-    if (!data.name || !data.checklist) {
-        throw new Error('Name and checklist file are required');
+    if (!data.name || !data.checklist || !data.category) {
+        throw new Error('Name, category, and checklist file are required');
     }
 
     const formData = new FormData();
     formData.append('name', data.name);
     formData.append('description', data.description || '');
+    formData.append('category', data.category);
     formData.append('checklist', data.checklist);
-    
+
+    // Only append checklistGroupId if it exists
+    if (data.checklistGroupId) {
+        formData.append('checklist_group_id', data.checklistGroupId);
+    }
+
     // Only append isPublic if it's explicitly true to avoid breaking existing API
     if (data.isPublic === true) {
         formData.append('public', 'true');
@@ -32,7 +40,7 @@ export async function createChecklist(data: CreateChecklistData): Promise<any> {
             Authorization: `Bearer ${await getAccessToken()}`,
         },
     });
-    
+
     return res.status != 200 ? { error: res.data.error } : res.data;
 }
 
@@ -67,7 +75,7 @@ export async function deleteAssignedChecklist(id: string): Promise<any> {
 
 
 
-export async function copyChecklist(params: {name: string, description: string, checklist_id: string}): Promise<any> {
+export async function copyChecklist(params: { name: string, description: string, checklist_id: string }): Promise<any> {
     const res = await clientV1.post('/checklist/copy', params, {
         headers: {
             Authorization: `Bearer ${await getAccessToken()}`,

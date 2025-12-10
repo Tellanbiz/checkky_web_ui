@@ -6,25 +6,71 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Progress } from "@/components/ui/progress";
 import { Switch } from "@/components/ui/switch";
-import { Loader2, Plus, X, Paperclip, Upload, Trash2, FileText, Info, Share2 } from "lucide-react";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  Loader2,
+  Plus,
+  X,
+  Paperclip,
+  Upload,
+  Trash2,
+  FileText,
+  Info,
+  Share2,
+  FolderOpen,
+} from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
+import { GroupTableSelector } from "@/components/checklist/group-table-selector";
 import { useToast } from "@/hooks/use-toast";
-import { createChecklistWithProgress } from "@/lib/services/checklist/upload-client";
-import { CreateChecklistData } from "@/lib/services/checklist/post";
+import { useCreateChecklist } from "@/lib/services/checklists/hooks";
+
+// Categories from the database schema
+const CATEGORIES = [
+  { value: "none", label: "None" },
+  { value: "agriculture", label: "Agriculture" },
+  { value: "construction", label: "Construction" },
+  { value: "manufacturing", label: "Manufacturing" },
+  { value: "healthcare", label: "Healthcare" },
+  { value: "food_processing", label: "Food Processing" },
+  { value: "transportation", label: "Transportation" },
+  { value: "retail", label: "Retail" },
+  { value: "hospitality", label: "Hospitality" },
+  { value: "education", label: "Education" },
+  { value: "government", label: "Government" },
+  { value: "technology", label: "Technology" },
+  { value: "energy", label: "Energy" },
+  { value: "mining", label: "Mining" },
+  { value: "waste_management", label: "Waste Management" },
+  { value: "financial_services", label: "Financial Services" },
+] as const;
 
 export default function NewChecklistPage() {
   const router = useRouter();
   const { toast } = useToast();
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const createChecklistMutation = useCreateChecklist();
   const [uploadProgress, setUploadProgress] = useState(0);
   const [formData, setFormData] = useState({
     name: "",
-    category: "",
+    category: "none",
     description: "",
     isPublic: false,
+    groupId: "none", // Optional group selection
   });
   const [checklistFile, setChecklistFile] = useState<File | null>(null);
 
@@ -53,53 +99,56 @@ export default function NewChecklistPage() {
       return;
     }
 
-    // Check if public checklist requires description
-    if (formData.isPublic && (!formData.description || formData.description.trim().length < 50)) {
+    // Validate category selection (cannot be "none")
+    if (!formData.category || formData.category === "none") {
       toast({
         title: "Validation Error",
-        description: "Public checklists require a description of at least 50 characters.",
+        description: "Please select a category for the checklist.",
         variant: "destructive",
       });
       return;
     }
 
-    setIsSubmitting(true);
+    // Check if public checklist requires description
+    if (
+      formData.isPublic &&
+      (!formData.description || formData.description.trim().length < 50)
+    ) {
+      toast({
+        title: "Validation Error",
+        description:
+          "Public checklists require a description of at least 50 characters.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     setUploadProgress(0);
 
     try {
-      const result = await createChecklistWithProgress( {
+      await createChecklistMutation.mutateAsync({
         name: formData.name,
         description: formData.description,
+        category: formData.category,
+        checklist_group_id:
+          formData.groupId !== "none" ? formData.groupId : undefined, // Send undefined if "none"
         checklist: checklistFile,
         isPublic: formData.isPublic,
       });
-    
-      // Set progress from server response
-      if (result.progress !== undefined) {
-        setUploadProgress(result.progress);
-      }
 
       toast({
         title: "Checklist Created Successfully!",
         description: `Your checklist "${formData.name}" has been created and is now available for use in workflows.`,
       });
 
-      router.push("/dashboard/checklists");
+      router.push("/dashboard/checklists/my");
     } catch (error) {
-      console.error("Failed to create checklist:", error);
-      toast({
-        title: "Error",
-        description: "Failed to create checklist. Please try again.",
-        variant: "destructive",
-      });
-    } finally {
-      setIsSubmitting(false);
-      setUploadProgress(0);
+      // Error handling is done in the hook
     }
   };
 
   const handleCancel = () => {
-    router.push("/dashboard/checklists");
+    router.push("/dashboard/checklists/my");
   };
 
   return (
@@ -114,16 +163,29 @@ export default function NewChecklistPage() {
               </h1>
             </div>
             <div className="flex items-center space-x-3">
-              <Button variant="outline" onClick={handleCancel} disabled={isSubmitting}>
+              <Button
+                variant="outline"
+                onClick={handleCancel}
+                disabled={createChecklistMutation.isPending}
+              >
                 <X className="mr-2 h-4 w-4" />
                 Cancel
               </Button>
               <Button
                 onClick={() => handleSubmit()}
-                disabled={!formData.name || !checklistFile || isSubmitting || (formData.isPublic && (!formData.description || formData.description.trim().length < 50))}
+                disabled={
+                  !formData.name ||
+                  !checklistFile ||
+                  !formData.category ||
+                  formData.category === "none" ||
+                  createChecklistMutation.isPending ||
+                  (formData.isPublic &&
+                    (!formData.description ||
+                      formData.description.trim().length < 50))
+                }
                 className="px-4 py-2 text-sm"
               >
-                {isSubmitting ? (
+                {createChecklistMutation.isPending ? (
                   <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                     Creating...
@@ -141,13 +203,17 @@ export default function NewChecklistPage() {
       </div>
 
       {/* Progress Bar - Show only when submitting */}
-      {isSubmitting && (
+      {createChecklistMutation.isPending && (
         <div className="bg-white border-b border-gray-200">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
             <div className="space-y-2">
               <div className="flex items-center justify-between text-sm">
-                <span className="text-gray-600">Uploading checklist file...</span>
-                <span className="text-gray-900 font-medium">{uploadProgress}%</span>
+                <span className="text-gray-600">
+                  Uploading checklist file...
+                </span>
+                <span className="text-gray-900 font-medium">
+                  {uploadProgress}%
+                </span>
               </div>
               <Progress value={uploadProgress} className="h-2" />
             </div>
@@ -183,26 +249,85 @@ export default function NewChecklistPage() {
                 />
               </div>
 
+              {/* Category Selection */}
               <div className="space-y-2">
-                <Label htmlFor="description">Description {formData.isPublic && "*"} </Label>
+                <Label htmlFor="category">Industry Category *</Label>
+                <Select
+                  value={formData.category}
+                  onValueChange={(value) =>
+                    setFormData({ ...formData, category: value })
+                  }
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select an industry category" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {CATEGORIES.map((category) => (
+                      <SelectItem key={category.value} value={category.value}>
+                        {category.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <p className="text-xs text-muted-foreground">
+                  Select the industry that best describes this checklist's
+                  purpose
+                </p>
+              </div>
+
+              {/* Group Selection (Optional) */}
+              <div className="space-y-2">
+                <Label htmlFor="group">Group (Optional)</Label>
+                <GroupTableSelector
+                  selectedGroupId={formData.groupId}
+                  onGroupChange={(value) =>
+                    setFormData({ ...formData, groupId: value })
+                  }
+                  disabled={createChecklistMutation.isPending}
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="description">
+                  Description {formData.isPublic && "*"}{" "}
+                </Label>
                 <Textarea
                   id="description"
-                  placeholder={formData.isPublic ? "Provide a detailed description (at least 50 characters) to help other users understand this checklist..." : "Enter checklist description..."}
+                  placeholder={
+                    formData.isPublic
+                      ? "Provide a detailed description (at least 50 characters) to help other users understand this checklist..."
+                      : "Enter checklist description..."
+                  }
                   value={formData.description}
                   onChange={(e) =>
                     setFormData({ ...formData, description: e.target.value })
                   }
                   rows={4}
-                  className={formData.isPublic && (!formData.description || formData.description.trim().length < 50) ? "border-red-300 focus:border-red-500" : ""}
+                  className={
+                    formData.isPublic &&
+                    (!formData.description ||
+                      formData.description.trim().length < 50)
+                      ? "border-red-300 focus:border-red-500"
+                      : ""
+                  }
                 />
                 {formData.isPublic && (
                   <div className="text-xs text-muted-foreground">
                     {formData.description ? (
-                      <span className={formData.description.trim().length >= 50 ? "text-green-600" : "text-orange-600"}>
-                        {formData.description.trim().length}/50 characters minimum
+                      <span
+                        className={
+                          formData.description.trim().length >= 50
+                            ? "text-green-600"
+                            : "text-orange-600"
+                        }
+                      >
+                        {formData.description.trim().length}/50 characters
+                        minimum
                       </span>
                     ) : (
-                      <span className="text-orange-600">Description is required for public checklists</span>
+                      <span className="text-orange-600">
+                        Description is required for public checklists
+                      </span>
                     )}
                   </div>
                 )}
@@ -218,7 +343,8 @@ export default function NewChecklistPage() {
                     <Share2 className="h-4 w-4 text-gray-500" />
                   </div>
                   <p className="text-xs text-muted-foreground">
-                    Public checklists can be discovered and used by other users in the system
+                    Public checklists can be discovered and used by other users
+                    in the system
                   </p>
                 </div>
                 <Switch
@@ -240,7 +366,8 @@ export default function NewChecklistPage() {
                 Checklist Data
               </CardTitle>
               <CardDescription>
-                Upload your checklist data as a CSV file to import questions and requirements.
+                Upload your checklist data as a CSV file to import questions and
+                requirements.
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
@@ -254,7 +381,8 @@ export default function NewChecklistPage() {
                         Import checklist data from CSV
                       </p>
                       <p className="text-xs text-muted-foreground">
-                        Upload a CSV file to bulk import checklist items, sections, and requirements
+                        Upload a CSV file to bulk import checklist items,
+                        sections, and requirements
                       </p>
                     </div>
                     <input
@@ -313,7 +441,10 @@ export default function NewChecklistPage() {
                     <p className="font-medium">CSV Format Requirements:</p>
                     <ul className="space-y-1 text-sm ml-4 list-disc">
                       <li>First row should contain column headers</li>
-                      <li>Required columns: Section, Question, Requirement Code, Mandatory (Yes/No)</li>
+                      <li>
+                        Required columns: Section, Question, Requirement Code,
+                        Mandatory (Yes/No)
+                      </li>
                       <li>Optional columns: Guidance, Order Index</li>
                       <li>Use commas to separate values</li>
                     </ul>
@@ -333,11 +464,16 @@ export default function NewChecklistPage() {
               <ul className="space-y-2 text-sm text-gray-600">
                 <li className="flex items-start">
                   <span className="text-gray-400 mr-2">•</span>
-                  <span>Organize your checklist into logical sections for better readability</span>
+                  <span>
+                    Organize your checklist into logical sections for better
+                    readability
+                  </span>
                 </li>
                 <li className="flex items-start">
                   <span className="text-gray-400 mr-2">•</span>
-                  <span>Use clear, concise language for questions and requirements</span>
+                  <span>
+                    Use clear, concise language for questions and requirements
+                  </span>
                 </li>
                 <li className="flex items-start">
                   <span className="text-gray-400 mr-2">•</span>
@@ -345,7 +481,10 @@ export default function NewChecklistPage() {
                 </li>
                 <li className="flex items-start">
                   <span className="text-gray-400 mr-2">•</span>
-                  <span>Test your CSV format with a small sample before uploading large files</span>
+                  <span>
+                    Test your CSV format with a small sample before uploading
+                    large files
+                  </span>
                 </li>
               </ul>
             </CardContent>

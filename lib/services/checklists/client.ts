@@ -1,6 +1,4 @@
-"use server";
-
-import { clientV1 } from "../../client/client";
+import { clientV1 } from "@/lib/client/client";
 import { getAccessToken } from "../auth/auth-get";
 
 export interface CreateChecklistData {
@@ -26,7 +24,7 @@ export async function createChecklistWithProgress(
     formData.append('category', data.category);
     formData.append('checklist', data.checklist);
 
-    // Only append checklistGroupId if it exists
+    // Only append checklist_group_id if it exists
     if (data.checklist_group_id) {
         formData.append('checklist_group_id', data.checklist_group_id);
     }
@@ -55,4 +53,3 @@ export async function createChecklistWithProgress(
         status: "Complete"
     };
 }
-
