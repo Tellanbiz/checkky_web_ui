@@ -3,11 +3,16 @@
 import { AvailableChecklist } from "@/components/checklist/available-checklist";
 import { useAvailableFilterActions } from "@/lib/provider/checklists/index";
 import { Input } from "@/components/ui/input";
-import { Search, Filter } from "lucide-react";
+import { Search, Filter, Plus } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import router from "next/router";
 
 export default function MyChecklistsPage() {
   const availableActions = useAvailableFilterActions();
 
+   const handleNewChecklist = () => {
+    router.push("/dashboard/checklists/new");
+  };
   return (
     <div className="flex-1 space-y-4 p-4 md:p-8 pt-6">
       {/* Header with Search */}
@@ -22,7 +27,10 @@ export default function MyChecklistsPage() {
             />
           </div>
 
-        
+        <Button onClick={() => handleNewChecklist()} variant={"outline"}>
+          <Plus className="mr-2 h-4 w-4" />
+          Upload New Checklist
+        </Button>
         </div>
       </div>
 

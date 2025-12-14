@@ -79,6 +79,10 @@ function ChecklistsPageContent() {
     router.push("/dashboard/checklists/new");
   };
 
+  const assignChecklist = () => {
+    router.push("/dashboard/checklists");
+  };
+
   return (
     <div className="flex-1 space-y-4 p-4 md:p-8 pt-6">
       {/* Header with Search */}
@@ -112,6 +116,13 @@ function ChecklistsPageContent() {
             </Button>
           </div>
         </div>
+
+
+
+        <Button onClick={() => assignChecklist()} variant={"outline"}>
+          <Plus className="mr-2 h-4 w-4" />
+         Assign Checklist
+        </Button>
 
         <Button onClick={() => handleNewChecklist()}>
           <Plus className="mr-2 h-4 w-4" />
