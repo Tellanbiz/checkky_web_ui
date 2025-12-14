@@ -1,3 +1,5 @@
+"use server"
+
 import { clientV1 } from "@/lib/client/client";
 import { getAccessToken } from "../auth/auth-get";
 
