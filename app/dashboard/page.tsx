@@ -1,8 +1,9 @@
 "use client";
 
 import { NewChecklistModal } from "../../components/checklist/new-checklist-modal";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Suspense } from "react";
+import { useQuery } from "@tanstack/react-query";
 import {
   Card,
   CardContent,
@@ -13,6 +14,13 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import {
   CheckCircle,
   AlertTriangle,
@@ -25,15 +33,16 @@ import {
 } from "lucide-react";
 
 import {
-  getMonthlyReportAction,
+  getOverviewReportAction,
   getYearlyReportAction,
 } from "@/lib/services/reports/actions";
 import { getAssignedChecklistsAction } from "@/lib/services/checklist/actions";
-import { MonthlyReport, MonthlyTasks } from "@/lib/services/reports/models";
+import { MonthlyTasks, OverviewReport } from "@/lib/services/reports/models";
 import { AssignedChecklist } from "@/lib/services/checklist/models";
 import { useRouter } from "next/navigation";
 import { DashboardCharts } from "@/components/dashboard-charts";
 import { QuickActions } from "@/components/quick-actions";
+import { useTeamMembers } from "@/components/team/members";
 
 const getPriorityDisplayName = (priority: string) => {
   switch (priority) {
@@ -75,78 +84,76 @@ export default function Dashboard() {
   const [showNewChecklistModal, setShowNewChecklistModal] = useState(false);
   const [showInviteMemberModal, setShowInviteMemberModal] = useState(false);
   const [showNewGuidelineModal, setShowNewGuidelineModal] = useState(false);
-  const [monthlyReport, setMonthlyReport] = useState<MonthlyReport | null>(
-    null
-  );
-  const [yearlyReport, setYearlyReport] = useState<MonthlyTasks | null>(null);
-  const [assignedChecklists, setAssignedChecklists] = useState<
-    AssignedChecklist[]
-  >([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const [selectedMemberId, setSelectedMemberId] = useState<string>("all");
+  const { data: teamMembers = [] } = useTeamMembers();
 
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        setLoading(true);
-        setError(null);
+  const memberIdParam = selectedMemberId !== "all" ? selectedMemberId : undefined;
 
-        // Fetch all data in parallel
-        const [monthlyResult, yearlyResult, checklistsResult] =
-          await Promise.all([
-            getMonthlyReportAction(),
-            getYearlyReportAction(),
-            getAssignedChecklistsAction(),
-          ]);
-
-        if (monthlyResult.success && monthlyResult.data) {
-          setMonthlyReport(monthlyResult.data);
-        } else {
-          console.error("Failed to fetch monthly report:", monthlyResult.error);
-        }
-
-        if (yearlyResult.success && yearlyResult.data) {
-          setYearlyReport(yearlyResult.data);
-        } else {
-          console.error("Failed to fetch yearly report:", yearlyResult.error);
-        }
-
-        if (checklistsResult.success && checklistsResult.data) {
-          setAssignedChecklists(checklistsResult.data);
-        } else {
-          console.error(
-            "Failed to fetch assigned checklists:",
-            checklistsResult.error
-          );
-        }
-      } catch (error) {
-        console.error("Error fetching data:", error);
-        setError("Failed to load dashboard data");
-      } finally {
-        setLoading(false);
+  const {
+    data: yearlyReport,
+    isLoading: yearlyLoading,
+    error: yearlyError,
+  } = useQuery({
+    queryKey: ["dashboard", "yearly-report", memberIdParam],
+    queryFn: async () => {
+      const res = await getYearlyReportAction(memberIdParam);
+      if (!res.success) {
+        throw new Error(res.error || "Failed to fetch yearly report");
       }
-    };
+      return res.data as MonthlyTasks;
+    },
+  });
 
-    fetchData();
-  }, []);
+  const {
+    data: overviewReport,
+    isLoading: overviewLoading,
+    error: overviewError,
+  } = useQuery({
+    queryKey: ["dashboard", "overview-report", memberIdParam],
+    queryFn: async () => {
+      const res = await getOverviewReportAction(memberIdParam);
+      if (!res.success) {
+        throw new Error(res.error || "Failed to fetch overview report");
+      }
+      return res.data as OverviewReport;
+    },
+  });
+
+  const {
+    data: assignedChecklists = [],
+    isLoading: assignedLoading,
+    error: assignedError,
+  } = useQuery({
+    queryKey: ["dashboard", "assigned-checklists"],
+    queryFn: async () => {
+      const res = await getAssignedChecklistsAction();
+      if (!res.success) {
+        throw new Error(res.error || "Failed to fetch assigned checklists");
+      }
+      return res.data as AssignedChecklist[];
+    },
+    staleTime: 1000 * 30,
+  });
 
   // Calculate completion rate (handle NaN)
-  const completionRate = monthlyReport
-    ? Math.round(
-        (monthlyReport.completed_checklists /
-          (monthlyReport.completed_checklists +
-            monthlyReport.pending_checklists) || 1) * 100
-      ) || 0
+  const completionRate = overviewReport
+    ? Math.round(Number(overviewReport.completion_rate) || 0)
     : 0;
 
   // Get priority tasks (high priority checklists)
-  const priorityTasks = assignedChecklists.slice(0, 3); // Show only top 3
+  const visibleAssignedChecklists = memberIdParam
+    ? assignedChecklists.filter((c) => c.member_id === memberIdParam)
+    : assignedChecklists;
+
+  const priorityTasks = visibleAssignedChecklists
+    .filter((c) => c.priority === "high" && c.status === "pending")
+    .slice(0, 3);
 
   const handleViewTask = (task: AssignedChecklist) => {
     router.push(`/dashboard/checklists/${task.id}`);
   };
 
-  if (loading) {
+  if (yearlyLoading || overviewLoading || assignedLoading) {
     return (
       <div className="flex-1 space-y-4 p-4 md:p-8 pt-6">
         <div className="flex items-center justify-center h-64">
@@ -156,11 +163,12 @@ export default function Dashboard() {
     );
   }
 
-  if (error) {
+  const err = (yearlyError || overviewError || assignedError) as any;
+  if (err) {
     return (
       <div className="flex-1 space-y-4 p-4 md:p-8 pt-6">
         <div className="text-center py-8">
-          <p className="text-red-600 mb-4">{error}</p>
+          <p className="text-red-600 mb-4">{err?.message || "Failed to load dashboard data"}</p>
           <Button onClick={() => window.location.reload()}>Try Again</Button>
         </div>
       </div>
@@ -170,7 +178,27 @@ export default function Dashboard() {
   return (
     <div className="flex-1 space-y-4 p-4 md:p-8 pt-6">
       <div className="flex items-center justify-between space-y-2">
-        <h2 className="text-3xl font-bold tracking-tight">Dashboard</h2>
+        <div className="space-y-1">
+          <h2 className="text-3xl font-bold tracking-tight">Dashboard</h2>
+          <div className="flex items-center gap-3">
+            <div className="w-[240px]">
+              <Select value={selectedMemberId} onValueChange={setSelectedMemberId}>
+                <SelectTrigger>
+                  <SelectValue placeholder="All team" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All team</SelectItem>
+                  {teamMembers.map((m) => (
+                    <SelectItem key={m.id} value={m.id}>
+                      {m.user.full_name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+        </div>
+
         <div className="flex items-center space-x-2">
           <Button onClick={() => setShowNewChecklistModal(true)}>
             <Plus className="mr-2 h-4 w-4" />
@@ -190,14 +218,11 @@ export default function Dashboard() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              {monthlyReport
-                ? monthlyReport.completed_checklists +
-                  monthlyReport.pending_checklists
-                : 0}
+              {overviewReport ? overviewReport.assigned_checklists : 0}
             </div>
             <p className="text-xs text-muted-foreground">
-              {monthlyReport
-                ? `${monthlyReport.completed_checklists} completed, ${monthlyReport.pending_checklists} pending`
+              {overviewReport
+                ? `${overviewReport.completed_checklists} completed, ${overviewReport.pending_checklists} pending`
                 : "Loading..."}
             </p>
           </CardContent>
@@ -210,7 +235,7 @@ export default function Dashboard() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              {monthlyReport ? monthlyReport.total_members : 0}
+              {overviewReport ? overviewReport.total_members : 0}
             </div>
             <p className="text-xs text-muted-foreground">Active team members</p>
           </CardContent>
@@ -236,7 +261,7 @@ export default function Dashboard() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-red-500">
-              {monthlyReport ? monthlyReport.pending_checklists : 0}
+              {overviewReport ? overviewReport.pending_checklists : 0}
             </div>
             <p className="text-xs text-muted-foreground">Requires attention</p>
           </CardContent>
@@ -251,7 +276,7 @@ export default function Dashboard() {
           </CardHeader>
           <CardContent className="pl-2">
             <Suspense fallback={<div>Loading charts...</div>}>
-              <DashboardCharts yearlyData={yearlyReport} />
+              <DashboardCharts yearlyData={yearlyReport} checklists={visibleAssignedChecklists} />
             </Suspense>
           </CardContent>
         </Card>
@@ -287,10 +312,10 @@ export default function Dashboard() {
                           {task.title}
                         </p>
                         <div className="flex items-center space-x-2">
-                          <Badge variant="destructive">
+                          <Badge variant={getPriorityBadgeVariant(task.priority)}>
                             {getPriorityDisplayName(task.priority)}
                           </Badge>
-                          <Badge variant="outline">General</Badge>
+                          <Badge variant="outline">{task.status}</Badge>
                         </div>
                         <div className="flex items-center space-x-4 text-xs text-muted-foreground">
                           <div className="flex items-center space-x-1">

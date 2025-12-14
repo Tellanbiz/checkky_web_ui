@@ -36,10 +36,15 @@ export interface TeamMemberStats {
 export interface AnalyticsParams {
     start_date?: string;
     end_date?: string;
+    scope?: "team" | "me";
 }
 
 export async function getAnalyticsData(params?: AnalyticsParams): Promise<AnalyticsData> {
     const searchParams = new URLSearchParams();
+
+    if (params?.scope) {
+        searchParams.append("scope", params.scope);
+    }
 
     if (params?.start_date) {
         searchParams.append("start_date", params.start_date);
@@ -60,6 +65,10 @@ export async function getAnalyticsData(params?: AnalyticsParams): Promise<Analyt
 export async function exportAnalyticsData(format: "json" | "csv" = "json", params?: AnalyticsParams): Promise<any> {
     const searchParams = new URLSearchParams();
     searchParams.append("format", format);
+
+    if (params?.scope) {
+        searchParams.append("scope", params.scope);
+    }
 
     if (params?.start_date) {
         searchParams.append("start_date", params.start_date);

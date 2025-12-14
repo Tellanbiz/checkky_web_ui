@@ -13,18 +13,14 @@ import {
   Cell,
 } from "recharts";
 import { MonthlyTasks } from "@/lib/services/reports/models";
+import { AssignedChecklist } from "@/lib/services/checklist/models";
 
 interface DashboardChartsProps {
   yearlyData?: MonthlyTasks | null;
+  checklists?: AssignedChecklist[];
 }
 
-const priorityData = [
-  { name: "Major Must", value: 45, color: "#EF4444" },
-  { name: "Minor Must", value: 30, color: "#F59E0B" },
-  { name: "Optional", value: 25, color: "#10B981" },
-];
-
-export function DashboardCharts({ yearlyData }: DashboardChartsProps) {
+export function DashboardCharts({ yearlyData, checklists = [] }: DashboardChartsProps) {
   // Transform yearly data into chart format
   const completionData = yearlyData
     ? Object.entries(yearlyData).map(([month, data]) => ({
@@ -46,6 +42,23 @@ export function DashboardCharts({ yearlyData }: DashboardChartsProps) {
         { name: "Nov", completed: 0, pending: 0 },
         { name: "Dec", completed: 0, pending: 0 },
       ];
+
+  const priorityTotals = checklists.reduce(
+    (acc, item) => {
+      acc[item.priority] = (acc[item.priority] ?? 0) + 1;
+      return acc;
+    },
+    {} as Record<string, number>
+  );
+
+  const total = Object.values(priorityTotals).reduce((s, v) => s + v, 0);
+  const toPercent = (count: number) => (total > 0 ? Math.round((count / total) * 100) : 0);
+
+  const priorityData = [
+    { name: "Major Must", value: toPercent(priorityTotals.high ?? 0), color: "#EF4444" },
+    { name: "Minor Must", value: toPercent(priorityTotals.mid ?? 0), color: "#F59E0B" },
+    { name: "Optional", value: toPercent(priorityTotals.low ?? 0), color: "#10B981" },
+  ];
 
   return (
     <div className="space-y-6">

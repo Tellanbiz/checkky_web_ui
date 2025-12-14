@@ -2,20 +2,62 @@
 
 import { useState } from "react";
 import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
 import { PublicChecklist } from "@/lib/services/checklist/models";
 import { getPublicChecklists } from "@/lib/services/checklist/get";
 import { copyChecklist } from "@/lib/services/checklist/post";
 import { useToast } from "@/hooks/use-toast";
-import { Search } from "lucide-react";
+import {
+  BadgeDollarSign,
+  ChevronDown,
+  ChevronUp,
+  Cpu,
+  Factory,
+  GraduationCap,
+  HardHat,
+  HeartPulse,
+  Hotel,
+  Landmark,
+  Leaf,
+  Pickaxe,
+  Recycle,
+  Search,
+  ShoppingBag,
+  Truck,
+  UtensilsCrossed,
+  Zap,
+} from "lucide-react";
+
 import { useRouter } from "next/navigation";
 import { AddChecklistDialog } from "@/components/templates/add-checklist-dialog";
 import { TemplateCard } from "@/components/templates/template-card";
 import { useQuery } from "@tanstack/react-query";
 
+const CATEGORIES = [
+  { value: "none", label: "All", icon: Search },
+  { value: "agriculture", label: "Agriculture", icon: Leaf },
+  { value: "construction", label: "Construction", icon: HardHat },
+  { value: "manufacturing", label: "Manufacturing", icon: Factory },
+  { value: "healthcare", label: "Healthcare", icon: HeartPulse },
+  { value: "food_processing", label: "Food Processing", icon: UtensilsCrossed },
+  { value: "transportation", label: "Transportation", icon: Truck },
+  { value: "retail", label: "Retail", icon: ShoppingBag },
+  { value: "hospitality", label: "Hospitality", icon: Hotel },
+  { value: "education", label: "Education", icon: GraduationCap },
+  { value: "government", label: "Government", icon: Landmark },
+  { value: "technology", label: "Technology", icon: Cpu },
+  { value: "energy", label: "Energy", icon: Zap },
+  { value: "mining", label: "Mining", icon: Pickaxe },
+  { value: "waste_management", label: "Waste Management", icon: Recycle },
+  { value: "financial_services", label: "Financial Services", icon: BadgeDollarSign },
+] as const;
+
 export default function TemplatesPage() {
   const { toast } = useToast();
   const router = useRouter();
   const [searchTerm, setSearchTerm] = useState("");
+  const [selectedCategory, setSelectedCategory] = useState<(typeof CATEGORIES)[number]["value"]>("none");
+  const [showAllCategories, setShowAllCategories] = useState(false);
   const [assigningId, setAssigningId] = useState<string | null>(null);
   const [showDialog, setShowDialog] = useState(false);
   const [selectedTemplate, setSelectedTemplate] = useState<PublicChecklist | null>(null);
@@ -27,8 +69,8 @@ export default function TemplatesPage() {
     error: templatesError,
     refetch: refetchTemplates,
   } = useQuery({
-    queryKey: ["templates", searchTerm],
-    queryFn: () => getPublicChecklists(searchTerm || "none"),
+    queryKey: ["templates", searchTerm, selectedCategory],
+    queryFn: () => getPublicChecklists(searchTerm || "none", 0, selectedCategory),
     staleTime: 5 * 60 * 1000, // 5 minutes
   });
 
@@ -100,8 +142,8 @@ export default function TemplatesPage() {
   return (
     <div className="flex-1 space-y-4 p-4 md:p-8 pt-6">
 
-      <div className="flex items-center space-x-4">
-        <div className="relative flex-1 max-w-sm">
+      <div className="space-y-3">
+        <div className="relative max-w-sm">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
           <Input
             placeholder="Search templates..."
@@ -110,6 +152,69 @@ export default function TemplatesPage() {
             className="pl-10"
           />
         </div>
+
+        {!showAllCategories ? (
+          <div className="flex items-center gap-2">
+            <div className="flex flex-1 items-center gap-2 overflow-x-auto whitespace-nowrap pb-1">
+              {CATEGORIES.slice(0, 6).map((category) => (
+                <Button
+                  key={category.value}
+                  type="button"
+                  size="sm"
+                  variant={selectedCategory === category.value ? "default" : "outline"}
+                  className="rounded-full whitespace-nowrap"
+                  onClick={() => setSelectedCategory(category.value)}
+                >
+                  <category.icon className="h-4 w-4 mr-2" />
+                  {category.label}
+                </Button>
+              ))}
+            </div>
+
+            <Button
+              type="button"
+              size="sm"
+              variant="outline"
+              className="rounded-full whitespace-nowrap"
+              onClick={() => setShowAllCategories(true)}
+            >
+              Show more
+              <ChevronDown className="h-4 w-4 ml-2" />
+            </Button>
+          </div>
+        ) : (
+          <div className="space-y-2">
+            <div className="flex items-center justify-between">
+              <div className="text-sm text-muted-foreground">Categories</div>
+              <Button
+                type="button"
+                size="sm"
+                variant="ghost"
+                className="whitespace-nowrap"
+                onClick={() => setShowAllCategories(false)}
+              >
+                Show less
+                <ChevronUp className="h-4 w-4 ml-2" />
+              </Button>
+            </div>
+
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-2">
+              {CATEGORIES.map((category) => (
+                <Button
+                  key={category.value}
+                  type="button"
+                  size="sm"
+                  variant={selectedCategory === category.value ? "default" : "outline"}
+                  className="rounded-full justify-start"
+                  onClick={() => setSelectedCategory(category.value)}
+                >
+                  <category.icon className="h-4 w-4 mr-2" />
+                  {category.label}
+                </Button>
+              ))}
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Templates Grid */}

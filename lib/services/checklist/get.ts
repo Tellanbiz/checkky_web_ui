@@ -13,15 +13,19 @@ export async function getChecklists(name?: string): Promise<CheckList[]> {
     return res.data
 }
 
-export async function getPublicChecklists(name?: string, skip?: number): Promise<PublicChecklist[]> {
-    const res = await clientV1.get<PublicChecklist[]>(`/checklists/public?name=${name ?? "none"}&skip=${skip ?? 0}`, {
+export async function getPublicChecklists(name?: string, skip?: number, category?: string): Promise<PublicChecklist[]> {
+    const qs = new URLSearchParams({
+        name: name ?? "none",
+        skip: String(skip ?? 0),
+        category: category ?? "none",
+    });
+    const res = await clientV1.get<PublicChecklist[]>(`/checklists/public?${qs.toString()}`, {
         headers: {
             Authorization: `Bearer ${await getAccessToken()}`,
         },
     });
     return res.data
 }
-
 
 export async function getChecklistInfo(id?: string): Promise<ChecklistInfo> {
     const res = await clientV1.get<ChecklistInfo>(`/checklist/info?id=${id}`, {
