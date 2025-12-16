@@ -55,11 +55,7 @@
     "input-otp": "latest",
     "leaflet": "^1.9.4",
     "lucide-react": "^0.454.0",
-<<<<<<< HEAD
     "next": "16.0.10",
-=======
-    "next": "16.0.7",
->>>>>>> 67b30d3 (fixes)
     "next-themes": "latest",
     "react": "19.2.3",
     "react-day-picker": "latest",

@@ -1,36 +1,30 @@
 import {
-    LayoutDashboard,
-    CheckSquare,
-    MapPin,
-    Users,
-    BarChart3,
-    Building2,
-    Settings,
-    User,
-    Workflow,
-    FileText,
-    ListTodo,
     Archive,
+    Building2,
     FolderOpen,
+    LayoutDashboard,
+    ListTodo,
+    Mail,
     Map,
     UserCircle,
-    Settings2,
-    Mail
+    Users,
+    Workflow,
+    type LucideIcon
 } from "lucide-react";
 
-export interface NavigationSection {
+export interface SidebarNavSection {
     title: string;
-    items: NavigationItem[];
+    items: SidebarNavItem[];
 }
 
-export interface NavigationItem {
+export interface SidebarNavItem {
     name: string;
     href: string;
-    icon: any;
+    icon: LucideIcon;
     badge?: string;
 }
 
-export const navigation: NavigationSection[] = [
+export const sidebarNavSections: SidebarNavSection[] = [
     {
         title: "",
         items: [

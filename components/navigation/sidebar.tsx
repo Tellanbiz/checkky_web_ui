@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useState, useEffect } from "react";
+import { useMemo, useState, useEffect } from "react";
 import { cn } from "@/lib/utils";
 import {
   Select,
@@ -16,13 +16,32 @@ import { useCompany } from "../../hooks/use-company";
 import type { Company } from "@/lib/services/company/models";
 import { updateCurrentCompanyAction } from "@/lib/services/company/actions";
 import { useToast } from "@/hooks/use-toast";
-import { navigation } from "./data";
+import { sidebarNavSections } from "./data";
 import { Account } from "@/lib/services/accounts/models";
 
 type SidebarProps = {
   initialCompanies?: Company[];
   account: Account | undefined;
 };
+
+function getActiveSidebarHref(pathname: string, sections: typeof sidebarNavSections) {
+  let bestMatch: string | null = null;
+
+  for (const section of sections) {
+    for (const item of section.items) {
+      if (pathname === item.href) return item.href;
+
+      const isPrefixMatch = pathname.startsWith(item.href + "/");
+      if (!isPrefixMatch) continue;
+
+      if (!bestMatch || item.href.length > bestMatch.length) {
+        bestMatch = item.href;
+      }
+    }
+  }
+
+  return bestMatch;
+}
 
 export function Sidebar({ initialCompanies, account }: SidebarProps) {
   const pathname = usePathname();
@@ -52,6 +71,11 @@ export function Sidebar({ initialCompanies, account }: SidebarProps) {
     setCurrentCompany,
   ]);
 
+  const activeHref = useMemo(
+    () => getActiveSidebarHref(pathname, sidebarNavSections),
+    [pathname]
+  );
+
   return (
     <div className="flex flex-col w-64 bg-white border-r border-gray-200 hidden md:flex">
       {/* Logo */}
@@ -66,8 +90,8 @@ export function Sidebar({ initialCompanies, account }: SidebarProps) {
 
       {/* Navigation */}
       <nav className="flex-1 px-4 py-6 space-y-6 overflow-y-auto">
-        {navigation.map((section) => (
-          <div key={section.title} className="space-y-2">
+        {sidebarNavSections.map((section, sectionIndex) => (
+          <div key={`${sectionIndex}-${section.title}`} className="space-y-2">
             {section.title && (
               <h3 className="px-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">
                 {section.title}
@@ -75,23 +99,39 @@ export function Sidebar({ initialCompanies, account }: SidebarProps) {
             )}
             <div className="space-y-1">
               {section.items.map((item) => {
-                // Check if the current pathname exactly matches the navigation item
-                // Use strict equality to prevent multiple items being active
-                const isActive = pathname === item.href;
-                
+                const isActive = item.href === activeHref;
+
                 return (
                   <Link
                     key={item.name}
                     href={item.href}
+                    aria-current={isActive ? "page" : undefined}
                     className={cn(
                       "flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-colors",
                       isActive
                         ? "bg-[#16A34A] text-white"
-                        : "text-gray-700 hover:bg-gray-100"
+                        : "text-gray-700 hover:bg-gray-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-green-500"
                     )}
                   >
-                    <item.icon className="w-5 h-5 mr-3 flex-shrink-0" />
+                    <item.icon
+                      className={cn(
+                        "w-5 h-5 mr-3 flex-shrink-0",
+                        isActive ? "text-white" : "text-gray-500"
+                      )}
+                    />
                     <span className="truncate">{item.name}</span>
+                    {item.badge && (
+                      <span
+                        className={cn(
+                          "ml-auto text-xs px-2 py-0.5 rounded-full",
+                          isActive
+                            ? "bg-white/20 text-white"
+                            : "bg-gray-100 text-gray-600"
+                        )}
+                      >
+                        {item.badge}
+                      </span>
+                    )}
                   </Link>
                 );
               })}
