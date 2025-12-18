@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -14,6 +14,13 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { Progress } from "@/components/ui/progress";
 import { Switch } from "@/components/ui/switch";
 import {
@@ -65,6 +72,7 @@ export default function NewChecklistPage() {
   const { toast } = useToast();
   const createChecklistMutation = useCreateChecklist();
   const [uploadProgress, setUploadProgress] = useState(0);
+  const [uploadMessageIndex, setUploadMessageIndex] = useState(0);
   const [formData, setFormData] = useState({
     name: "",
     category: "none",
@@ -73,11 +81,75 @@ export default function NewChecklistPage() {
     groupId: "none", // Optional group selection
   });
   const [checklistFile, setChecklistFile] = useState<File | null>(null);
+  const [isDragOver, setIsDragOver] = useState(false);
+
+  const supportedFormats = [
+    { ext: "CSV", desc: "Comma-separated values" },
+    { ext: "XLSX", desc: "Excel spreadsheet" },
+    { ext: "XLS", desc: "Excel 97-2003 spreadsheet" },
+    { ext: "ODS", desc: "OpenDocument spreadsheet" },
+  ];
+
+  const uploadMessages = [
+    "Checking your checklist file…",
+    "CheckIt is reading your CSV rows…",
+    "Organizing sections and questions…",
+    "Almost there — prepping your checklist…",
+  ];
+
+  useEffect(() => {
+    if (!createChecklistMutation.isPending) {
+      setUploadMessageIndex(0);
+      return;
+    }
+
+    setUploadMessageIndex(0);
+    const id = window.setInterval(() => {
+      setUploadMessageIndex((prev) => (prev + 1) % uploadMessages.length);
+    }, 2500);
+
+    return () => window.clearInterval(id);
+  }, [createChecklistMutation.isPending, uploadMessages.length]);
 
   const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
       setChecklistFile(file);
+    }
+  };
+
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragOver(true);
+  };
+
+  const handleDragLeave = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragOver(false);
+  };
+
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragOver(false);
+
+    const files = e.dataTransfer.files;
+    if (files && files.length > 0) {
+      const file = files[0];
+      // Check if file is a supported format
+      const supportedExtensions = [".csv", ".xlsx", ".xls", ".ods"];
+      const fileExtension = file.name
+        .toLowerCase()
+        .substring(file.name.lastIndexOf("."));
+
+      if (supportedExtensions.includes(fileExtension)) {
+        setChecklistFile(file);
+      } else {
+        toast({
+          title: "Unsupported File Format",
+          description: "Please upload a CSV, XLSX, XLS, or ODS file.",
+          variant: "destructive",
+        });
+      }
     }
   };
 
@@ -131,9 +203,10 @@ export default function NewChecklistPage() {
         description: formData.description,
         category: formData.category,
         checklist_group_id:
-          formData.groupId !== "none" ? formData.groupId : undefined, // Send undefined if "none"
+          formData.groupId !== "none" ? formData.groupId : undefined,
         checklist: checklistFile,
         isPublic: formData.isPublic,
+        onProgress: setUploadProgress,
       });
 
       toast({
@@ -143,6 +216,7 @@ export default function NewChecklistPage() {
 
       router.push("/dashboard/checklists/my");
     } catch (error) {
+      setUploadProgress(0);
       // Error handling is done in the hook
     }
   };
@@ -153,6 +227,30 @@ export default function NewChecklistPage() {
 
   return (
     <div className="min-h-full bg-white">
+      <Dialog open={createChecklistMutation.isPending} onOpenChange={() => {}}>
+        <DialogContent className="sm:max-w-md [&>button]:hidden">
+          <DialogHeader>
+            <DialogTitle>Uploading Checklist</DialogTitle>
+            <DialogDescription>
+              {uploadMessages[uploadMessageIndex]}
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-2">
+            <div className="flex items-center justify-between text-sm">
+              <span className="text-muted-foreground">Upload progress</span>
+              <span className="font-medium text-gray-900">
+                {uploadProgress}%
+              </span>
+            </div>
+            <Progress value={uploadProgress} className="h-2" />
+            <p className="text-xs text-muted-foreground">
+              Keep this tab open while CheckIt finishes the upload.
+            </p>
+          </div>
+        </DialogContent>
+      </Dialog>
+
       {/* Page Header - Sticky */}
       <div className="sticky top-0 z-10 bg-white border-b border-gray-200 shadow-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -201,25 +299,6 @@ export default function NewChecklistPage() {
           </div>
         </div>
       </div>
-
-      {/* Progress Bar - Show only when submitting */}
-      {createChecklistMutation.isPending && (
-        <div className="bg-white border-b border-gray-200">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-            <div className="space-y-2">
-              <div className="flex items-center justify-between text-sm">
-                <span className="text-gray-600">
-                  Uploading checklist file...
-                </span>
-                <span className="text-gray-900 font-medium">
-                  {uploadProgress}%
-                </span>
-              </div>
-              <Progress value={uploadProgress} className="h-2" />
-            </div>
-          </div>
-        </div>
-      )}
 
       {/* Form Content */}
       <div className="max-w-4xl mx-auto p-6 pb-12">
@@ -366,28 +445,50 @@ export default function NewChecklistPage() {
                 Checklist Data
               </CardTitle>
               <CardDescription>
-                Upload your checklist data as a CSV file to import questions and
-                requirements.
+                Upload your checklist data to import questions and requirements.
+                Supports CSV, XLSX, XLS, and ODS formats.
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="space-y-2">
-                <Label>Upload Checklist CSV *</Label>
+                <Label>Upload Checklist File *</Label>
                 <div className="border-2 border-dashed border-gray-300 rounded-lg p-6">
-                  <div className="text-center space-y-3">
+                  <div
+                    className={`text-center space-y-3 transition-colors ${
+                      isDragOver
+                        ? "border-blue-400 bg-blue-50"
+                        : "border-gray-300"
+                    }`}
+                    onDragOver={handleDragOver}
+                    onDragLeave={handleDragLeave}
+                    onDrop={handleDrop}
+                  >
                     <Paperclip className="h-12 w-12 text-gray-400 mx-auto" />
                     <div>
                       <p className="text-sm font-medium text-gray-900">
-                        Import checklist data from CSV
+                        {isDragOver
+                          ? "Drop your file here"
+                          : "Import checklist data from file"}
                       </p>
                       <p className="text-xs text-muted-foreground">
-                        Upload a CSV file to bulk import checklist items,
-                        sections, and requirements
+                        {isDragOver
+                          ? "Release to upload your checklist file"
+                          : "Upload a file to bulk import checklist items, sections, and requirements"}
                       </p>
+                    </div>
+                    <div className="flex flex-wrap justify-center gap-2 text-xs text-gray-500">
+                      {supportedFormats.map((format) => (
+                        <span
+                          key={format.ext}
+                          className="px-2 py-1 bg-gray-100 rounded-md"
+                        >
+                          {format.ext}
+                        </span>
+                      ))}
                     </div>
                     <input
                       type="file"
-                      accept=".csv"
+                      accept=".csv,.xlsx,.xls,.ods"
                       className="hidden"
                       id="checklist-file"
                       onChange={handleFileUpload}
@@ -398,7 +499,7 @@ export default function NewChecklistPage() {
                         className="cursor-pointer"
                       >
                         <Upload className="mr-2 h-3 w-3" />
-                        Choose CSV File
+                        Choose File
                       </label>
                     </Button>
                   </div>
@@ -408,7 +509,7 @@ export default function NewChecklistPage() {
                 {checklistFile && (
                   <div className="space-y-2">
                     <Label className="text-sm font-medium">
-                      Uploaded CSV File:
+                      Uploaded File:
                     </Label>
                     <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg border">
                       <div className="flex items-center space-x-3">
@@ -438,15 +539,15 @@ export default function NewChecklistPage() {
                 <Info className="h-4 w-4 text-blue-600" />
                 <AlertDescription className="text-blue-800">
                   <div className="space-y-2">
-                    <p className="font-medium">CSV Format Requirements:</p>
+                    <p className="font-medium">File Format Requirements:</p>
                     <ul className="space-y-1 text-sm ml-4 list-disc">
-                      <li>First row should contain column headers</li>
+                      <li>Supported formats: CSV, XLSX, XLS, ODS</li>
                       <li>
-                        Required columns: Section, Question, Requirement Code,
-                        Mandatory (Yes/No)
+                        CSV files should have columns: Section, Question,
+                        Requirement Code, Mandatory (Yes/No)
                       </li>
                       <li>Optional columns: Guidance, Order Index</li>
-                      <li>Use commas to separate values</li>
+                      <li>Excel files should use the first row as headers</li>
                     </ul>
                   </div>
                 </AlertDescription>

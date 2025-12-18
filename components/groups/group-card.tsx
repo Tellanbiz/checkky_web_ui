@@ -1,6 +1,5 @@
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Edit, Trash2, FolderOpen, Settings } from "lucide-react";
+import { Edit, Trash2, FolderOpen, ArrowRight } from "lucide-react";
 import type { Group } from "@/lib/services/groups";
 
 interface GroupCardProps {
@@ -11,26 +10,6 @@ interface GroupCardProps {
   isDeletePending?: boolean;
 }
 
-function getColorForGroup(groupName: string): string {
-  const colors = [
-    "bg-red-100 text-red-800",
-    "bg-blue-100 text-blue-800",
-    "bg-green-100 text-green-800",
-    "bg-orange-100 text-orange-800",
-    "bg-purple-100 text-purple-800",
-    "bg-pink-100 text-pink-800",
-    "bg-yellow-100 text-yellow-800",
-    "bg-gray-100 text-gray-800",
-  ];
-
-  let hash = 0;
-  for (let i = 0; i < groupName.length; i++) {
-    hash = groupName.charCodeAt(i) + ((hash << 5) - hash);
-  }
-
-  return colors[Math.abs(hash) % colors.length];
-}
-
 export function GroupCard({
   group,
   onEdit,
@@ -38,54 +17,54 @@ export function GroupCard({
   isUpdatePending = false,
   isDeletePending = false,
 }: GroupCardProps) {
-  const groupColor = getColorForGroup(group.name);
-  const iconBgColor = groupColor.split(" ")[0];
-
   return (
-    <div className="bg-white rounded-lg border border-gray-200 p-6 hover:shadow-lg transition-shadow">
-      <div className="flex items-start justify-between mb-4">
-        <div className="flex items-center space-x-3">
-          <div className={`p-2 rounded-lg ${iconBgColor}`}>
-            <FolderOpen className="h-5 w-5" />
+    <div
+      className="group bg-white rounded-2xl border border-gray-200 p-5 hover:shadow-lg hover:border-primary/30 transition-all duration-200 cursor-pointer overflow-hidden text-left w-full hover:bg-gray-50"
+      onClick={() => {
+        // Navigate to group details or handle main action
+        console.log("Group card clicked:", group.name);
+      }}
+    >
+      <div className="space-y-4">
+        {/* Header */}
+        <div className="flex items-start justify-between gap-2">
+          <div className="flex-1 min-w-0">
+            <h3 className="font-bold text-base text-gray-900 line-clamp-2 group-hover:text-primary transition-colors">
+              {group.name}
+            </h3>
+            {group.description && (
+              <p className="text-sm text-gray-500 line-clamp-2 mt-1.5">
+                {group.description}
+              </p>
+            )}
           </div>
-          <div>
-            <h3 className="font-semibold text-gray-900">{group.name}</h3>
-            <Badge className={groupColor}>{group.name}</Badge>
+          <div className="flex-shrink-0 opacity-0 group-hover:opacity-100 transition-opacity">
+            <ArrowRight className="h-4 w-4 text-primary" />
           </div>
         </div>
-        <div className="flex space-x-1">
+
+        {/* Action Buttons */}
+        <div className="flex gap-2 pt-2" onClick={(e) => e.stopPropagation()}>
           <Button
-            variant="ghost"
+            variant="outline"
+            className="flex-1 h-9 border-gray-300 hover:bg-primary hover:text-primary-foreground text-gray-700 font-medium text-sm rounded-full transition-colors"
             size="sm"
             onClick={() => onEdit(group)}
             disabled={isUpdatePending}
           >
-            <Edit className="h-4 w-4" />
+            <Edit className="mr-1.5 h-4 w-4" />
+            Edit
           </Button>
           <Button
-            variant="ghost"
+            variant="outline"
+            className="h-9 px-3 border-gray-300 hover:bg-red-50 hover:text-red-600 hover:border-red-200 text-gray-700 font-medium text-sm rounded-full transition-colors"
             size="sm"
             onClick={() => onDelete(group)}
-            className="text-red-600 hover:text-red-700"
             disabled={isDeletePending}
           >
             <Trash2 className="h-4 w-4" />
           </Button>
         </div>
-      </div>
-
-      <p className="text-sm text-gray-600 mb-4">
-        {group.description || "No description provided"}
-      </p>
-
-      <div className="flex items-center justify-between text-sm">
-        <div className="flex items-center space-x-1 text-gray-500">
-          <Settings className="h-4 w-4" />
-          <span>{group.no_of_checklists} checklists</span>
-        </div>
-        <span className="text-xs text-gray-400">
-          Created {new Date(group.createdAt).toLocaleDateString()}
-        </span>
       </div>
     </div>
   );

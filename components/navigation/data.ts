@@ -1,7 +1,10 @@
 import {
     Archive,
+    Book,
     Building2,
+    ClipboardCheck,
     FolderOpen,
+    HelpCircle,
     LayoutDashboard,
     ListTodo,
     Mail,
@@ -9,105 +12,125 @@ import {
     UserCircle,
     Users,
     Workflow,
+    ChevronRight,
     type LucideIcon
 } from "lucide-react";
 
-export interface SidebarNavSection {
-    title: string;
-    items: SidebarNavItem[];
-}
-
 export interface SidebarNavItem {
     name: string;
-    href: string;
-    icon: LucideIcon;
+    href?: string;
+    icon?: LucideIcon;
     badge?: string;
+    children?: SidebarNavItem[];
+    collapsible?: boolean;
+    defaultExpanded?: boolean;
+    isSectionHeader?: boolean;
+    className?: string;
 }
 
-export const sidebarNavSections: SidebarNavSection[] = [
+export const sidebarNavItems: SidebarNavItem[] = [
     {
-        title: "",
-        items: [
-            {
-                name: "Dashboard",
-                href: "/dashboard",
-                icon: LayoutDashboard,
-            },
-        ],
+        name: "General",
+        isSectionHeader: true,
     },
     {
-        title: "Checklist Management",
-        items: [
+        name: "Dashboard",
+        href: "/dashboard",
+        icon: LayoutDashboard,
+    },
+    {
+        name: "Checklist Management",
+        icon: ListTodo,
+        collapsible: true,
+        defaultExpanded: false,
+        children: [
             {
-                name: "Current Assignments",
+                name: "Ongoing Checklist",
                 href: "/dashboard/checklists",
-                icon: ListTodo,
             },
             {
                 name: "Checklist Groups",
                 href: "/dashboard/groups",
-                icon: FolderOpen,
             },
             {
                 name: "Available Templates",
                 href: "/dashboard/checklists/my",
-                icon: Archive,
             },
             {
                 name: "Template Library",
                 href: "/dashboard/templates",
-                icon: FolderOpen,
             },
         ],
     },
     {
-        title: "Operations",
-        items: [
-            {
-                name: "Workflow Automation",
-                href: "/dashboard/workflows",
-                icon: Workflow,
-            },
-            {
-                name: "Location Management",
-                href: "/dashboard/sections",
-                icon: Map,
-            },
-        ],
+        name: "Workflow Automation",
+        icon: Workflow,
+        collapsible: false,
+        href: "/dashboard/workflows",
     },
     {
-        title: "Team Administration",
-        items: [
+        name: "Location Management",
+        icon: Map,
+        collapsible: false,
+        href: "/dashboard/sections",
+    },
+    {
+        name: "Team Administration",
+        icon: Users,
+        collapsible: true,
+        defaultExpanded: false,
+        children: [
             {
                 name: "Team Members",
                 href: "/dashboard/team",
-                icon: Users,
             },
             {
                 name: "Team Invites",
                 href: "/dashboard/team/invites",
-                icon: Mail,
             },
         ],
     },
     {
-        title: "System Settings",
-        items: [
+        name: "Audit Management",
+        icon: ClipboardCheck,
+        collapsible: true,
+        defaultExpanded: false,
+        children: [
             {
-                name: "Company Management",
-                href: "/dashboard/companies",
-                icon: Building2,
+                name: "Ongoing Audits",
+                href: "/dashboard/audits/ongoing",
             },
             {
-                name: "My Account",
-                href: "/dashboard/profile",
-                icon: UserCircle,
+                name: "Completed Audits",
+                href: "/dashboard/audits/completed",
             },
-            // {
-            //     name: "Application Preferences",
-            //     href: "/dashboard/settings",
-            //     icon: Settings2,
-            // },
+            {
+                name: "Auditors",
+                href: "/dashboard/audits/auditors",
+            },
         ],
+    },
+    {
+        name: "Account Settings",
+        isSectionHeader: true,
+        className: "pt-6",
+    },
+    {
+        name: "My Workspaces",
+        icon: Building2,
+        collapsible: false,
+        href: "/dashboard/companies",
+    },
+    {
+        name: "Documentation",
+        icon: Book,
+        collapsible: false,
+        href: "/dashboard/docs",
+    },
+    {
+        name: "Help & Support",
+        icon: HelpCircle,
+        collapsible: false,
+        href: "/dashboard/help",
     },
 ];

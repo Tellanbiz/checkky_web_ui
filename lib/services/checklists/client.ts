@@ -1,7 +1,6 @@
-"use server"
+"use client"
 
-import { clientV1 } from "@/lib/client/client";
-import { getAccessToken } from "../auth/auth-get";
+import axios from "axios";
 
 export interface CreateChecklistData {
     name: string;
@@ -10,6 +9,7 @@ export interface CreateChecklistData {
     checklist_group_id?: string;
     checklist: File;
     isPublic?: boolean;
+    onProgress?: (progress: number) => void;
 }
 
 export async function createChecklistWithProgress(
@@ -36,22 +36,18 @@ export async function createChecklistWithProgress(
         formData.append('public', 'true');
     }
 
-    // Get auth token
-    const token = await getAccessToken();
-
-    const response = await clientV1.post('/checklist/upload', formData, {
+    const response = await axios.post("/api/checklists/upload", formData, {
         headers: {
-            Authorization: `Bearer ${token}`,
-            'Content-Type': 'multipart/form-data',
+            "Content-Type": "multipart/form-data",
+        },
+        onUploadProgress: (progressEvent) => {
+            const total = progressEvent.total ?? data.checklist.size;
+            if (!total) return;
+
+            const percentCompleted = Math.round((progressEvent.loaded * 100) / total);
+            data.onProgress?.(Math.min(100, Math.max(0, percentCompleted)));
         },
     });
 
-    const result = response.status !== 200 ? { error: response.data.error } : response.data;
-
-    // Return progress information along with the result
-    return {
-        ...result,
-        progress: 100, // Upload complete
-        status: "Complete"
-    };
+    return response.data;
 }

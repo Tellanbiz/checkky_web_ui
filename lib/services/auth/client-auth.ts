@@ -11,14 +11,7 @@ export async function getClientAccessToken(): Promise<string | null> {
 
 export async function getClientAccount(): Promise<Account | null> {
     try {
-        const cookieStore = await cookies();
-        const token = cookieStore.get("access_token")?.value;
-
-        if (!token) {
-            return null;
-        }
-
-        return await getAccountByToken(token);
+        return await getAccountByToken();
     } catch (error) {
         console.error("Failed to get client account:", error);
         return null;

@@ -1,8 +1,9 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
-import { useMemo, useState, useEffect } from "react";
+import { usePathname, useRouter } from "next/navigation";
+import { useQuery } from "@tanstack/react-query";
+import { useMemo, useEffect, useState } from "react";
 import { cn } from "@/lib/utils";
 import {
   Select,
@@ -11,68 +12,118 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { CheckSquare, Building } from "lucide-react";
+import { CheckSquare, Building, ChevronDown, ChevronRight } from "lucide-react";
 import { useCompany } from "../../hooks/use-company";
+import { useCompanies } from "../../hooks/use-companies";
 import type { Company } from "@/lib/services/company/models";
 import { updateCurrentCompanyAction } from "@/lib/services/company/actions";
 import { useToast } from "@/hooks/use-toast";
-import { sidebarNavSections } from "./data";
+import { sidebarNavItems } from "./data";
 import { Account } from "@/lib/services/accounts/models";
 
 type SidebarProps = {
-  initialCompanies?: Company[];
   account: Account | undefined;
 };
 
-function getActiveSidebarHref(pathname: string, sections: typeof sidebarNavSections) {
+function getActiveSidebarHref(pathname: string, items: typeof sidebarNavItems) {
   let bestMatch: string | null = null;
 
-  for (const section of sections) {
-    for (const item of section.items) {
-      if (pathname === item.href) return item.href;
+  for (const item of items) {
+    if (item.href && pathname === item.href) return item.href;
 
-      const isPrefixMatch = pathname.startsWith(item.href + "/");
-      if (!isPrefixMatch) continue;
+    if (item.children) {
+      for (const child of item.children) {
+        if (child.href && pathname === child.href) return child.href;
 
-      if (!bestMatch || item.href.length > bestMatch.length) {
-        bestMatch = item.href;
+        const isPrefixMatch =
+          child.href && pathname.startsWith(child.href + "/");
+        if (!isPrefixMatch) continue;
+
+        if (
+          !bestMatch ||
+          (child.href && child.href.length > bestMatch.length)
+        ) {
+          bestMatch = child.href || null;
+        }
       }
+    }
+
+    const isPrefixMatch = item.href && pathname.startsWith(item.href + "/");
+    if (!isPrefixMatch) continue;
+
+    if (!bestMatch || item.href!.length > bestMatch.length) {
+      bestMatch = item.href || null;
     }
   }
 
   return bestMatch;
 }
 
-export function Sidebar({ initialCompanies, account }: SidebarProps) {
+export function Sidebar({ account }: SidebarProps) {
   const pathname = usePathname();
+  const router = useRouter();
   const { toast } = useToast();
-  const [companies, setCompanies] = useState<Company[]>(initialCompanies ?? []);
-  const [loading, setLoading] = useState<boolean>(!initialCompanies);
-  const [error, setError] = useState<string | null>(null);
+  const { data: companies = [], isLoading: loading, error } = useCompanies();
+  const errorMessage = error instanceof Error ? error.message : null;
 
   const { currentCompany, currentCompanyId, setCurrentCompany } = useCompany();
 
+  // State for managing expanded/collapsed sections
+  const [expandedSections, setExpandedSections] = useState<Set<string>>(
+    new Set()
+  );
+
+  // Initialize expanded sections based on defaultExpanded
+  useEffect(() => {
+    const defaultExpanded = new Set<string>();
+    sidebarNavItems.forEach((item) => {
+      if (item.defaultExpanded && item.collapsible) {
+        defaultExpanded.add(item.name);
+      }
+    });
+    setExpandedSections(defaultExpanded);
+  }, []);
+
   // Initialize current company
   useEffect(() => {
-    if (initialCompanies?.length && !currentCompanyId) {
+    if (companies.length && !currentCompanyId) {
       const company =
-        initialCompanies.find((c) => c.id === account?.current_company_id) ||
-        initialCompanies[0];
+        companies.find((c) => c.id === account?.current_company_id) ||
+        companies[0];
       setCurrentCompany(company);
     }
-    if (!initialCompanies?.length) {
-      setError("No companies available");
-      setLoading(false);
-    }
   }, [
-    initialCompanies,
+    companies,
     currentCompanyId,
     account?.current_company_id,
     setCurrentCompany,
   ]);
 
+  const handleItemClick = (item: (typeof sidebarNavItems)[0]) => {
+    const isItemCollapsible = item.collapsible && item.children;
+    if (isItemCollapsible && item.children && item.children.length > 0) {
+      // Navigate to the first child for collapsible items
+      router.push(item.children[0].href || "/");
+    } else if (item.href) {
+      // Navigate directly for non-collapsible items
+      router.push(item.href);
+    }
+  };
+
+  const toggleSection = (sectionTitle: string) => {
+    setExpandedSections((prev) => {
+      const newSet = new Set(prev);
+      if (newSet.has(sectionTitle)) {
+        newSet.delete(sectionTitle);
+      } else {
+        newSet.add(sectionTitle);
+      }
+      return newSet;
+    });
+  };
+
   const activeHref = useMemo(
-    () => getActiveSidebarHref(pathname, sidebarNavSections),
+    () => getActiveSidebarHref(pathname, sidebarNavItems),
     [pathname]
   );
 
@@ -89,55 +140,135 @@ export function Sidebar({ initialCompanies, account }: SidebarProps) {
       </div>
 
       {/* Navigation */}
-      <nav className="flex-1 px-4 py-6 space-y-6 overflow-y-auto">
-        {sidebarNavSections.map((section, sectionIndex) => (
-          <div key={`${sectionIndex}-${section.title}`} className="space-y-2">
-            {section.title && (
-              <h3 className="px-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">
-                {section.title}
-              </h3>
-            )}
-            <div className="space-y-1">
-              {section.items.map((item) => {
-                const isActive = item.href === activeHref;
+      <nav className="flex-1 px-4 py-6 space-y-1 overflow-y-auto">
+        {sidebarNavItems.map((item, itemIndex) => {
+          const isExpanded = expandedSections.has(item.name);
+          const isCollapsible = item.collapsible && item.children;
+          const isActive = item.href === activeHref;
+          const isSectionHeader = item.isSectionHeader;
 
-                return (
-                  <Link
-                    key={item.name}
-                    href={item.href}
-                    aria-current={isActive ? "page" : undefined}
+          // Check if any child item is active for section headers
+          const hasActiveChild =
+            isCollapsible &&
+            item.children?.some((child) => child.href === activeHref);
+          const isSectionActive = isActive || hasActiveChild;
+
+          // Render section header
+          if (isSectionHeader) {
+            return (
+              <div
+                key={`${itemIndex}-${item.name}`}
+                className={cn("mb-2", item.className)}
+              >
+                <div className="px-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                  {item.name}
+                </div>
+              </div>
+            );
+          }
+
+          return (
+            <div key={`${itemIndex}-${item.name}`} className="space-y-1">
+              <div
+                className={cn(
+                  "flex items-center px-3 py-2 text-sm font-semibold rounded-lg transition-colors cursor-pointer",
+                  isSectionActive
+                    ? "bg-primary/5 text-primary"
+                    : "text-gray-700 hover:bg-gray-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+                )}
+                onClick={() => handleItemClick(item)}
+              >
+                {item.icon && (
+                  <item.icon
                     className={cn(
-                      "flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-colors",
-                      isActive
-                        ? "bg-[#16A34A] text-white"
-                        : "text-gray-700 hover:bg-gray-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-green-500"
+                      "w-5 h-5 mr-3 flex-shrink-0",
+                      isSectionActive ? "text-primary" : "text-gray-500"
+                    )}
+                  />
+                )}
+                <span className="truncate flex-1">{item.name}</span>
+                {item.badge && (
+                  <span
+                    className={cn(
+                      "ml-auto text-xs px-2 py-0.5 rounded-full",
+                      isSectionActive
+                        ? "bg-primary/20 text-primary"
+                        : "bg-gray-100 text-gray-600"
                     )}
                   >
-                    <item.icon
-                      className={cn(
-                        "w-5 h-5 mr-3 flex-shrink-0",
-                        isActive ? "text-white" : "text-gray-500"
-                      )}
-                    />
-                    <span className="truncate">{item.name}</span>
-                    {item.badge && (
-                      <span
+                    {item.badge}
+                  </span>
+                )}
+                {isCollapsible && (
+                  <span
+                    className="ml-auto cursor-pointer"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      toggleSection(item.name);
+                    }}
+                  >
+                    {isExpanded ? (
+                      <ChevronDown className="w-4 h-4" />
+                    ) : (
+                      <ChevronRight className="w-4 h-4" />
+                    )}
+                  </span>
+                )}
+              </div>
+
+              {/* Submenu */}
+              {isCollapsible && (
+                <div
+                  className={cn(
+                    "space-y-1 transition-all duration-200 ease-in-out",
+                    !isExpanded && "hidden"
+                  )}
+                >
+                  {item.children?.map((child) => {
+                    const isChildActive = child.href === activeHref;
+
+                    return (
+                      <Link
+                        key={child.name}
+                        href={child.href || "#"}
+                        aria-current={isChildActive ? "page" : undefined}
                         className={cn(
-                          "ml-auto text-xs px-2 py-0.5 rounded-full",
-                          isActive
-                            ? "bg-white/20 text-white"
-                            : "bg-gray-100 text-gray-600"
+                          "flex items-center px-3 py-2 text-sm font-semibold rounded-lg transition-colors",
+                          child.icon ? "ml-6" : "ml-10",
+                          isChildActive
+                            ? "text-primary"
+                            : "text-gray-600 hover:bg-gray-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
                         )}
                       >
-                        {item.badge}
-                      </span>
-                    )}
-                  </Link>
-                );
-              })}
+                        {child.icon && (
+                          <child.icon
+                            className={cn(
+                              "w-4 h-4 mr-3 flex-shrink-0",
+                              isChildActive ? "text-primary" : "text-gray-400"
+                            )}
+                          />
+                        )}
+                        <span className="truncate">{child.name}</span>
+                        {child.badge && (
+                          <span
+                            className={cn(
+                              "ml-auto text-xs px-2 py-0.5 rounded-full",
+                              isChildActive
+                                ? "bg-primary/20 text-primary"
+                                : "bg-gray-100 text-gray-600"
+                            )}
+                          >
+                            {child.badge}
+                          </span>
+                        )}
+                      </Link>
+                    );
+                  })}
+                </div>
+              )}
             </div>
-          </div>
-        ))}
+          );
+        })}
       </nav>
 
       {/* Company Switcher */}
@@ -203,16 +334,16 @@ export function Sidebar({ initialCompanies, account }: SidebarProps) {
                   </div>
                 </div>
               )}
-              {error && (
+              {errorMessage && (
                 <div className="p-3 text-sm text-red-500 text-center">
                   <div className="flex items-center justify-center space-x-2">
                     <span>⚠️</span>
-                    <span>{error}</span>
+                    <span>{errorMessage}</span>
                   </div>
                 </div>
               )}
               {!loading &&
-                !error &&
+                !errorMessage &&
                 companies.map((company) => (
                   <SelectItem
                     key={company.id}
@@ -234,7 +365,7 @@ export function Sidebar({ initialCompanies, account }: SidebarProps) {
                     </div>
                   </SelectItem>
                 ))}
-              {!loading && !error && companies.length === 0 && (
+              {!loading && !errorMessage && companies.length === 0 && (
                 <div className="p-3 text-sm text-gray-500 text-center">
                   <div className="flex items-center justify-center space-x-2">
                     <span>📋</span>

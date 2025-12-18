@@ -10,7 +10,7 @@ import router from "next/router";
 export default function MyChecklistsPage() {
   const availableActions = useAvailableFilterActions();
 
-   const handleNewChecklist = () => {
+  const handleNewChecklist = () => {
     router.push("/dashboard/checklists/new");
   };
   return (
@@ -26,12 +26,15 @@ export default function MyChecklistsPage() {
               onChange={(e) => availableActions.setSearchTerm(e.target.value)}
             />
           </div>
+        </div>
 
-        <Button onClick={() => handleNewChecklist()} variant={"outline"}>
+        <Button
+          onClick={() => handleNewChecklist()}
+          className="bg-primary hover:bg-primary/90 text-primary-foreground"
+        >
           <Plus className="mr-2 h-4 w-4" />
           Upload New Checklist
         </Button>
-        </div>
       </div>
 
       {/* Available Checklists Content */}

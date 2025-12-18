@@ -48,10 +48,6 @@ export function GroupsHeader({
               <SelectItem value="checklists">Checklists</SelectItem>
             </SelectContent>
           </Select>
-          <Button variant="outline" className="bg-white">
-            <Filter className="mr-2 h-4 w-4" />
-            Filters
-          </Button>
         </div>
       </div>
 

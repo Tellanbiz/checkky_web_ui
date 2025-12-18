@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { useRouter, usePathname } from "next/navigation";
 import { Sidebar } from "@/components/navigation/sidebar";
 import { Header } from "@/components/header";
@@ -11,52 +12,39 @@ import {
   updateCurrentCompanyAction,
 } from "@/lib/services/company/actions";
 import { useToast } from "@/hooks/use-toast";
+import { useCompanies } from "@/hooks/use-companies";
+import { useCreateCompany } from "@/hooks/use-create-company";
 import { Account } from "@/lib/services/accounts/models";
 
 interface DashboardWrapperProps {
-  companies: Company[];
   account: Account | undefined;
-  loading: boolean;
-  error: string | null;
   children: React.ReactNode;
 }
 
-export function DashboardWrapper({
-  companies,
-  account,
-  loading,
-  error,
-  children,
-}: DashboardWrapperProps) {
+export function DashboardWrapper({ account, children }: DashboardWrapperProps) {
   const router = useRouter();
   const pathname = usePathname();
   const { toast } = useToast();
-  const [currentCompanies, setCurrentCompanies] =
-    useState<Company[]>(companies);
+  const { data: companies = [], isLoading: loading, error } = useCompanies();
+  const createCompanyMutation = useCreateCompany();
   const [showCompanyDialog, setShowCompanyDialog] = useState(false);
-
-  useEffect(() => {
-    if (companies && companies.length > 0) {
-      setCurrentCompanies(companies);
-    }
-  }, [companies]);
 
   // Redirect to login on unauthorized errors
   useEffect(() => {
-    if (error && /unauthorized|401/i.test(error)) {
+    if (error && /unauthorized|401/i.test(error.message)) {
       router.replace("/login");
     }
   }, [error, router]);
 
   // Combined redirect and dialog management
   useEffect(() => {
-    const hasCompanies = currentCompanies.length > 0;
+    const hasCompanies = companies.length > 0;
     const onCompanyCreatePage = pathname === "/dashboard/companies/new";
     const onCompaniesPage = pathname === "/companies";
     if (loading) return;
 
     // If unauthorized, let the other effect handle redirect
-    if (error && /unauthorized|401/i.test(error)) return;
+    if (error && /unauthorized|401/i.test(error.message)) return;
 
     if (!hasCompanies && !onCompanyCreatePage) {
       router.replace("/dashboard/companies/new");
@@ -82,49 +70,27 @@ export function DashboardWrapper({
 
     // Manage dialog visibility only on /dashboard with no companies
     setShowCompanyDialog(!hasCompanies && pathname === "/dashboard");
-  }, [loading, currentCompanies.length, pathname, router, error, account]);
+  }, [loading, companies.length, pathname, router, error, account]);
 
   const handleCreateCompany = async (companyData: CompanyParams) => {
     try {
-      // Create the company using the proper action
-      const success = await createCompanyAction(companyData);
+      const success = await createCompanyMutation.mutateAsync(companyData);
+
       if (!success) {
         throw new Error("Failed to create company");
       }
 
-      // Refresh the companies list
-      // Note: In a real app, you might want to refetch the companies
-      // For now, we'll simulate adding the new company
-      const newCompany: Company = {
-        id: `company_${Date.now()}`, // This would come from the API response
-        name: companyData.name,
-        created_at: new Date().toISOString(),
-      };
-
-      setCurrentCompanies((prev) => [...prev, newCompany]);
       setShowCompanyDialog(false);
-
-      // Set the newly created company as the current company
-      const currentCompanySuccess = await updateCurrentCompanyAction(
-        newCompany.id
-      );
-      if (currentCompanySuccess) {
-        toast({
-          title: "Success",
-          description: `Company "${newCompany.name}" created and set as active!`,
-        });
-      } else {
-        toast({
-          title: "Company Created",
-          description: `Company "${newCompany.name}" created successfully!`,
-        });
-      }
+      toast({
+        title: "Success",
+        description: `Company "${companyData.name}" created successfully!`,
+      });
 
       // Redirect to dashboard after successful creation
       router.push("/dashboard");
     } catch (error) {
-      console.log(error);
-
+      const errorMessage =
+        error instanceof Error ? error.message : "Unknown error";
       console.error("Failed to create company:", error);
       toast({
         title: "Error",
@@ -136,7 +102,7 @@ export function DashboardWrapper({
   };
 
   // Early return: if unauthorized, show brief redirect UI
-  if (error && /unauthorized|401/i.test(error)) {
+  if (error && /unauthorized|401/i.test(error.message)) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
@@ -150,7 +116,7 @@ export function DashboardWrapper({
   // If no companies and not on company creation page, show loading
   if (
     !loading &&
-    currentCompanies.length === 0 &&
+    companies.length === 0 &&
     pathname !== "/dashboard/companies/new"
   ) {
     return (
@@ -179,20 +145,18 @@ export function DashboardWrapper({
           </div>
         </div>
       ) : (
-        <Sidebar initialCompanies={currentCompanies} account={account} />
+        <Sidebar account={account} />
       )}
 
       <div className="flex-1 flex flex-col overflow-hidden">
         <Header />
-        <main className="flex-1 overflow-x-hidden bg-white">
-          {children}
-        </main>
+        <main className="flex-1 overflow-x-hidden bg-white">{children}</main>
       </div>
 
       {/* Show company setup dialog if no companies and on dashboard page */}
       {showCompanyDialog &&
         !loading &&
-        currentCompanies.length === 0 &&
+        companies.length === 0 &&
         pathname === "/dashboard" && (
           <CompanySetupDialog onCreateCompany={handleCreateCompany} />
         )}
