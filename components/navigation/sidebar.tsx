@@ -20,9 +20,11 @@ import { updateCurrentCompanyAction } from "@/lib/services/company/actions";
 import { useToast } from "@/hooks/use-toast";
 import { sidebarNavItems } from "./data";
 import { Account } from "@/lib/services/accounts/models";
+import { ComingSoonDialog } from "@/components/ui/coming-soon-dialog";
 
 type SidebarProps = {
   account: Account | undefined;
+  mobile?: boolean;
 };
 
 function getActiveSidebarHref(pathname: string, items: typeof sidebarNavItems) {
@@ -59,7 +61,7 @@ function getActiveSidebarHref(pathname: string, items: typeof sidebarNavItems) {
   return bestMatch;
 }
 
-export function Sidebar({ account }: SidebarProps) {
+export function Sidebar({ account, mobile = false }: SidebarProps) {
   const pathname = usePathname();
   const router = useRouter();
   const { toast } = useToast();
@@ -72,6 +74,12 @@ export function Sidebar({ account }: SidebarProps) {
   const [expandedSections, setExpandedSections] = useState<Set<string>>(
     new Set()
   );
+
+  // State for coming soon dialog
+  const [comingSoonDialog, setComingSoonDialog] = useState<{
+    open: boolean;
+    featureName: string;
+  }>({ open: false, featureName: "" });
 
   // Initialize expanded sections based on defaultExpanded
   useEffect(() => {
@@ -101,12 +109,33 @@ export function Sidebar({ account }: SidebarProps) {
 
   const handleItemClick = (item: (typeof sidebarNavItems)[0]) => {
     const isItemCollapsible = item.collapsible && item.children;
+
+    // Show coming soon dialog for items with badges
+    if (item.badge) {
+      setComingSoonDialog({ open: true, featureName: item.name });
+      return;
+    }
+
     if (isItemCollapsible && item.children && item.children.length > 0) {
       // Navigate to the first child for collapsible items
       router.push(item.children[0].href || "/");
     } else if (item.href) {
-      // Navigate directly for non-collapsible items
-      router.push(item.href);
+      if (item.isExternal) {
+        // Open external links in a new window/tab
+        window.open(item.href, "_blank");
+      } else {
+        // Navigate directly for non-collapsible items
+        router.push(item.href);
+      }
+    }
+
+    // Close mobile sidebar after navigation
+    if (mobile) {
+      // This will be handled by the parent component
+      setTimeout(() => {
+        const event = new CustomEvent("closeMobileSidebar");
+        window.dispatchEvent(event);
+      }, 100);
     }
   };
 
@@ -128,16 +157,22 @@ export function Sidebar({ account }: SidebarProps) {
   );
 
   return (
-    <div className="flex flex-col w-64 bg-white border-r border-gray-200 hidden md:flex">
-      {/* Logo */}
-      <div className="flex items-center h-16 px-6 border-b border-gray-200">
-        <div className="flex items-center space-x-2">
-          <div className="w-8 h-8 bg-[#16A34A] rounded-lg flex items-center justify-center">
-            <CheckSquare className="w-5 h-5 text-white" />
+    <div
+      className={`flex flex-col w-64 bg-white border-r border-gray-200 ${
+        mobile ? "flex" : "hidden md:flex"
+      }`}
+    >
+      {/* Logo - hidden on mobile since it's in the mobile sidebar header */}
+      {!mobile && (
+        <div className="flex items-center h-16 px-6 border-b border-gray-200">
+          <div className="flex items-center space-x-2">
+            <div className="w-8 h-8 bg-[#16A34A] rounded-lg flex items-center justify-center">
+              <CheckSquare className="w-5 h-5 text-white" />
+            </div>
+            <span className="text-xl font-bold text-gray-900">CheckIt</span>
           </div>
-          <span className="text-xl font-bold text-gray-900">CheckIt</span>
         </div>
-      </div>
+      )}
 
       {/* Navigation */}
       <nav className="flex-1 px-4 py-6 space-y-1 overflow-y-auto">
@@ -394,6 +429,13 @@ export function Sidebar({ account }: SidebarProps) {
           )}
         </div>
       </div>
+
+      {/* Coming Soon Dialog */}
+      <ComingSoonDialog
+        open={comingSoonDialog.open}
+        onOpenChange={(open) => setComingSoonDialog({ open, featureName: "" })}
+        featureName={comingSoonDialog.featureName}
+      />
     </div>
   );
 }

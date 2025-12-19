@@ -323,14 +323,6 @@ export function Page() {
                     Pending: {member.checklist_stats.pending}
                   </span>
                 </div>
-
-                <Button
-                  className="w-full bg-transparent"
-                  variant="outline"
-                  onClick={() => handleViewProfile(member)}
-                >
-                  View Details
-                </Button>
               </div>
             </CardContent>
           </Card>

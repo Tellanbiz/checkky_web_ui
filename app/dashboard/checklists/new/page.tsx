@@ -254,20 +254,22 @@ export default function NewChecklistPage() {
       {/* Page Header - Sticky */}
       <div className="sticky top-0 z-10 bg-white border-b border-gray-200 shadow-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between py-3">
-            <div>
-              <h1 className="text-xl font-semibold text-gray-900">
+          <div className="flex items-center justify-between py-3 sm:py-4">
+            <div className="flex-1 min-w-0">
+              <h1 className="text-lg sm:text-xl font-semibold text-gray-900 truncate">
                 Create New Checklist
               </h1>
             </div>
-            <div className="flex items-center space-x-3">
+            <div className="flex items-center space-x-2 sm:space-x-3 ml-2 sm:ml-4">
               <Button
                 variant="outline"
                 onClick={handleCancel}
                 disabled={createChecklistMutation.isPending}
+                className="flex-shrink-0"
               >
                 <X className="mr-2 h-4 w-4" />
-                Cancel
+                <span className="hidden sm:inline">Cancel</span>
+                <span className="sm:hidden">Cancel</span>
               </Button>
               <Button
                 onClick={() => handleSubmit()}
@@ -281,17 +283,19 @@ export default function NewChecklistPage() {
                     (!formData.description ||
                       formData.description.trim().length < 50))
                 }
-                className="px-4 py-2 text-sm"
+                className="px-3 sm:px-4 py-2 text-sm flex-shrink-0"
               >
                 {createChecklistMutation.isPending ? (
                   <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Creating...
+                    <span className="hidden sm:inline">Creating...</span>
+                    <span className="sm:hidden">Creating</span>
                   </>
                 ) : (
                   <>
                     <Plus className="mr-2 h-4 w-4" />
-                    Create Checklist
+                    <span className="hidden sm:inline">Create Checklist</span>
+                    <span className="sm:hidden">Create</span>
                   </>
                 )}
               </Button>
@@ -301,8 +305,8 @@ export default function NewChecklistPage() {
       </div>
 
       {/* Form Content */}
-      <div className="max-w-4xl mx-auto p-6 pb-12">
-        <form onSubmit={handleSubmit} className="space-y-6">
+      <div className="max-w-4xl mx-auto p-4 sm:p-6 pb-12">
+        <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-6">
           {/* Basic Information */}
           <Card>
             <CardHeader>
@@ -452,7 +456,7 @@ export default function NewChecklistPage() {
             <CardContent className="space-y-4">
               <div className="space-y-2">
                 <Label>Upload Checklist File *</Label>
-                <div className="border-2 border-dashed border-gray-300 rounded-lg p-6">
+                <div className="border-2 border-dashed border-gray-300 rounded-lg p-4 sm:p-6">
                   <div
                     className={`text-center space-y-3 transition-colors ${
                       isDragOver
@@ -463,24 +467,24 @@ export default function NewChecklistPage() {
                     onDragLeave={handleDragLeave}
                     onDrop={handleDrop}
                   >
-                    <Paperclip className="h-12 w-12 text-gray-400 mx-auto" />
+                    <Paperclip className="h-10 w-10 sm:h-12 sm:w-12 text-gray-400 mx-auto" />
                     <div>
                       <p className="text-sm font-medium text-gray-900">
                         {isDragOver
                           ? "Drop your file here"
                           : "Import checklist data from file"}
                       </p>
-                      <p className="text-xs text-muted-foreground">
+                      <p className="text-xs text-muted-foreground mt-1">
                         {isDragOver
                           ? "Release to upload your checklist file"
                           : "Upload a file to bulk import checklist items, sections, and requirements"}
                       </p>
                     </div>
-                    <div className="flex flex-wrap justify-center gap-2 text-xs text-gray-500">
+                    <div className="flex flex-wrap justify-center gap-1 sm:gap-2 text-xs text-gray-500">
                       {supportedFormats.map((format) => (
                         <span
                           key={format.ext}
-                          className="px-2 py-1 bg-gray-100 rounded-md"
+                          className="px-1.5 sm:px-2 py-0.5 sm:py-1 bg-gray-100 rounded-md text-xs"
                         >
                           {format.ext}
                         </span>
@@ -511,21 +515,23 @@ export default function NewChecklistPage() {
                     <Label className="text-sm font-medium">
                       Uploaded File:
                     </Label>
-                    <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg border">
-                      <div className="flex items-center space-x-3">
-                        <Paperclip className="h-4 w-4 text-gray-500" />
-                        <span className="text-sm text-gray-700">
-                          {checklistFile.name}
-                        </span>
-                        <span className="text-xs text-gray-500">
-                          ({(checklistFile.size / 1024 / 1024).toFixed(2)} MB)
-                        </span>
+                    <div className="flex items-start sm:items-center justify-between p-3 bg-gray-50 rounded-lg border gap-2">
+                      <div className="flex items-center space-x-2 sm:space-x-3 min-w-0 flex-1">
+                        <Paperclip className="h-4 w-4 text-gray-500 flex-shrink-0" />
+                        <div className="min-w-0 flex-1">
+                          <span className="text-sm text-gray-700 truncate block">
+                            {checklistFile.name}
+                          </span>
+                          <span className="text-xs text-gray-500">
+                            ({(checklistFile.size / 1024 / 1024).toFixed(2)} MB)
+                          </span>
+                        </div>
                       </div>
                       <Button
                         variant="ghost"
                         size="sm"
                         onClick={removeFile}
-                        className="text-red-600 hover:text-red-700 h-8 w-8 p-0"
+                        className="text-red-600 hover:text-red-700 h-8 w-8 p-0 flex-shrink-0"
                       >
                         <Trash2 className="h-4 w-4" />
                       </Button>

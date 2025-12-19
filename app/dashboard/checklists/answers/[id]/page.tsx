@@ -192,15 +192,15 @@ export default function AnswerPage() {
       {/* Top Navigation */}
       <div className="bg-white border-b border-gray-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="py-6">
+          <div className="py-4 sm:py-6">
             <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
               <div className="flex-1">
-                <div className="flex items-center gap-3 mb-2">
-                  <h1 className="text-2xl font-bold text-gray-900">
+                <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3 mb-2">
+                  <h1 className="text-xl sm:text-2xl font-bold text-gray-900 break-words">
                     {checklist.name}
                   </h1>
                   <span
-                    className={`px-3 py-1 rounded-full text-xs font-semibold ${
+                    className={`px-3 py-1 rounded-full text-xs font-semibold self-start sm:self-auto ${
                       checklist.status === "completed"
                         ? "bg-emerald-100 text-emerald-800 border border-emerald-200"
                         : checklist.status === "in_progress"
@@ -213,7 +213,7 @@ export default function AnswerPage() {
                   </span>
                 </div>
                 {checklist.description && (
-                  <p className="text-sm text-gray-600">
+                  <p className="text-sm text-gray-600 break-words">
                     {checklist.description}
                   </p>
                 )}
@@ -221,33 +221,35 @@ export default function AnswerPage() {
 
               <div className="flex flex-col gap-3 sm:items-end">
                 {checklist.auditor ? (
-                  <div className="flex items-center gap-3">
-                    <div className="text-right">
-                      <p className="text-sm font-medium text-gray-900">
+                  <div className="flex items-center gap-2 sm:gap-3">
+                    <div className="text-right min-w-0 flex-1">
+                      <p className="text-sm font-medium text-gray-900 truncate">
                         {checklist.auditor.full_name}
                       </p>
                       <p className="text-xs text-gray-500">Auditor</p>
                     </div>
-                    <div className="w-8 h-8 bg-primary/10 rounded-full flex items-center justify-center">
+                    <div className="w-8 h-8 bg-primary/10 rounded-full flex items-center justify-center flex-shrink-0">
                       <User className="w-4 h-4 text-primary" />
                     </div>
                     <Button
                       onClick={() => setAssignAuditorDialogOpen(true)}
                       variant="outline"
-                      className="text-xs rounded-full"
+                      className="text-xs rounded-full flex-shrink-0"
                       size="sm"
                     >
-                      Change
+                      <span className="hidden sm:inline">Change</span>
+                      <span className="sm:hidden">Edit</span>
                     </Button>
                   </div>
                 ) : (
                   <Button
                     onClick={() => setAssignAuditorDialogOpen(true)}
-                    className="bg-primary hover:bg-primary/90 text-primary-foreground rounded-full text-sm"
+                    className="bg-primary hover:bg-primary/90 text-primary-foreground rounded-full text-sm w-full sm:w-auto justify-center"
                     size="sm"
                   >
                     <User className="mr-1.5 h-4 w-4" />
-                    Assign Auditor
+                    <span className="hidden sm:inline">Assign Auditor</span>
+                    <span className="sm:hidden">Assign</span>
                   </Button>
                 )}
               </div>
@@ -257,7 +259,20 @@ export default function AnswerPage() {
       </div>
 
       <div className="flex">
-        {/* Sidebar - Table of Contents */}
+        {/* Mobile Table of Contents */}
+        <div className="lg:hidden w-full border-b border-gray-200 bg-white">
+          <div className="p-4">
+            <AnswerTableOfContents
+              checklist={checklist}
+              onSectionClick={handleSectionClick}
+              onQuestionClick={handleQuestionClick}
+              activeSection={activeSection}
+              activeQuestion={activeQuestion}
+            />
+          </div>
+        </div>
+
+        {/* Sidebar - Table of Contents (Desktop Only) */}
         <div className="hidden lg:block w-80 border-r border-gray-200 bg-white">
           <div className="sticky top-0 p-4 max-h-screen overflow-y-auto">
             <AnswerTableOfContents
@@ -271,24 +286,26 @@ export default function AnswerPage() {
         </div>
 
         {/* Main Content */}
-        <div className="flex-1 p-4 md:p-8">
-          <div className="max-w-4xl mx-auto space-y-6">
+        <div className="flex-1 p-3 sm:p-4 md:p-6 lg:p-8">
+          <div className="max-w-4xl mx-auto space-y-4 sm:space-y-6">
             {/* Questions by Section */}
             {checklist.sections.map((section: any, sectionIndex: number) => (
               <div
                 key={sectionIndex}
                 id={`section-${sectionIndex}`}
-                className="bg-white rounded-2xl border border-gray-200 overflow-hidden shadow-sm"
+                className="bg-white rounded-xl sm:rounded-2xl border border-gray-200 overflow-hidden shadow-sm"
               >
-                <div className="bg-gray-50 px-6 py-4 border-b border-gray-200">
-                  <h2 className="text-lg font-semibold text-gray-900 flex items-center gap-3">
-                    <span className="w-8 h-8 bg-primary text-primary-foreground rounded-full flex items-center justify-center text-sm font-bold">
+                <div className="bg-gray-50 px-4 sm:px-6 py-3 sm:py-4 border-b border-gray-200">
+                  <h2 className="text-base sm:text-lg font-semibold text-gray-900 flex items-center gap-2 sm:gap-3">
+                    <span className="w-6 h-6 sm:w-8 sm:h-8 bg-primary text-primary-foreground rounded-full flex items-center justify-center text-xs sm:text-sm font-bold">
                       {section.order_index}
                     </span>
-                    {section.question_group}
+                    <span className="break-words">
+                      {section.question_group}
+                    </span>
                   </h2>
                 </div>
-                <div className="p-6 space-y-6">
+                <div className="p-4 sm:p-6 space-y-4 sm:space-y-6">
                   {section.questions.map(
                     (question: any, questionIndex: number) => (
                       <div

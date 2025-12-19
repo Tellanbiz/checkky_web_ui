@@ -49,18 +49,24 @@ const CATEGORIES = [
   { value: "energy", label: "Energy", icon: Zap },
   { value: "mining", label: "Mining", icon: Pickaxe },
   { value: "waste_management", label: "Waste Management", icon: Recycle },
-  { value: "financial_services", label: "Financial Services", icon: BadgeDollarSign },
+  {
+    value: "financial_services",
+    label: "Financial Services",
+    icon: BadgeDollarSign,
+  },
 ] as const;
 
 export default function TemplatesPage() {
   const { toast } = useToast();
   const router = useRouter();
   const [searchTerm, setSearchTerm] = useState("");
-  const [selectedCategory, setSelectedCategory] = useState<(typeof CATEGORIES)[number]["value"]>("none");
+  const [selectedCategory, setSelectedCategory] =
+    useState<(typeof CATEGORIES)[number]["value"]>("none");
   const [showAllCategories, setShowAllCategories] = useState(false);
   const [assigningId, setAssigningId] = useState<string | null>(null);
   const [showDialog, setShowDialog] = useState(false);
-  const [selectedTemplate, setSelectedTemplate] = useState<PublicChecklist | null>(null);
+  const [selectedTemplate, setSelectedTemplate] =
+    useState<PublicChecklist | null>(null);
 
   // Fetch templates with TanStack Query
   const {
@@ -70,7 +76,8 @@ export default function TemplatesPage() {
     refetch: refetchTemplates,
   } = useQuery({
     queryKey: ["templates", searchTerm, selectedCategory],
-    queryFn: () => getPublicChecklists(searchTerm || "none", 0, selectedCategory),
+    queryFn: () =>
+      getPublicChecklists(searchTerm || "none", 0, selectedCategory),
     staleTime: 5 * 60 * 1000, // 5 minutes
   });
 
@@ -85,10 +92,10 @@ export default function TemplatesPage() {
 
   const handleConfirmAdd = async (title: string, description: string) => {
     if (!selectedTemplate) return;
-    
+
     try {
       setAssigningId(selectedTemplate.id);
-      
+
       await copyChecklist({
         name: title,
         description: description,
@@ -99,17 +106,18 @@ export default function TemplatesPage() {
         title: "Success!",
         description: `"${selectedTemplate.name}" has been copied to your checklists.`,
       });
-      
+
       setShowDialog(false);
       setSelectedTemplate(null);
-      
+
       // Navigate to checklists page with available tab
-      router.push('/dashboard/checklists?tab=available');
+      router.push("/dashboard/checklists?tab=available");
     } catch (error) {
       console.error("Failed to copy checklist:", error);
       toast({
         title: "Error",
-        description: "Failed to copy checklist to your collection. Please try again.",
+        description:
+          "Failed to copy checklist to your collection. Please try again.",
         variant: "destructive",
       });
     } finally {
@@ -125,10 +133,12 @@ export default function TemplatesPage() {
           <div className="text-red-500 text-center">
             <p className="text-lg font-semibold">Error loading templates</p>
             <p className="text-sm text-gray-600">
-              {templatesError instanceof Error ? templatesError.message : 'Failed to load templates'}
+              {templatesError instanceof Error
+                ? templatesError.message
+                : "Failed to load templates"}
             </p>
-            <button 
-              onClick={() => refetchTemplates()} 
+            <button
+              onClick={() => refetchTemplates()}
               className="mt-4 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
             >
               Retry
@@ -141,32 +151,36 @@ export default function TemplatesPage() {
 
   return (
     <div className="flex-1 space-y-4 p-4 md:p-8 pt-6">
-
-      <div className="space-y-3">
-        <div className="relative max-w-sm">
+      <div className="space-y-4">
+        <div className="relative w-full sm:max-w-sm">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
           <Input
             placeholder="Search templates..."
             value={searchTerm}
             onChange={(e) => handleSearch(e.target.value)}
-            className="pl-10"
+            className="pl-10 w-full"
           />
         </div>
 
         {!showAllCategories ? (
-          <div className="flex items-center gap-2">
-            <div className="flex flex-1 items-center gap-2 overflow-x-auto whitespace-nowrap pb-1">
+          <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-2">
+            <div className="flex flex-wrap items-center gap-2 sm:gap-2 sm:flex-1 sm:overflow-x-auto sm:whitespace-nowrap sm:pb-1">
               {CATEGORIES.slice(0, 6).map((category) => (
                 <Button
                   key={category.value}
                   type="button"
                   size="sm"
-                  variant={selectedCategory === category.value ? "default" : "outline"}
-                  className="rounded-full whitespace-nowrap"
+                  variant={
+                    selectedCategory === category.value ? "default" : "outline"
+                  }
+                  className="rounded-full whitespace-nowrap text-xs sm:text-sm"
                   onClick={() => setSelectedCategory(category.value)}
                 >
-                  <category.icon className="h-4 w-4 mr-2" />
-                  {category.label}
+                  <category.icon className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
+                  <span className="hidden sm:inline">{category.label}</span>
+                  <span className="sm:hidden">
+                    {category.label.slice(0, 8)}
+                  </span>
                 </Button>
               ))}
             </div>
@@ -175,11 +189,12 @@ export default function TemplatesPage() {
               type="button"
               size="sm"
               variant="outline"
-              className="rounded-full whitespace-nowrap"
+              className="rounded-full whitespace-nowrap text-xs sm:text-sm self-start sm:self-auto"
               onClick={() => setShowAllCategories(true)}
             >
-              Show more
-              <ChevronDown className="h-4 w-4 ml-2" />
+              <span className="hidden sm:inline">Show more</span>
+              <span className="sm:hidden">More</span>
+              <ChevronDown className="h-3 w-3 sm:h-4 sm:w-4 ml-1 sm:ml-2" />
             </Button>
           </div>
         ) : (
@@ -204,7 +219,9 @@ export default function TemplatesPage() {
                   key={category.value}
                   type="button"
                   size="sm"
-                  variant={selectedCategory === category.value ? "default" : "outline"}
+                  variant={
+                    selectedCategory === category.value ? "default" : "outline"
+                  }
                   className="rounded-full justify-start"
                   onClick={() => setSelectedCategory(category.value)}
                 >
@@ -222,11 +239,13 @@ export default function TemplatesPage() {
         <div className="flex items-center justify-center h-64">
           <div className="flex flex-col items-center space-y-4">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-            <p className="text-gray-500">Loading templates...</p>
+            <p className="text-gray-500 text-sm sm:text-base">
+              Loading templates...
+            </p>
           </div>
         </div>
       ) : templates.length > 0 ? (
-        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+        <div className="grid gap-4 sm:gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
           {templates.map((template) => (
             <TemplateCard
               key={template.id}
@@ -236,27 +255,27 @@ export default function TemplatesPage() {
             />
           ))}
         </div>
-        ) : (
-          <div className="flex items-center justify-center h-64">
-            <div className="text-gray-500 text-center">
-              <p className="text-lg font-medium mb-2">No templates found</p>
-              <p className="text-sm">
-                {searchTerm
-                  ? `No templates found for "${searchTerm}"`
-                  : "No public templates available at the moment."}
-              </p>
-            </div>
+      ) : (
+        <div className="flex items-center justify-center h-64">
+          <div className="text-gray-500 text-center px-4">
+            <p className="text-lg font-medium mb-2">No templates found</p>
+            <p className="text-sm">
+              {searchTerm
+                ? `No templates found for "${searchTerm}"`
+                : "No public templates available at the moment."}
+            </p>
           </div>
-        )}
-        
-        {/* Add Checklist Dialog */}
-        <AddChecklistDialog
-          open={showDialog}
-          onOpenChange={setShowDialog}
-          template={selectedTemplate}
-          onConfirm={handleConfirmAdd}
-          isSubmitting={assigningId !== null}
-        />
+        </div>
+      )}
+
+      {/* Add Checklist Dialog */}
+      <AddChecklistDialog
+        open={showDialog}
+        onOpenChange={setShowDialog}
+        template={selectedTemplate}
+        onConfirm={handleConfirmAdd}
+        isSubmitting={assigningId !== null}
+      />
     </div>
   );
 }

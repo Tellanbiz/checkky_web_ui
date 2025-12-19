@@ -86,7 +86,7 @@ export default function NewWorkflowPage() {
 
       // Execute progress steps
       for (const step of progressSteps) {
-        await new Promise(resolve => {
+        await new Promise((resolve) => {
           setTimeout(() => {
             setUploadProgress(step.progress);
             resolve(undefined);
@@ -104,7 +104,7 @@ export default function NewWorkflowPage() {
 
       // Complete progress
       setUploadProgress(100);
-      await new Promise(resolve => setTimeout(resolve, 200));
+      await new Promise((resolve) => setTimeout(resolve, 200));
 
       toast({
         title: "Workflow Created Successfully!",
@@ -179,9 +179,9 @@ export default function NewWorkflowPage() {
       {/* Page Header - Sticky */}
       <div className="sticky top-0 z-10 bg-white border-b border-gray-200 shadow-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between py-3">
-            <div>
-              <h1 className="text-xl font-semibold text-gray-900">
+          <div className="flex items-center justify-between py-3 sm:py-4">
+            <div className="flex-1 min-w-0">
+              <h1 className="text-lg sm:text-xl font-semibold text-gray-900 truncate">
                 Create New Workflow
               </h1>
             </div>
@@ -195,15 +195,19 @@ export default function NewWorkflowPage() {
                 formData.members.length === 0 ||
                 checklistsLoading
               }
-              className="px-4 py-2 text-sm"
+              className="px-3 sm:px-4 py-2 text-sm flex-shrink-0 ml-2 sm:ml-4"
             >
               {isSubmitting ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Creating...
+                  <span className="hidden sm:inline">Creating...</span>
+                  <span className="sm:hidden">Creating</span>
                 </>
               ) : (
-                "Create Workflow"
+                <>
+                  <span className="hidden sm:inline">Create Workflow</span>
+                  <span className="sm:hidden">Create</span>
+                </>
               )}
             </Button>
           </div>
@@ -217,7 +221,9 @@ export default function NewWorkflowPage() {
             <div className="space-y-2">
               <div className="flex items-center justify-between text-sm">
                 <span className="text-gray-600">Creating workflow...</span>
-                <span className="text-gray-900 font-medium">{uploadProgress}%</span>
+                <span className="text-gray-900 font-medium">
+                  {uploadProgress}%
+                </span>
               </div>
               <Progress value={uploadProgress} className="h-2" />
             </div>
@@ -226,8 +232,8 @@ export default function NewWorkflowPage() {
       )}
 
       {/* Form Content */}
-      <div className="max-w-4xl mx-auto p-6 pb-12">
-        <form onSubmit={handleSubmit} className="space-y-6">
+      <div className="max-w-4xl mx-auto p-4 sm:p-6 pb-12">
+        <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-6">
           {/* Basic Information */}
           <BasicInfoForm
             workflowName={workflowName}

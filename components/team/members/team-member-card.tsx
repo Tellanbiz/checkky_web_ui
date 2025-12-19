@@ -12,7 +12,11 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { MoreHorizontal } from "lucide-react";
 import { TeamMember } from "@/lib/services/teams/data";
-import { getRoleIcon, getRoleBadgeColor, getRoleDisplayName } from "./role-utils";
+import {
+  getRoleIcon,
+  getRoleBadgeColor,
+  getRoleDisplayName,
+} from "./role-utils";
 
 interface TeamMemberCardProps {
   member: TeamMember;
@@ -137,14 +141,6 @@ export function TeamMemberCard({
               Pending: {member.checklist_stats.pending}
             </span>
           </div>
-
-          <Button
-            className="w-full bg-transparent"
-            variant="outline"
-            onClick={() => onViewProfile(member)}
-          >
-            View Details
-          </Button>
         </div>
       </CardContent>
     </Card>

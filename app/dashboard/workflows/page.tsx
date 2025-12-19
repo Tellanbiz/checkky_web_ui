@@ -85,32 +85,48 @@ export default function WorkflowsPage() {
         onValueChange={setActiveTab}
         className="space-y-4"
       >
-        <div className="flex items-center justify-between">
-          <TabsList className="w-fit">
-            <TabsTrigger value="running" className="px-6">
-              <PlayCircle className="mr-2 h-4 w-4" />
-              Running
-            </TabsTrigger>
-            <TabsTrigger value="stopped" className="px-6">
-              <PauseCircle className="mr-2 h-4 w-4" />
-              Stopped
-            </TabsTrigger>
-          </TabsList>
+        <div className="flex flex-col gap-4">
+          {/* Tabs Row */}
+          <div className="flex flex-col sm:flex-row sm:items-center gap-4">
+            <TabsList className="w-full sm:w-fit">
+              <TabsTrigger
+                value="running"
+                className="flex-1 sm:flex-initial px-3 sm:px-6 text-xs sm:text-sm"
+              >
+                <PlayCircle className="mr-1 sm:mr-2 h-3 w-3 sm:h-4 sm:w-4" />
+                <span className="hidden sm:inline">Running</span>
+                <span className="sm:hidden">Run</span>
+              </TabsTrigger>
+              <TabsTrigger
+                value="stopped"
+                className="flex-1 sm:flex-initial px-3 sm:px-6 text-xs sm:text-sm"
+              >
+                <PauseCircle className="mr-1 sm:mr-2 h-3 w-3 sm:h-4 sm:w-4" />
+                <span className="hidden sm:inline">Stopped</span>
+                <span className="sm:hidden">Stop</span>
+              </TabsTrigger>
+            </TabsList>
+          </div>
 
-          <div className="flex items-center space-x-4">
+          {/* Search and Action Row */}
+          <div className="flex flex-col sm:flex-row gap-3">
             <div className="relative w-full sm:max-w-xs">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
               <Input
                 placeholder="Search workflows..."
-                className="pl-10 bg-white"
+                className="pl-10 bg-white w-full"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
               />
             </div>
 
-            <Button onClick={() => handleNewWorkflow()}>
+            <Button
+              onClick={() => handleNewWorkflow()}
+              className="w-full sm:w-auto justify-center"
+            >
               <Plus className="mr-2 h-4 w-4" />
-              New Workflow
+              <span className="hidden sm:inline">New Workflow</span>
+              <span className="sm:hidden">New</span>
             </Button>
           </div>
         </div>
@@ -119,9 +135,9 @@ export default function WorkflowsPage() {
           {loading ? (
             <WorkflowListShimmer />
           ) : displayWorkflows.length === 0 ? (
-            <div className="text-center py-12 text-gray-500">
-              <PlayCircle className="h-12 w-12 text-gray-300 mx-auto mb-4" />
-              <h3 className="text-lg font-medium text-gray-900 mb-2">
+            <div className="text-center py-8 sm:py-12 text-gray-500 px-4">
+              <PlayCircle className="h-10 w-10 sm:h-12 sm:w-12 text-gray-300 mx-auto mb-4" />
+              <h3 className="text-base sm:text-lg font-medium text-gray-900 mb-2">
                 {searchTerm.trim()
                   ? "No Workflows Found"
                   : "No Running Workflows"}
@@ -132,14 +148,18 @@ export default function WorkflowsPage() {
                   : "Create your first automated workflow to get started."}
               </p>
               {!searchTerm.trim() && (
-                <Button onClick={() => handleNewWorkflow()}>
+                <Button
+                  onClick={() => handleNewWorkflow()}
+                  className="w-full sm:w-auto"
+                >
                   <Plus className="mr-2 h-4 w-4" />
-                  Create Workflow
+                  <span className="hidden sm:inline">Create Workflow</span>
+                  <span className="sm:hidden">Create</span>
                 </Button>
               )}
             </div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            <div className="grid gap-3 sm:gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
               {displayWorkflows.map((workflow) => (
                 <WorkflowCard
                   key={workflow.id}
@@ -155,9 +175,9 @@ export default function WorkflowsPage() {
           {loading ? (
             <WorkflowListShimmer />
           ) : displayWorkflows.length === 0 ? (
-            <div className="text-center py-12 text-gray-500">
-              <PauseCircle className="h-12 w-12 text-gray-300 mx-auto mb-4" />
-              <h3 className="text-lg font-medium text-gray-900 mb-2">
+            <div className="text-center py-8 sm:py-12 text-gray-500 px-4">
+              <PauseCircle className="h-10 w-10 sm:h-12 sm:w-12 text-gray-300 mx-auto mb-4" />
+              <h3 className="text-base sm:text-lg font-medium text-gray-900 mb-2">
                 {searchTerm.trim()
                   ? "No Workflows Found"
                   : "No Stopped Workflows"}
@@ -169,7 +189,7 @@ export default function WorkflowsPage() {
               </p>
             </div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            <div className="grid gap-3 sm:gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
               {displayWorkflows.map((workflow) => (
                 <WorkflowCard
                   key={workflow.id}

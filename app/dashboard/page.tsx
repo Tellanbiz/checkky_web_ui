@@ -87,7 +87,8 @@ export default function Dashboard() {
   const [selectedMemberId, setSelectedMemberId] = useState<string>("all");
   const { data: teamMembers = [] } = useTeamMembers();
 
-  const memberIdParam = selectedMemberId !== "all" ? selectedMemberId : undefined;
+  const memberIdParam =
+    selectedMemberId !== "all" ? selectedMemberId : undefined;
 
   const {
     data: yearlyReport,
@@ -168,7 +169,9 @@ export default function Dashboard() {
     return (
       <div className="flex-1 space-y-4 p-4 md:p-8 pt-6">
         <div className="text-center py-8">
-          <p className="text-red-600 mb-4">{err?.message || "Failed to load dashboard data"}</p>
+          <p className="text-red-600 mb-4">
+            {err?.message || "Failed to load dashboard data"}
+          </p>
           <Button onClick={() => window.location.reload()}>Try Again</Button>
         </div>
       </div>
@@ -177,12 +180,17 @@ export default function Dashboard() {
 
   return (
     <div className="flex-1 space-y-4 p-4 md:p-8 pt-6">
-      <div className="flex items-center justify-between space-y-2">
-        <div className="space-y-1">
-          <h2 className="text-3xl font-bold tracking-tight">Dashboard</h2>
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div className="space-y-2 sm:space-y-1">
+          <h2 className="text-2xl sm:text-3xl font-bold tracking-tight">
+            Dashboard
+          </h2>
           <div className="flex items-center gap-3">
-            <div className="w-[240px]">
-              <Select value={selectedMemberId} onValueChange={setSelectedMemberId}>
+            <div className="w-full sm:w-[240px]">
+              <Select
+                value={selectedMemberId}
+                onValueChange={setSelectedMemberId}
+              >
                 <SelectTrigger>
                   <SelectValue placeholder="All team" />
                 </SelectTrigger>
@@ -200,15 +208,18 @@ export default function Dashboard() {
         </div>
 
         <div className="flex items-center space-x-2">
-          <Button onClick={() => setShowNewChecklistModal(true)}>
+          <Button
+            onClick={() => setShowNewChecklistModal(true)}
+            className="w-full sm:w-auto"
+          >
             <Plus className="mr-2 h-4 w-4" />
-            New Checklist
+            <span className="sm:inline">New Checklist</span>
           </Button>
         </div>
       </div>
 
       {/* Overview Cards */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">
@@ -269,25 +280,38 @@ export default function Dashboard() {
       </div>
 
       {/* Charts */}
-      <div className="grid gap-4 md:grid-cols-1">
+      <div className="grid gap-4 grid-cols-1">
         <Card>
-          <CardHeader>
-            <CardTitle>Checklist Completion Overview</CardTitle>
+          <CardHeader className="pb-4">
+            <CardTitle className="text-lg sm:text-xl">
+              Checklist Completion Overview
+            </CardTitle>
           </CardHeader>
           <CardContent className="pl-2">
-            <Suspense fallback={<div>Loading charts...</div>}>
-              <DashboardCharts yearlyData={yearlyReport} checklists={visibleAssignedChecklists} />
-            </Suspense>
+            <div className="w-full overflow-x-auto">
+              <Suspense
+                fallback={
+                  <div className="flex items-center justify-center h-64">
+                    Loading charts...
+                  </div>
+                }
+              >
+                <DashboardCharts
+                  yearlyData={yearlyReport}
+                  checklists={visibleAssignedChecklists}
+                />
+              </Suspense>
+            </div>
           </CardContent>
         </Card>
       </div>
 
       {/* Priority Tasks and Quick Actions */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7">
-        <Card className="col-span-4">
-          <CardHeader>
-            <CardTitle>Priority Tasks</CardTitle>
-            <CardDescription>
+      <div className="grid gap-4 grid-cols-1 lg:grid-cols-7">
+        <Card className="lg:col-span-4">
+          <CardHeader className="pb-4">
+            <CardTitle className="text-lg sm:text-xl">Priority Tasks</CardTitle>
+            <CardDescription className="text-sm">
               High priority tasks requiring immediate attention
             </CardDescription>
           </CardHeader>
@@ -305,19 +329,21 @@ export default function Dashboard() {
                   return (
                     <div
                       key={task.id}
-                      className="flex items-center space-x-4 rounded-lg border p-4"
+                      className="flex flex-col sm:flex-row sm:items-center space-y-3 sm:space-y-0 sm:space-x-4 rounded-lg border p-4"
                     >
-                      <div className="flex-1 space-y-1">
+                      <div className="flex-1 space-y-2">
                         <p className="text-sm font-medium leading-none">
                           {task.title}
                         </p>
-                        <div className="flex items-center space-x-2">
-                          <Badge variant={getPriorityBadgeVariant(task.priority)}>
+                        <div className="flex flex-wrap items-center gap-2">
+                          <Badge
+                            variant={getPriorityBadgeVariant(task.priority)}
+                          >
                             {getPriorityDisplayName(task.priority)}
                           </Badge>
                           <Badge variant="outline">{task.status}</Badge>
                         </div>
-                        <div className="flex items-center space-x-4 text-xs text-muted-foreground">
+                        <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4 text-xs text-muted-foreground">
                           <div className="flex items-center space-x-1">
                             <User className="h-3 w-3" />
                             <span>{task.assigned_member.name}</span>
@@ -329,15 +355,19 @@ export default function Dashboard() {
                         </div>
                         <div className="flex items-center space-x-2 text-xs">
                           <span>Progress: {Math.round(progress)}%</span>
-                          <div className="flex-1 bg-gray-200 rounded-full h-1">
+                          <div className="flex-1 bg-gray-200 rounded-full h-1 min-w-0">
                             <div
-                              className="bg-[#16A34A] h-1 rounded-full"
+                              className="bg-[#16A34A] h-1 rounded-full transition-all duration-300"
                               style={{ width: `${progress}%` }}
                             />
                           </div>
                         </div>
                       </div>
-                      <Button size="sm" onClick={() => handleViewTask(task)}>
+                      <Button
+                        size="sm"
+                        onClick={() => handleViewTask(task)}
+                        className="w-full sm:w-auto"
+                      >
                         View
                       </Button>
                     </div>
@@ -353,9 +383,9 @@ export default function Dashboard() {
           </CardContent>
         </Card>
 
-        <Card className="col-span-3">
-          <CardHeader>
-            <CardTitle>Quick Actions</CardTitle>
+        <Card className="lg:col-span-3">
+          <CardHeader className="pb-4">
+            <CardTitle className="text-lg sm:text-xl">Quick Actions</CardTitle>
           </CardHeader>
           <CardContent>
             <QuickActions

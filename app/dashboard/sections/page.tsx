@@ -39,12 +39,12 @@ export default function SectionsPage() {
       }
     };
 
-    window.addEventListener('focus', handleFocus);
-    document.addEventListener('visibilitychange', handleVisibilityChange);
+    window.addEventListener("focus", handleFocus);
+    document.addEventListener("visibilitychange", handleVisibilityChange);
 
     return () => {
-      window.removeEventListener('focus', handleFocus);
-      document.removeEventListener('visibilitychange', handleVisibilityChange);
+      window.removeEventListener("focus", handleFocus);
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
     };
   }, [refetch]);
 
@@ -60,7 +60,11 @@ export default function SectionsPage() {
     return (
       <div className="space-y-6 p-8">
         <div className="flex items-center justify-end">
-          <Button variant="outline" onClick={handleRefresh} disabled={isLoading}>
+          <Button
+            variant="outline"
+            onClick={handleRefresh}
+            disabled={isLoading}
+          >
             {isLoading ? (
               <Loader2 className="mr-2 h-4 w-4 animate-spin" />
             ) : (
@@ -87,34 +91,48 @@ export default function SectionsPage() {
   });
 
   return (
-    <div className="space-y-6 p-8">
-      <div className="flex flex-col sm:flex-row gap-4">
-        <div className="relative w-[300px]">
-          <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
-          <Input
-            placeholder="Search sections..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="pl-8"
-          />
+    <div className="space-y-4 sm:space-y-6 p-4 sm:p-6 md:p-8">
+      <div className="flex flex-col gap-4">
+        {/* Search and Filter Row */}
+        <div className="flex flex-col gap-3">
+          <div className="relative w-full sm:w-[300px]">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Input
+              placeholder="Search sections..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="pl-10 w-full"
+            />
+          </div>
         </div>
 
-        <div className="flex space-x-2">
-          <Button variant="outline" onClick={handleRefresh} disabled={isLoading}>
+        {/* Action Buttons Row */}
+        <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
+          <Button
+            variant="outline"
+            onClick={handleRefresh}
+            disabled={isLoading}
+            className="w-full sm:w-auto justify-center"
+          >
             <Loader2
               className={`mr-2 h-4 w-4 ${isLoading ? "animate-spin" : ""}`}
             />
-            Refresh
+            <span className="hidden sm:inline">Refresh</span>
+            <span className="sm:hidden">Refresh</span>
           </Button>
-          <Button onClick={() => router.push("/dashboard/sections/new")}>
+          <Button
+            onClick={() => router.push("/dashboard/sections/new")}
+            className="w-full sm:w-auto justify-center"
+          >
             <Plus className="mr-2 h-4 w-4" />
-            Add Section
+            <span className="hidden sm:inline">Add Section</span>
+            <span className="sm:hidden">Add</span>
           </Button>
         </div>
       </div>
 
-      {/* Sections Table */}
-      <div className="rounded-md border">
+      {/* Sections Table - Desktop */}
+      <div className="hidden sm:block rounded-md border">
         <Table>
           <TableHeader>
             <TableRow>
@@ -150,7 +168,9 @@ export default function SectionsPage() {
                   </p>
                   {!searchTerm && (
                     <div className="mt-4">
-                      <Button onClick={() => router.push("/dashboard/sections/new")}>
+                      <Button
+                        onClick={() => router.push("/dashboard/sections/new")}
+                      >
                         <Plus className="mr-2 h-4 w-4" />
                         Add Section
                       </Button>
@@ -163,7 +183,7 @@ export default function SectionsPage() {
                 <TableRow key={section.id}>
                   <TableCell className="font-medium">{section.name}</TableCell>
                   <TableCell>{section.location}</TableCell>
-                  <TableCell>{section.size_ha || '-'} ha</TableCell>
+                  <TableCell>{section.size_ha || "-"} ha</TableCell>
                   <TableCell>{section.live?.workers || 0}</TableCell>
                   <TableCell>{section.live?.active || 0}</TableCell>
                   <TableCell className="text-right">
@@ -184,6 +204,93 @@ export default function SectionsPage() {
         </Table>
       </div>
 
+      {/* Mobile Cards Layout */}
+      <div className="sm:hidden space-y-3">
+        {isLoading ? (
+          <div className="flex items-center justify-center py-12">
+            <div className="flex flex-col items-center space-y-4">
+              <Loader2 className="h-8 w-8 text-blue-500 animate-spin" />
+              <p className="text-sm text-muted-foreground">
+                Loading sections...
+              </p>
+            </div>
+          </div>
+        ) : filteredSections.length === 0 ? (
+          <div className="flex items-center justify-center py-12">
+            <div className="text-center">
+              <MapPin className="mx-auto h-8 w-8 text-muted-foreground" />
+              <p className="mt-2 text-sm font-semibold text-gray-900">
+                No sections found
+              </p>
+              <p className="text-sm text-muted-foreground">
+                {searchTerm
+                  ? "Try adjusting your search."
+                  : "Get started by adding your first section."}
+              </p>
+              {!searchTerm && (
+                <div className="mt-4">
+                  <Button
+                    onClick={() => router.push("/dashboard/sections/new")}
+                  >
+                    <Plus className="mr-2 h-4 w-4" />
+                    Add Section
+                  </Button>
+                </div>
+              )}
+            </div>
+          </div>
+        ) : (
+          filteredSections.map((section: Section) => (
+            <div
+              key={section.id}
+              className="bg-white rounded-lg border border-gray-200 p-4 shadow-sm"
+            >
+              <div className="flex items-start justify-between">
+                <div className="flex-1 min-w-0">
+                  <h3 className="text-base font-semibold text-gray-900 truncate">
+                    {section.name}
+                  </h3>
+                  <div className="mt-2 space-y-1">
+                    <div className="flex items-center text-sm text-gray-600">
+                      <MapPin className="h-4 w-4 mr-2 text-gray-400 flex-shrink-0" />
+                      <span className="truncate">{section.location}</span>
+                    </div>
+                    <div className="grid grid-cols-2 gap-4 text-sm">
+                      <div>
+                        <span className="text-gray-500">Size:</span>
+                        <span className="ml-1 text-gray-900">
+                          {section.size_ha || "-"} ha
+                        </span>
+                      </div>
+                      <div>
+                        <span className="text-gray-500">Workers:</span>
+                        <span className="ml-1 text-gray-900">
+                          {section.live?.workers || 0}
+                        </span>
+                      </div>
+                      <div>
+                        <span className="text-gray-500">Active:</span>
+                        <span className="ml-1 text-gray-900">
+                          {section.live?.active || 0}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div className="ml-4 flex-shrink-0">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => handleEditSection(section)}
+                  >
+                    <Edit className="h-4 w-4" />
+                  </Button>
+                </div>
+              </div>
+            </div>
+          ))
+        )}
+      </div>
     </div>
   );
 }

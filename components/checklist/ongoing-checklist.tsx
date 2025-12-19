@@ -1,7 +1,10 @@
 import { useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { AssignedChecklist } from "@/lib/services/checklist/models";
-import { useOngoingFilters, useChecklistFilterStore } from "@/lib/provider/checklists/index";
+import {
+  useOngoingFilters,
+  useChecklistFilterStore,
+} from "@/lib/provider/checklists/index";
 import { OngoingChecklistCard } from "./ongoing-checklist-card";
 import { OngoingSidebar } from "./ongoing-sidebar";
 import { Button } from "../ui/button";
@@ -51,12 +54,14 @@ export function OngoingChecklist({
   const [draggedItem, setDraggedItem] = useState<string | null>(null);
   const [updatingIds, setUpdatingIds] = useState<Set<string>>(new Set());
   const [isDragging, setIsDragging] = useState(false);
-  const [selectedChecklist, setSelectedChecklist] = useState<AssignedChecklist | null>(null);
+  const [selectedChecklist, setSelectedChecklist] =
+    useState<AssignedChecklist | null>(null);
   const [showSidebar, setShowSidebar] = useState(false);
 
   // Get filter state
   const filters = useOngoingFilters();
-  const { checklists, fetchChecklists, updatePriority } = useChecklistFilterStore();
+  const { checklists, fetchChecklists, updatePriority } =
+    useChecklistFilterStore();
 
   const loadChecklists = async () => {
     setLoading(true);
@@ -75,7 +80,6 @@ export function OngoingChecklist({
     loadChecklists();
   }, []);
 
-
   const handleDragStart = (e: React.DragEvent, checklistId: string) => {
     setDraggedItem(checklistId);
     setIsDragging(true);
@@ -87,12 +91,15 @@ export function OngoingChecklist({
     e.dataTransfer.dropEffect = "move";
   };
 
-  const handleDrop = async (e: React.DragEvent, newPriority: "high" | "mid" | "low") => {
+  const handleDrop = async (
+    e: React.DragEvent,
+    newPriority: "high" | "mid" | "low"
+  ) => {
     e.preventDefault();
-    
+
     if (!draggedItem) return;
 
-    setUpdatingIds(prev => new Set(prev).add(draggedItem));
+    setUpdatingIds((prev) => new Set(prev).add(draggedItem));
     setIsDragging(false);
 
     setDraggedItem(null);
@@ -101,7 +108,9 @@ export function OngoingChecklist({
       await updatePriority(draggedItem, newPriority);
       toast({
         title: "Priority Updated",
-        description: `Checklist moved to ${getPriorityDisplayName(newPriority)}`,
+        description: `Checklist moved to ${getPriorityDisplayName(
+          newPriority
+        )}`,
       });
     } catch (error) {
       toast({
@@ -110,7 +119,7 @@ export function OngoingChecklist({
         variant: "destructive",
       });
     } finally {
-      setUpdatingIds(prev => {
+      setUpdatingIds((prev) => {
         const newSet = new Set(prev);
         newSet.delete(draggedItem);
         return newSet;
@@ -130,21 +139,23 @@ export function OngoingChecklist({
       const searchLower = filters.searchTerm.toLowerCase();
       const titleMatch = checklist.title.toLowerCase().includes(searchLower);
       const notesMatch = checklist.notes?.toLowerCase().includes(searchLower);
-      const assigneeMatch = checklist.assigned_member?.name.toLowerCase().includes(searchLower);
+      const assigneeMatch = checklist.assigned_member?.name
+        .toLowerCase()
+        .includes(searchLower);
       if (!titleMatch && !notesMatch && !assigneeMatch) {
         return false;
       }
     }
 
     // Status filter
-    if (filters.status !== 'all') {
+    if (filters.status !== "all") {
       if (checklist.status !== filters.status) {
         return false;
       }
     }
 
     // Category filter (if available in checklist data)
-    if (filters.category !== 'all') {
+    if (filters.category !== "all") {
       // Add category filtering logic here if checklist has category field
     }
 
@@ -152,7 +163,9 @@ export function OngoingChecklist({
   });
 
   const getChecklistsByPriority = (priority: "high" | "mid" | "low") => {
-    return filteredChecklists.filter((checklist) => checklist.priority === priority);
+    return filteredChecklists.filter(
+      (checklist) => checklist.priority === priority
+    );
   };
 
   const getColumnStyles = (priority: "high" | "mid" | "low") => {
@@ -187,18 +200,25 @@ export function OngoingChecklist({
   return (
     <div className="space-y-6">
       {/* Drag and Drop Board */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 lg:gap-5">
         {(["high", "mid", "low"] as const).map((priority) => {
           const priorityChecklists = getChecklistsByPriority(priority);
-          
+
           return (
             <div
               key={priority}
-              className={`rounded-lg border ${getColumnStyles(priority)} ${isDragging ? "border-blue-300 bg-blue-50" : "border-gray-200"} h-full`}>
+              className={`rounded-lg border ${getColumnStyles(priority)} ${
+                isDragging ? "border-blue-300 bg-blue-50" : "border-gray-200"
+              } h-full min-h-[400px]`}
+            >
               {/* Column Header */}
-              <div className={`p-3 border-b ${getColumnHeaderStyles(priority)} rounded-t-lg`}>
+              <div
+                className={`p-3 border-b ${getColumnHeaderStyles(
+                  priority
+                )} rounded-t-lg`}
+              >
                 <div className="flex items-center justify-between">
-                  <h3 className="font-semibold text-sm">
+                  <h3 className="font-semibold text-sm sm:text-base">
                     {getPriorityDisplayName(priority)}
                   </h3>
                   <Badge variant="secondary" className="text-xs px-2 py-0.5">
@@ -208,8 +228,8 @@ export function OngoingChecklist({
               </div>
 
               {/* Column Content */}
-              <div 
-                className="p-2.5 space-y-2.5"
+              <div
+                className="p-2.5 space-y-2.5 overflow-y-auto max-h-[600px]"
                 onDrop={(e) => handleDrop(e, priority)}
                 onDragOver={handleDragOver}
               >
@@ -229,10 +249,10 @@ export function OngoingChecklist({
                     updatingIds={updatingIds}
                   />
                 ))}
-                
+
                 {priorityChecklists.length === 0 && (
-                  <div 
-                    className="text-center py-8 text-gray-400 border-2 border-dashed border-gray-200 rounded-lg"
+                  <div
+                    className="text-center py-6 sm:py-8 text-gray-400 border-2 border-dashed border-gray-200 rounded-lg"
                     onDrop={(e) => handleDrop(e, priority)}
                     onDragOver={handleDragOver}
                   >

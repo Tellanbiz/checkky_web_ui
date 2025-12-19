@@ -158,10 +158,12 @@ export default function UpdateWorkflowPage() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
+      <div className="min-h-screen flex items-center justify-center p-4">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
-          <p className="text-gray-500 mt-4">Loading workflow data...</p>
+          <div className="animate-spin rounded-full h-8 w-8 sm:h-12 sm:w-12 border-b-2 border-blue-600 mx-auto"></div>
+          <p className="text-gray-500 mt-4 text-sm sm:text-base">
+            Loading workflow data...
+          </p>
         </div>
       </div>
     );
@@ -194,7 +196,7 @@ export default function UpdateWorkflowPage() {
           </p>
           <Button
             onClick={() => router.push(`/dashboard/workflows/${params.id}`)}
-            className="mt-4"
+            className="mt-4 w-full sm:w-auto"
           >
             Back to Workflow
           </Button>
@@ -208,9 +210,9 @@ export default function UpdateWorkflowPage() {
       {/* Page Header - Sticky */}
       <div className="sticky top-0 z-10 bg-white border-b border-gray-200 shadow-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between py-3">
-            <div>
-              <h1 className="text-xl font-semibold text-gray-900">
+          <div className="flex items-center justify-between py-3 sm:py-4">
+            <div className="flex-1 min-w-0">
+              <h1 className="text-lg sm:text-xl font-semibold text-gray-900 truncate">
                 Update Workflow
               </h1>
             </div>
@@ -224,15 +226,19 @@ export default function UpdateWorkflowPage() {
                 formData.members.length === 0 ||
                 checklistsLoading
               }
-              className="px-4 py-2 text-sm"
+              className="px-3 sm:px-4 py-2 text-sm flex-shrink-0 ml-2 sm:ml-4"
             >
               {isSubmitting ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Updating...
+                  <span className="hidden sm:inline">Updating...</span>
+                  <span className="sm:hidden">Updating</span>
                 </>
               ) : (
-                "Update Workflow"
+                <>
+                  <span className="hidden sm:inline">Update Workflow</span>
+                  <span className="sm:hidden">Update</span>
+                </>
               )}
             </Button>
           </div>
@@ -240,8 +246,8 @@ export default function UpdateWorkflowPage() {
       </div>
 
       {/* Form Content */}
-      <div className="max-w-4xl mx-auto p-6 pb-12">
-        <form onSubmit={handleSubmit} className="space-y-6">
+      <div className="max-w-4xl mx-auto p-4 sm:p-6 pb-12">
+        <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-6">
           {/* Basic Information */}
           <BasicInfoForm
             workflowName={workflowName}

@@ -28,7 +28,13 @@ import { Account } from "@/lib/services/accounts/models";
 import { usePathname, useRouter } from "next/navigation";
 import { Sidebar } from "./navigation/sidebar";
 
-export function Header() {
+export function Header({
+  onMenuClick,
+  showMenuButton = false,
+}: {
+  onMenuClick?: () => void;
+  showMenuButton?: boolean;
+} = {}) {
   const [account, setAccount] = useState<Account | null>(null);
   const [loading, setLoading] = useState(true);
   const pathname = usePathname();
@@ -137,20 +143,31 @@ export function Header() {
         </div>
 
         {/* Mobile menu button */}
-        <Sheet>
-          <SheetTrigger asChild>
-            <Button
-              variant="ghost"
-              size="icon"
-              className="md:hidden hover:bg-gray-100"
-            >
-              <Menu className="h-5 w-5 text-gray-700" />
-            </Button>
-          </SheetTrigger>
-          <SheetContent side="left" className="p-0 w-64">
-            <Sidebar account={account || undefined} />
-          </SheetContent>
-        </Sheet>
+        {showMenuButton ? (
+          <Button
+            variant="ghost"
+            size="icon"
+            className="md:hidden hover:bg-gray-100"
+            onClick={onMenuClick}
+          >
+            <Menu className="h-5 w-5 text-gray-700" />
+          </Button>
+        ) : (
+          <Sheet>
+            <SheetTrigger asChild>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="md:hidden hover:bg-gray-100"
+              >
+                <Menu className="h-5 w-5 text-gray-700" />
+              </Button>
+            </SheetTrigger>
+            <SheetContent side="left" className="p-0 w-64">
+              <Sidebar account={account || undefined} />
+            </SheetContent>
+          </Sheet>
+        )}
       </div>
 
       {/* Right: User Menu */}

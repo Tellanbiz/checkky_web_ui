@@ -4,7 +4,13 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { use } from "react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+} from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
@@ -17,7 +23,16 @@ import {
 } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
-import { ArrowLeft, Users, Calendar, FileText, Loader2, MapPin, Shield, Search } from "lucide-react";
+import {
+  ArrowLeft,
+  Users,
+  Calendar,
+  FileText,
+  Loader2,
+  MapPin,
+  Shield,
+  Search,
+} from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Checkbox } from "@/components/ui/checkbox";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
@@ -84,7 +99,8 @@ export default function AssignChecklistPage({
     if (!title.trim() || selectedMembers.length === 0 || !selectedSection) {
       toast({
         title: "Validation Error",
-        description: "Please fill in all required fields and select at least one team member.",
+        description:
+          "Please fill in all required fields and select at least one team member.",
         variant: "destructive",
       });
       return;
@@ -100,7 +116,7 @@ export default function AssignChecklistPage({
         checklist_id: id,
         member_ids: selectedMembers,
         section_id: selectedSection,
-        geofence_enabled: geofenceEnabled
+        geofence_enabled: geofenceEnabled,
       };
 
       const result = await assignChecklist(assignData);
@@ -189,9 +205,9 @@ export default function AssignChecklistPage({
       {/* Page Header - Sticky */}
       <div className="sticky top-0 z-10 bg-white border-b border-gray-200 shadow-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between py-3">
-            <div>
-              <h1 className="text-xl font-semibold text-gray-900">
+          <div className="flex items-center justify-between py-3 sm:py-4">
+            <div className="flex-1 min-w-0">
+              <h1 className="text-lg sm:text-xl font-semibold text-gray-900 truncate">
                 Assign Checklist
               </h1>
             </div>
@@ -204,15 +220,21 @@ export default function AssignChecklistPage({
                 !selectedSection ||
                 loading
               }
-              className="px-4 py-2 text-sm"
+              className="px-3 sm:px-4 py-2 text-sm ml-2 sm:ml-4 flex-shrink-0"
             >
               {assigning ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Assigning...
+                  <span className="hidden sm:inline">Assigning...</span>
+                  <span className="sm:hidden">Assigning</span>
                 </>
               ) : (
-                `Assign ${checklist?.name || "Checklist"}`
+                <>
+                  <span className="hidden sm:inline">
+                    Assign {checklist?.name || "Checklist"}
+                  </span>
+                  <span className="sm:hidden">Assign</span>
+                </>
               )}
             </Button>
           </div>
@@ -220,8 +242,8 @@ export default function AssignChecklistPage({
       </div>
 
       {/* Form Content */}
-      <div className="max-w-4xl mx-auto p-6 pb-12">
-        <form onSubmit={handleAssign} className="space-y-6">
+      <div className="max-w-4xl mx-auto p-4 sm:p-6 pb-12">
+        <form onSubmit={handleAssign} className="space-y-4 sm:space-y-6">
           {/* Basic Information */}
           <BasicInfoForm
             title={title}

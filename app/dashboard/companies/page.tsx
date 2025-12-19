@@ -27,6 +27,14 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { EditCompanyModal } from "@/components/modals/edit-company-modal";
 import { getAllCompaniesWithStats } from "@/lib/services/company/actions";
 import type { CompanyWithStats } from "@/lib/services/company/models";
@@ -46,6 +54,10 @@ export default function CompaniesPage() {
   const [selectedCompanyForEdit, setSelectedCompanyForEdit] =
     useState<CompanyWithStats | null>(null);
   const [selectedCompanyForBilling, setSelectedCompanyForBilling] =
+    useState<CompanyWithStats | null>(null);
+  const [showCompanyManagementDialog, setShowCompanyManagementDialog] =
+    useState(false);
+  const [selectedCompanyForManagement, setSelectedCompanyForManagement] =
     useState<CompanyWithStats | null>(null);
   const [companies, setCompanies] = useState<CompanyWithStats[]>([]);
   const [loading, setLoading] = useState(true);
@@ -95,6 +107,11 @@ export default function CompaniesPage() {
   const handleSuspendCompany = (company: CompanyWithStats) => {
     setCompanyToDelete(company);
     setShowDeleteModal(true);
+  };
+
+  const handleManageCompany = (company: CompanyWithStats) => {
+    setSelectedCompanyForManagement(company);
+    setShowCompanyManagementDialog(true);
   };
 
   const confirmSuspend = () => {
@@ -276,6 +293,11 @@ export default function CompaniesPage() {
                         View Details
                       </DropdownMenuItem>
                       <DropdownMenuItem
+                        onClick={() => handleManageCompany(company)}
+                      >
+                        Manage Company
+                      </DropdownMenuItem>
+                      <DropdownMenuItem
                         onClick={() => handleEditCompany(company)}
                       >
                         Edit Company
@@ -317,14 +339,6 @@ export default function CompaniesPage() {
                       <span>{company.checklist_count} checklists</span>
                     </div>
                   </div>
-
-                  <Button
-                    className="w-full bg-transparent h-8 text-xs"
-                    variant="outline"
-                    onClick={() => handleViewDetails(company)}
-                  >
-                    Manage Company
-                  </Button>
                 </div>
               </CardContent>
             </Card>
@@ -370,6 +384,109 @@ export default function CompaniesPage() {
         onClose={() => setShowNewCompanyDialog(false)}
         onSuccess={handleCompanyCreated}
       />
+
+      {/* Company Management Dialog */}
+      <Dialog
+        open={showCompanyManagementDialog}
+        onOpenChange={setShowCompanyManagementDialog}
+      >
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle>Manage Company</DialogTitle>
+            <DialogDescription>
+              Manage settings and options for{" "}
+              {selectedCompanyForManagement?.name}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="py-4">
+            <div className="space-y-4">
+              <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                <div>
+                  <h4 className="font-medium">Company Details</h4>
+                  <p className="text-sm text-muted-foreground">
+                    View and edit company information
+                  </p>
+                </div>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    setShowCompanyManagementDialog(false);
+                    handleEditCompany(selectedCompanyForManagement!);
+                  }}
+                >
+                  Edit
+                </Button>
+              </div>
+
+              <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                <div>
+                  <h4 className="font-medium">Billing</h4>
+                  <p className="text-sm text-muted-foreground">
+                    Manage subscription and payments
+                  </p>
+                </div>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    setShowCompanyManagementDialog(false);
+                    handleBilling(selectedCompanyForManagement!);
+                  }}
+                >
+                  Manage
+                </Button>
+              </div>
+
+              <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                <div>
+                  <h4 className="font-medium">Export Data</h4>
+                  <p className="text-sm text-muted-foreground">
+                    Download company data and reports
+                  </p>
+                </div>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    setShowCompanyManagementDialog(false);
+                    handleExportData(selectedCompanyForManagement!);
+                  }}
+                >
+                  Export
+                </Button>
+              </div>
+
+              <div className="flex items-center justify-between p-3 bg-red-50 rounded-lg border border-red-200">
+                <div>
+                  <h4 className="font-medium text-red-800">Suspend Company</h4>
+                  <p className="text-sm text-red-600">
+                    Disable company access to platform
+                  </p>
+                </div>
+                <Button
+                  variant="destructive"
+                  size="sm"
+                  onClick={() => {
+                    setShowCompanyManagementDialog(false);
+                    handleSuspendCompany(selectedCompanyForManagement!);
+                  }}
+                >
+                  Suspend
+                </Button>
+              </div>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => setShowCompanyManagementDialog(false)}
+            >
+              Close
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

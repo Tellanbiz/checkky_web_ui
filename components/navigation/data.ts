@@ -26,6 +26,7 @@ export interface SidebarNavItem {
     defaultExpanded?: boolean;
     isSectionHeader?: boolean;
     className?: string;
+    isExternal?: boolean;
 }
 
 export const sidebarNavItems: SidebarNavItem[] = [
@@ -95,6 +96,7 @@ export const sidebarNavItems: SidebarNavItem[] = [
         icon: ClipboardCheck,
         collapsible: true,
         defaultExpanded: false,
+        badge: "In Development",
         children: [
             {
                 name: "Ongoing Audits",
@@ -126,11 +128,13 @@ export const sidebarNavItems: SidebarNavItem[] = [
         icon: Book,
         collapsible: false,
         href: "/dashboard/docs",
+        badge: "In Development",
     },
     {
         name: "Help & Support",
         icon: HelpCircle,
         collapsible: false,
-        href: "/dashboard/help",
+        href: "mailto:info@checkky.com",
+        isExternal: true,
     },
 ];

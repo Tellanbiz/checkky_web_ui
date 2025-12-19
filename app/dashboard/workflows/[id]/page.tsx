@@ -3,10 +3,13 @@
 import { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
-import {getWorkflowById, getWorkflowMembers} from "@/lib/services/workflows/get";
-import {deleteWorkflow} from "@/lib/services/workflows/post";
-import {updateWorkflowStatus} from "@/lib/services/workflows/put";
-import {DeleteDialog} from "@/components/shared/delete-dialog";
+import {
+  getWorkflowById,
+  getWorkflowMembers,
+} from "@/lib/services/workflows/get";
+import { deleteWorkflow } from "@/lib/services/workflows/post";
+import { updateWorkflowStatus } from "@/lib/services/workflows/put";
+import { DeleteDialog } from "@/components/shared/delete-dialog";
 import {
   StatusToggleDialog,
   WorkflowHeader,
@@ -16,9 +19,7 @@ import {
   WorkflowChecklistSection,
   WorkflowMembersSection,
 } from "@/components/workflow/info";
-import {WorkspaceInfo, WorkflowMember} from "@/lib/services/workflows/models";
-
-
+import { WorkspaceInfo, WorkflowMember } from "@/lib/services/workflows/models";
 
 export default function WorkflowDetailPage() {
   const params = useParams();
@@ -59,20 +60,23 @@ export default function WorkflowDetailPage() {
   const handleDelete = async () => {
     try {
       await deleteWorkflow(params.id as string);
-      router.push('/dashboard/workflows');
+      router.push("/dashboard/workflows");
     } catch (error) {
-      console.error('Failed to delete workflow:', error);
-      alert('Failed to delete workflow. Please try again.');
+      console.error("Failed to delete workflow:", error);
+      alert("Failed to delete workflow. Please try again.");
     }
   };
 
   const handleToggleStatus = async () => {
     if (!workflow) return;
-    
-    const newStatus = workflow.status === 'running' ? 'stopped' : 'running';
-    
+
+    const newStatus = workflow.status === "running" ? "stopped" : "running";
+
     try {
-      const success = await updateWorkflowStatus(params.id as string, newStatus);
+      const success = await updateWorkflowStatus(
+        params.id as string,
+        newStatus
+      );
       if (success) {
         // Close the dialog first
         setStatusToggleDialogOpen(false);
@@ -80,11 +84,11 @@ export default function WorkflowDetailPage() {
         const updatedWorkflow = await getWorkflowById(params.id as string);
         setWorkflow(updatedWorkflow);
       } else {
-        alert('Failed to update workflow status. Please try again.');
+        alert("Failed to update workflow status. Please try again.");
       }
     } catch (error) {
-      console.error('Failed to update workflow status:', error);
-      alert('Failed to update workflow status. Please try again.');
+      console.error("Failed to update workflow status:", error);
+      alert("Failed to update workflow status. Please try again.");
     }
   };
 
@@ -94,10 +98,12 @@ export default function WorkflowDetailPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
+      <div className="min-h-screen flex items-center justify-center p-4">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
-          <p className="text-gray-500 mt-4">Loading workflow details...</p>
+          <div className="animate-spin rounded-full h-8 w-8 sm:h-12 sm:w-12 border-b-2 border-blue-600 mx-auto"></div>
+          <p className="text-gray-500 mt-4 text-sm sm:text-base">
+            Loading workflow details...
+          </p>
         </div>
       </div>
     );
@@ -105,9 +111,9 @@ export default function WorkflowDetailPage() {
 
   if (!workflow) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
+      <div className="min-h-screen flex items-center justify-center p-4">
         <div className="text-center">
-          <h3 className="text-lg font-medium text-gray-900 mb-2">
+          <h3 className="text-base sm:text-lg font-medium text-gray-900 mb-2">
             Workflow Not Found
           </h3>
           <p className="text-sm text-gray-600">
@@ -128,7 +134,7 @@ export default function WorkflowDetailPage() {
       />
 
       {/* Content */}
-      <div className="max-w-4xl mx-auto p-6 pb-12 space-y-6">
+      <div className="max-w-4xl mx-auto p-4 sm:p-6 pb-12 space-y-4 sm:space-y-6">
         <WorkflowStatusSection workflow={workflow} />
         <WorkflowScheduleSection workflow={workflow} />
         <WorkflowLocationSection workflow={workflow} />
@@ -151,7 +157,7 @@ export default function WorkflowDetailPage() {
         open={statusToggleDialogOpen}
         onOpenChange={setStatusToggleDialogOpen}
         onConfirm={handleToggleStatus}
-        currentStatus={workflow?.status || 'stopped'}
+        currentStatus={workflow?.status || "stopped"}
         workflowTitle={workflow?.title}
       />
     </div>
