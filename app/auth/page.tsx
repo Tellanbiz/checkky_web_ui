@@ -20,6 +20,13 @@ export default function LoginPage() {
     try {
       await signInWithEmail(new FormData(e.currentTarget));
     } catch (err) {
+      const maybeRedirectDigest = (err as any)?.digest;
+      if (
+        typeof maybeRedirectDigest === "string" &&
+        maybeRedirectDigest.startsWith("NEXT_REDIRECT")
+      ) {
+        throw err;
+      }
       setError("Invalid email or password");
     } finally {
       setIsLoading(false);
