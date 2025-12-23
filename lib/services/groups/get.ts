@@ -6,14 +6,14 @@ import { getAccessToken } from "../auth/auth-get";
 
 export async function getGroups(): Promise<Group[]> {
     const token = await getAccessToken();
-    const response = await clientV1.get<{ message: string; data: Group[] }>('/checklist-groups', {
+    const response = await clientV1.get<Group[]>('/checklist-groups', {
         headers: {
             Authorization: `Bearer ${token}`,
         },
     });
 
 
-    return response.data.data;
+    return response.data;
 }
 
 export async function getGroupById(id: string): Promise<Group> {
