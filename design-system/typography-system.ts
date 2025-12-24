@@ -1,4 +1,4 @@
-// CheckIt Dashboard Typography System
+// Checkky Dashboard Typography System
 // Based on Tailwind CSS + shadcn/ui defaults
 
 export const typographySystem = {
@@ -37,7 +37,7 @@ export const typographySystem = {
     relaxed: "1.625",
   },
 
-  // Usage in CheckIt Dashboard
+  // Usage in Checkky Dashboard
   components: {
     // Headers
     h1: "text-3xl font-bold", // 30px, 700 weight

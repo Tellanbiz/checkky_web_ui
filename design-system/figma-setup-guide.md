@@ -1,4 +1,4 @@
-# CheckIt Dashboard - Figma Setup Guide
+# Checkky Dashboard - Figma Setup Guide
 
 ## 🎨 Getting Lucide Icons in Figma
 
@@ -21,7 +21,7 @@ All icons in your code use kebab-case names:
 - `MessageSquare` → `message-square`
 - `BarChart3` → `bar-chart-3`
 
-## 📋 Icon Checklist for CheckIt Dashboard
+## 📋 Icon Checklist for Checkky Dashboard
 
 ### Navigation Icons (Sidebar)
 - [ ] layout-dashboard (Dashboard)

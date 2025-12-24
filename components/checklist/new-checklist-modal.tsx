@@ -67,6 +67,7 @@ export function NewChecklistModal({ isOpen, onClose }: NewChecklistModalProps) {
         name: formData.name,
         description: formData.description,
         checklist: checklistFile,
+        category: ""
       };
 
       await createChecklist(checklistData);

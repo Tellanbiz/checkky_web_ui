@@ -90,9 +90,9 @@ function ChecklistsPageContent() {
     <div className="flex-1 space-y-4 p-4 md:p-8 pt-6">
       {/* Header with Search */}
       <div className="flex flex-col gap-4">
-        {/* Search and Filters Row */}
-        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 sm:gap-4">
-          <div className="relative w-full sm:max-w-xs flex-1">
+        {/* Search, Filters and Action Buttons Row */}
+        <div className="flex flex-col lg:flex-row items-start lg:items-center gap-3 lg:gap-4">
+          <div className="relative w-full lg:max-w-xs flex-1">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
             <Input
               placeholder="Search checklists..."
@@ -101,9 +101,9 @@ function ChecklistsPageContent() {
             />
           </div>
 
-          <div className="flex flex-wrap gap-2 w-full sm:w-auto">
+          <div className="flex gap-2 w-full lg:w-auto">
             <Select onValueChange={ongoingActions.setStatus}>
-              <SelectTrigger className="w-full sm:w-[140px] bg-white">
+              <SelectTrigger className="w-full lg:w-[140px] bg-white">
                 <SelectValue placeholder="Status" />
               </SelectTrigger>
               <SelectContent>
@@ -114,32 +114,26 @@ function ChecklistsPageContent() {
                 <SelectItem value="overdue">Overdue</SelectItem>
               </SelectContent>
             </Select>
-            <Button variant="outline" className="bg-white flex-1 sm:flex-none">
-              <Filter className="mr-2 h-4 w-4" />
-              <span className="hidden sm:inline">Filters</span>
-              <span className="sm:hidden">Filter</span>
+          </div>
+
+          <div className="flex gap-3 w-full lg:w-auto">
+            <Button
+              onClick={() => assignChecklist()}
+              variant="outline"
+              className="flex-shrink-0"
+            >
+              <Plus className="mr-2 h-4 w-4" />
+              Assign Checklist
+            </Button>
+            <Button
+              onClick={() => handleNewChecklist()}
+              className="flex-shrink-0"
+            >
+              <Plus className="mr-2 h-4 w-4" />
+              <span className="hidden lg:inline">Upload New Checklist</span>
+              <span className="lg:hidden">New Checklist</span>
             </Button>
           </div>
-        </div>
-
-        {/* Action Buttons Row */}
-        <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
-          <Button
-            onClick={() => assignChecklist()}
-            variant="outline"
-            className="w-full sm:w-auto justify-center"
-          >
-            <Plus className="mr-2 h-4 w-4" />
-            Assign Checklist
-          </Button>
-          <Button
-            onClick={() => handleNewChecklist()}
-            className="w-full sm:w-auto justify-center"
-          >
-            <Plus className="mr-2 h-4 w-4" />
-            <span className="hidden sm:inline">Upload New Checklist</span>
-            <span className="sm:hidden">New Checklist</span>
-          </Button>
         </div>
       </div>
 

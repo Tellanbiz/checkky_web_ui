@@ -61,14 +61,8 @@ export function TeamMemberCard({
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
-              <DropdownMenuItem onClick={() => onViewProfile(member)}>
-                View Profile
-              </DropdownMenuItem>
               <DropdownMenuItem onClick={() => onEditRole(member)}>
                 Edit Role
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => onSendMessage(member)}>
-                Send Message
               </DropdownMenuItem>
               <DropdownMenuItem
                 className="text-red-600"

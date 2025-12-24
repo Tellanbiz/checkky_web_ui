@@ -3,12 +3,14 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Loader2, Plus } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { submitFarm } from "@/lib/services/sections/post";
 import { getAccessToken } from "@/lib/services/auth/auth-get";
-import { BasicInfoForm } from "@/components/sections/forms/basic-info-form";
 import { SectionMapForm } from "@/components/sections/forms/section-map-form";
 import { ClearSectionDialog } from "@/components/sections/forms/clear-section-dialog";
 
@@ -193,10 +195,10 @@ export default function NewSectionPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!formData.name || !formData.size) {
+    if (!formData.name) {
       toast({
         title: "Validation Error",
-        description: "Please fill in all required fields.",
+        description: "Please fill in the section name.",
         variant: "destructive",
       });
       return;
@@ -255,7 +257,7 @@ export default function NewSectionPage() {
             <Button
               type="submit"
               onClick={handleSubmit}
-              disabled={isSubmitting || !formData.name || !formData.size}
+              disabled={isSubmitting || !formData.name}
               className="px-4 py-2 text-sm"
             >
               {isSubmitting ? (
@@ -292,11 +294,29 @@ export default function NewSectionPage() {
       {/* Form Content */}
       <div className="max-w-4xl mx-auto p-6 pb-12">
         <form onSubmit={handleSubmit} className="space-y-6">
-          <BasicInfoForm
-            formData={formData}
-            onInputChange={handleInputChange}
-            onGetCurrentLocation={getCurrentLocation}
-          />
+          {/* Basic Information Card */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Basic Information</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="space-y-2">
+                  <Label htmlFor="name">Section Name *</Label>
+                  <Input
+                    id="name"
+                    placeholder="Enter section name..."
+                    value={formData.name}
+                    onChange={(e) => handleInputChange("name", e.target.value)}
+                    required
+                  />
+                  <p className="text-sm text-muted-foreground">
+                    Enter a unique name for this section.
+                  </p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
 
           <SectionMapForm
             formData={formData}

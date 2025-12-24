@@ -9,7 +9,7 @@ const hankenGrotesk = Hanken_Grotesk({
 });
 
 export const metadata: Metadata = {
-  title: "CheckIt - Auditing & Checklist Management",
+  title: "Checkky - Auditing & Checklist Management",
   description:
     "Professional auditing and checklist management platform for teams and companies",
   generator: "v0.dev",

@@ -58,7 +58,7 @@ export function CompanySetupDialog({
         <DialogHeader className="pb-3">
           <div className="flex items-center space-x-2">
             <Building2 className="w-5 h-5 text-blue-600" />
-            <DialogTitle className="text-lg">Welcome to CheckIt!</DialogTitle>
+            <DialogTitle className="text-lg">Welcome to Checkky!</DialogTitle>
           </div>
           <DialogDescription className="text-sm">
             Let's get started by setting up your first company.

@@ -25,59 +25,19 @@ export default function SectionsPage() {
   const [searchTerm, setSearchTerm] = useState("");
 
   // TanStack Query hooks
-  const { data: sections = [], isLoading, error, refetch } = useSections();
+  const { data: sections = [], isLoading, error } = useSections();
 
-  // Refresh data when page regains focus
-  useEffect(() => {
-    const handleFocus = () => {
-      refetch();
-    };
-
-    const handleVisibilityChange = () => {
-      if (!document.hidden) {
-        refetch();
-      }
-    };
-
-    window.addEventListener("focus", handleFocus);
-    document.addEventListener("visibilitychange", handleVisibilityChange);
-
-    return () => {
-      window.removeEventListener("focus", handleFocus);
-      document.removeEventListener("visibilitychange", handleVisibilityChange);
-    };
-  }, [refetch]);
 
   const handleEditSection = (section: Section) => {
     router.push(`/dashboard/sections/${section.id}`);
   };
 
-  const handleRefresh = async () => {
-    await refetch();
-  };
 
   if (error) {
     return (
       <div className="space-y-6 p-8">
-        <div className="flex items-center justify-end">
-          <Button
-            variant="outline"
-            onClick={handleRefresh}
-            disabled={isLoading}
-          >
-            {isLoading ? (
-              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-            ) : (
-              <Loader2 className="mr-2 h-4 w-4" />
-            )}
-            Refresh
-          </Button>
-        </div>
         <div className="text-center py-8">
           <p className="text-red-600 mb-4">{error.message}</p>
-          <Button onClick={handleRefresh} disabled={isLoading}>
-            Try Again
-          </Button>
         </div>
       </div>
     );
@@ -93,9 +53,9 @@ export default function SectionsPage() {
   return (
     <div className="space-y-4 sm:space-y-6 p-4 sm:p-6 md:p-8">
       <div className="flex flex-col gap-4">
-        {/* Search and Filter Row */}
-        <div className="flex flex-col gap-3">
-          <div className="relative w-full sm:w-[300px]">
+        {/* Search, Filters and Action Buttons Row */}
+        <div className="flex flex-col lg:flex-row items-start lg:items-center gap-3 lg:gap-4">
+          <div className="relative w-full lg:max-w-xs flex-1">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input
               placeholder="Search sections..."
@@ -104,30 +64,17 @@ export default function SectionsPage() {
               className="pl-10 w-full"
             />
           </div>
-        </div>
 
-        {/* Action Buttons Row */}
-        <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
-          <Button
-            variant="outline"
-            onClick={handleRefresh}
-            disabled={isLoading}
-            className="w-full sm:w-auto justify-center"
-          >
-            <Loader2
-              className={`mr-2 h-4 w-4 ${isLoading ? "animate-spin" : ""}`}
-            />
-            <span className="hidden sm:inline">Refresh</span>
-            <span className="sm:hidden">Refresh</span>
-          </Button>
-          <Button
-            onClick={() => router.push("/dashboard/sections/new")}
-            className="w-full sm:w-auto justify-center"
-          >
-            <Plus className="mr-2 h-4 w-4" />
-            <span className="hidden sm:inline">Add Section</span>
-            <span className="sm:hidden">Add</span>
-          </Button>
+          <div className="flex gap-3 w-full lg:w-auto">
+            <Button
+              onClick={() => router.push("/dashboard/sections/new")}
+              className="flex-shrink-0"
+            >
+              <Plus className="mr-2 h-4 w-4" />
+              <span className="hidden lg:inline">Add Section</span>
+              <span className="lg:hidden">Add</span>
+            </Button>
+          </div>
         </div>
       </div>
 

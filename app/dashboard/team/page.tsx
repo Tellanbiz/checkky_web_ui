@@ -83,7 +83,7 @@ export default function TeamPage() {
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center h-64">
+      <div className="flex items-center justify-center h-64 p-4 sm:p-6 md:p-8">
         <Loader2 className="h-8 w-8 animate-spin" />
       </div>
     );
@@ -91,29 +91,16 @@ export default function TeamPage() {
 
   if (error) {
     return (
-      <div className="space-y-6">
-        <div className="flex items-center justify-end">
-          <Button variant="outline" onClick={handleRefresh} disabled={isLoading}>
-            {isLoading ? (
-              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-            ) : (
-              <RefreshCw className="mr-2 h-4 w-4" />
-            )}
-            Refresh
-          </Button>
-        </div>
+      <div className="space-y-4 sm:space-y-6 p-4 sm:p-6 md:p-8">
         <div className="text-center py-8">
           <p className="text-red-600 mb-4">{error.message}</p>
-          <Button onClick={handleRefresh} disabled={isLoading}>
-            Try Again
-          </Button>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="space-y-6 p-8">
+    <div className="space-y-4 sm:space-y-6 p-4 sm:p-6 md:p-8">
       {/* Header */}
       <TeamMembersHeader
         onInviteMember={handleInviteMember}

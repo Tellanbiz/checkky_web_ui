@@ -77,7 +77,7 @@ export function SectionMapForm({
     <>
       <Card>
         <CardHeader>
-          <CardTitle>Farm Area Selection</CardTitle>
+          <CardTitle>Area Selection</CardTitle>
           <CardDescription>
             Select the boundaries of your farm section by drawing on the map.
             You can draw polygons, rectangles, or circles to define the area.
@@ -88,7 +88,7 @@ export function SectionMapForm({
             <DialogTrigger asChild>
               <Button variant="outline" className="w-[300px]">
                 <MapPin className="mr-2 h-4 w-4" />
-                Select Farm Area
+                Select Area
               </Button>
             </DialogTrigger>
             <DialogContent className="max-w-4xl">
@@ -112,7 +112,7 @@ export function SectionMapForm({
           {selectedBoundary && !isDialogOpen && (
             <>
               <div className="mt-6">
-                <h4 className="text-sm font-medium mb-2">Selected Farm Area</h4>
+                <h4 className="text-sm font-medium mb-2">Selected Area</h4>
                 <div
                   className="w-full border rounded-lg relative"
                   style={{ height: "200px", zIndex: 1 }}

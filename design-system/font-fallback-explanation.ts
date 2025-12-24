@@ -1,4 +1,4 @@
-// Font Fallback System Explanation for CheckIt Dashboard
+// Font Fallback System Explanation for Checkky Dashboard
 
 export const fontFallbackSystem = {
   // Your current font stack

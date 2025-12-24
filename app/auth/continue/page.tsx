@@ -38,7 +38,7 @@ export default function ContinuePage() {
             <Sparkles className="h-12 w-12 text-white" />
           </div>
           <h1 className="text-4xl font-bold text-gray-900 mb-4">
-            Welcome to CheckIt!
+            Welcome to Checkky!
           </h1>
           <p className="text-xl text-gray-600 max-w-2xl mx-auto">
             You're almost ready to start managing your audits and checklists.

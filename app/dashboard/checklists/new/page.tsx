@@ -92,7 +92,7 @@ export default function NewChecklistPage() {
 
   const uploadMessages = [
     "Checking your checklist file…",
-    "CheckIt is reading your CSV rows…",
+    "Checkky is reading your CSV rows…",
     "Organizing sections and questions…",
     "Almost there — prepping your checklist…",
   ];
@@ -245,7 +245,7 @@ export default function NewChecklistPage() {
             </div>
             <Progress value={uploadProgress} className="h-2" />
             <p className="text-xs text-muted-foreground">
-              Keep this tab open while CheckIt finishes the upload.
+              Keep this tab open while Checkky finishes the upload.
             </p>
           </div>
         </DialogContent>
@@ -561,41 +561,6 @@ export default function NewChecklistPage() {
             </CardContent>
           </Card>
 
-          {/* Tips Section */}
-          <Card className="bg-gray-50 border-gray-200">
-            <CardContent className="p-4">
-              <h4 className="text-sm font-medium text-gray-700 mb-3 flex items-center gap-2">
-                <Info className="h-4 w-4" />
-                Tips for Creating Checklists
-              </h4>
-              <ul className="space-y-2 text-sm text-gray-600">
-                <li className="flex items-start">
-                  <span className="text-gray-400 mr-2">•</span>
-                  <span>
-                    Organize your checklist into logical sections for better
-                    readability
-                  </span>
-                </li>
-                <li className="flex items-start">
-                  <span className="text-gray-400 mr-2">•</span>
-                  <span>
-                    Use clear, concise language for questions and requirements
-                  </span>
-                </li>
-                <li className="flex items-start">
-                  <span className="text-gray-400 mr-2">•</span>
-                  <span>Include guidance notes for complex requirements</span>
-                </li>
-                <li className="flex items-start">
-                  <span className="text-gray-400 mr-2">•</span>
-                  <span>
-                    Test your CSV format with a small sample before uploading
-                    large files
-                  </span>
-                </li>
-              </ul>
-            </CardContent>
-          </Card>
         </form>
       </div>
     </div>

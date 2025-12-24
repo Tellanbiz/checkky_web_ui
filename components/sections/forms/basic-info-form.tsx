@@ -46,60 +46,7 @@ export function BasicInfoForm({
               required
             />
             <p className="text-sm text-muted-foreground">
-              Enter a unique name for this farm section.
-            </p>
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="location">
-              {formData.location ? "Selected Farm Area" : "Farm Area *"}
-            </Label>
-            <div className="flex gap-2">
-              <Input
-                id="location"
-                placeholder="Select farm area from map..."
-                value={formData.location}
-                readOnly
-                disabled
-                className={`bg-gray-50 cursor-not-allowed ${
-                  formData.location
-                    ? "bg-green-50 border-green-200 text-green-900"
-                    : "text-gray-500"
-                }`}
-              />
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                onClick={onGetCurrentLocation}
-                className="shrink-0"
-                title="Get current GPS location"
-              >
-                <MapPin className="h-4 w-4" />
-              </Button>
-            </div>
-            <p className="text-sm text-muted-foreground">
-              {formData.location
-                ? `Selected: ${formData.location}`
-                : "Select a farm area from the map to populate this field automatically."}
-            </p>
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="size">Size (hectares) *</Label>
-            <Input
-              id="size"
-              type="number"
-              step="0.1"
-              placeholder="0.0"
-              value={formData.size}
-              onChange={(e) => onInputChange("size", e.target.value)}
-              required
-              readOnly
-              disabled
-            />
-            <p className="text-sm text-muted-foreground">
-              Enter the area size in hectares.
+              Enter a unique name for this section.
             </p>
           </div>
         </div>

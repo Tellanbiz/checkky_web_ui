@@ -177,7 +177,7 @@ export function DashboardWrapper({ account, children }: DashboardWrapperProps) {
                 ✓
               </div>
             </div>
-            <span className="text-xl font-bold text-gray-900">CheckIt</span>
+            <span className="text-xl font-bold text-gray-900">Checkky</span>
           </div>
           <Button
             variant="ghost"

@@ -1,6 +1,5 @@
 "use client";
 
-import { NewChecklistModal } from "../../components/checklist/new-checklist-modal";
 import { useState } from "react";
 import { Suspense } from "react";
 import { useQuery } from "@tanstack/react-query";
@@ -12,7 +11,6 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import {
   Select,
@@ -26,7 +24,6 @@ import {
   AlertTriangle,
   Users,
   FileText,
-  Plus,
   Loader2,
   User,
   Calendar,
@@ -41,7 +38,6 @@ import { MonthlyTasks, OverviewReport } from "@/lib/services/reports/models";
 import { AssignedChecklist } from "@/lib/services/checklist/models";
 import { useRouter } from "next/navigation";
 import { DashboardCharts } from "@/components/dashboard-charts";
-import { QuickActions } from "@/components/quick-actions";
 import { useTeamMembers } from "@/components/team/members";
 
 const getPriorityDisplayName = (priority: string) => {
@@ -81,9 +77,6 @@ const formatDate = (dateString: string) => {
 
 export default function Dashboard() {
   const router = useRouter();
-  const [showNewChecklistModal, setShowNewChecklistModal] = useState(false);
-  const [showInviteMemberModal, setShowInviteMemberModal] = useState(false);
-  const [showNewGuidelineModal, setShowNewGuidelineModal] = useState(false);
   const [selectedMemberId, setSelectedMemberId] = useState<string>("all");
   const { data: teamMembers = [] } = useTeamMembers();
 
@@ -150,9 +143,6 @@ export default function Dashboard() {
     .filter((c) => c.priority === "high" && c.status === "pending")
     .slice(0, 3);
 
-  const handleViewTask = (task: AssignedChecklist) => {
-    router.push(`/dashboard/checklists/${task.id}`);
-  };
 
   if (yearlyLoading || overviewLoading || assignedLoading) {
     return (
@@ -172,7 +162,6 @@ export default function Dashboard() {
           <p className="text-red-600 mb-4">
             {err?.message || "Failed to load dashboard data"}
           </p>
-          <Button onClick={() => window.location.reload()}>Try Again</Button>
         </div>
       </div>
     );
@@ -181,40 +170,26 @@ export default function Dashboard() {
   return (
     <div className="flex-1 space-y-4 p-4 md:p-8 pt-6">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div className="space-y-2 sm:space-y-1">
-          <h2 className="text-2xl sm:text-3xl font-bold tracking-tight">
-            Dashboard
-          </h2>
-          <div className="flex items-center gap-3">
-            <div className="w-full sm:w-[240px]">
-              <Select
-                value={selectedMemberId}
-                onValueChange={setSelectedMemberId}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="All team" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All team</SelectItem>
-                  {teamMembers.map((m) => (
-                    <SelectItem key={m.id} value={m.id}>
-                      {m.user.full_name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-        </div>
-
-        <div className="flex items-center space-x-2">
-          <Button
-            onClick={() => setShowNewChecklistModal(true)}
-            className="w-full sm:w-auto"
+        <h2 className="text-2xl sm:text-3xl font-bold tracking-tight">
+          Dashboard
+        </h2>
+        <div className="w-full sm:w-[240px]">
+          <Select
+            value={selectedMemberId}
+            onValueChange={setSelectedMemberId}
           >
-            <Plus className="mr-2 h-4 w-4" />
-            <span className="sm:inline">New Checklist</span>
-          </Button>
+            <SelectTrigger>
+              <SelectValue placeholder="All team" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All team</SelectItem>
+              {teamMembers.map((m) => (
+                <SelectItem key={m.id} value={m.id}>
+                  {m.user.full_name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
       </div>
 
@@ -306,9 +281,9 @@ export default function Dashboard() {
         </Card>
       </div>
 
-      {/* Priority Tasks and Quick Actions */}
-      <div className="grid gap-4 grid-cols-1 lg:grid-cols-7">
-        <Card className="lg:col-span-4">
+      {/* Priority Tasks */}
+      <div className="grid gap-4 grid-cols-1">
+        <Card>
           <CardHeader className="pb-4">
             <CardTitle className="text-lg sm:text-xl">Priority Tasks</CardTitle>
             <CardDescription className="text-sm">
@@ -363,13 +338,6 @@ export default function Dashboard() {
                           </div>
                         </div>
                       </div>
-                      <Button
-                        size="sm"
-                        onClick={() => handleViewTask(task)}
-                        className="w-full sm:w-auto"
-                      >
-                        View
-                      </Button>
                     </div>
                   );
                 })
@@ -383,35 +351,8 @@ export default function Dashboard() {
           </CardContent>
         </Card>
 
-        <Card className="lg:col-span-3">
-          <CardHeader className="pb-4">
-            <CardTitle className="text-lg sm:text-xl">Quick Actions</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <QuickActions
-              onOpenNewChecklist={() => setShowNewChecklistModal(true)}
-              onOpenInviteMember={() => setShowInviteMemberModal(true)}
-              onOpenNewGuideline={() => setShowNewGuidelineModal(true)}
-            />
-          </CardContent>
-        </Card>
       </div>
 
-      {/* Modals */}
-      <NewChecklistModal
-        isOpen={showNewChecklistModal}
-        onClose={() => setShowNewChecklistModal(false)}
-      />
-
-      {/* TODO: Add other modals when they are implemented */}
-      {/* <InviteMemberModal
-        isOpen={showInviteMemberModal}
-        onClose={() => setShowInviteMemberModal(false)}
-      />
-      <NewGuidelineModal
-        isOpen={showNewGuidelineModal}
-        onClose={() => setShowNewGuidelineModal(false)}
-      /> */}
     </div>
   );
 }

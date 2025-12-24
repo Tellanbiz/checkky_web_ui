@@ -169,7 +169,7 @@ export function Sidebar({ account, mobile = false }: SidebarProps) {
             <div className="w-8 h-8 bg-[#16A34A] rounded-lg flex items-center justify-center">
               <CheckSquare className="w-5 h-5 text-white" />
             </div>
-            <span className="text-xl font-bold text-gray-900">CheckIt</span>
+            <span className="text-xl font-bold text-gray-900">Checkky</span>
           </div>
         </div>
       )}

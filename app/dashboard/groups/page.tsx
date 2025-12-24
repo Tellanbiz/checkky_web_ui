@@ -185,8 +185,8 @@ function GroupsPageContent() {
 
   if (error) {
     return (
-      <div className="container mx-auto p-6 flex items-center justify-center min-h-[400px]">
-        <div className="text-center">
+      <div className="space-y-4 sm:space-y-6 p-4 sm:p-6 md:p-8">
+        <div className="text-center py-8">
           <p className="text-red-600 mb-2">Error loading groups</p>
           <p className="text-muted-foreground">
             {error instanceof Error ? error.message : "Unknown error"}
@@ -198,17 +198,19 @@ function GroupsPageContent() {
 
   if (isLoading) {
     return (
-      <div className="container mx-auto p-6 flex items-center justify-center min-h-[400px]">
-        <div className="flex items-center space-x-2">
-          <Loader2 className="h-6 w-6 animate-spin" />
-          <span>Loading groups...</span>
+      <div className="space-y-4 sm:space-y-6 p-4 sm:p-6 md:p-8">
+        <div className="flex items-center justify-center h-64">
+          <div className="flex items-center space-x-2">
+            <Loader2 className="h-6 w-6 animate-spin" />
+            <span>Loading groups...</span>
+          </div>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="flex-1 space-y-4 p-4 md:p-8 pt-6">
+    <div className="flex-1 space-y-4 sm:space-y-6 p-4 sm:p-6 md:p-8 pt-6">
       {/* Header */}
       <GroupsHeader
         searchTerm={searchTerm}

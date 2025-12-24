@@ -1,4 +1,4 @@
-// CheckIt Dashboard - Icon Reference for Figma
+// Checkky Dashboard - Icon Reference for Figma
 // All icons used in the application from Lucide React
 
 export const CHECKIT_ICONS = {

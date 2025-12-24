@@ -82,7 +82,7 @@ export default function NewCompanyPage() {
               </div>
             </div>
             <CardTitle className="text-2xl font-bold text-gray-900">
-              Welcome to CheckIt!
+              Welcome to Checkky!
             </CardTitle>
             <CardDescription className="text-gray-600">
               Let's get started by setting up your first company. This will be

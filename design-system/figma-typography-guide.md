@@ -1,4 +1,4 @@
-# CheckIt Dashboard - Typography Guide for Figma
+# Checkky Dashboard - Typography Guide for Figma
 
 ## Font Information
 

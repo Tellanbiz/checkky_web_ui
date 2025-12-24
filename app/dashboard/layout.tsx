@@ -10,7 +10,7 @@ import { QueryProvider } from "@/lib/shared/query_provider";
 export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
-  title: "CheckIt - Auditing & Checklist Management",
+  title: "Checkky - Auditing & Checklist Management",
   description:
     "Professional auditing and checklist management platform for teams and companies",
   generator: "v0.dev",
