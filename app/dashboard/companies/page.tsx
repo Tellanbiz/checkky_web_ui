@@ -13,52 +13,17 @@ import {
   Plus,
   Search,
   Building2,
-  Users,
-  CheckSquare,
   Calendar,
-  MoreHorizontal,
   Crown,
   Star,
   Loader2,
 } from "lucide-react";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
-import { EditCompanyModal } from "@/components/modals/edit-company-modal";
 import { getAllCompaniesWithStats } from "@/lib/services/company/actions";
 import type { CompanyWithStats } from "@/lib/services/company/models";
-import { DeleteConfirmationModal } from "@/components/team/delete-confirmation-modal";
 import { CompanyNewDialog } from "@/components/company/company_new_dialog";
 
 export default function CompaniesPage() {
   const router = useRouter();
-  const [selectedCompany, setSelectedCompany] =
-    useState<CompanyWithStats | null>(null);
-  const [showDetailsModal, setShowDetailsModal] = useState(false);
-  const [showDeleteModal, setShowDeleteModal] = useState(false);
-  const [companyToDelete, setCompanyToDelete] =
-    useState<CompanyWithStats | null>(null);
-  const [showEditModal, setShowEditModal] = useState(false);
-  const [showBillingModal, setShowBillingModal] = useState(false);
-  const [selectedCompanyForEdit, setSelectedCompanyForEdit] =
-    useState<CompanyWithStats | null>(null);
-  const [selectedCompanyForBilling, setSelectedCompanyForBilling] =
-    useState<CompanyWithStats | null>(null);
-  const [showCompanyManagementDialog, setShowCompanyManagementDialog] =
-    useState(false);
-  const [selectedCompanyForManagement, setSelectedCompanyForManagement] =
-    useState<CompanyWithStats | null>(null);
   const [companies, setCompanies] = useState<CompanyWithStats[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -84,40 +49,7 @@ export default function CompaniesPage() {
     fetchCompanies();
   }, []);
 
-  const handleViewDetails = (company: CompanyWithStats) => {
-    setSelectedCompany(company);
-    setShowDetailsModal(true);
-  };
 
-  const handleEditCompany = (company: CompanyWithStats) => {
-    setSelectedCompanyForEdit(company);
-    setShowEditModal(true);
-  };
-
-  const handleBilling = (company: CompanyWithStats) => {
-    setSelectedCompanyForBilling(company);
-    setShowBillingModal(true);
-  };
-
-  const handleExportData = (company: CompanyWithStats) => {
-    console.log("Exporting data for:", company.name);
-    // Here you would export company data
-  };
-
-  const handleSuspendCompany = (company: CompanyWithStats) => {
-    setCompanyToDelete(company);
-    setShowDeleteModal(true);
-  };
-
-  const handleManageCompany = (company: CompanyWithStats) => {
-    setSelectedCompanyForManagement(company);
-    setShowCompanyManagementDialog(true);
-  };
-
-  const confirmSuspend = () => {
-    console.log("Suspending company:", companyToDelete);
-    // Here you would actually suspend the company
-  };
 
   const handleAddCompany = () => {
     setShowNewCompanyDialog(true);
@@ -225,20 +157,14 @@ export default function CompaniesPage() {
   return (
     <div className="flex-1 space-y-4 p-4 md:p-8 pt-6">
       <div className="flex items-center justify-between">
-        <h2 className="text-3xl font-bold tracking-tight">
-          Company Management
-        </h2>
-        <Button onClick={handleAddCompany}>
-          <Plus className="mr-2 h-4 w-4" />
-          Add Company
-        </Button>
-      </div>
-
-      <div className="flex items-center space-x-4">
         <div className="relative flex-1 max-w-sm">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
           <Input placeholder="Search companies..." className="pl-10" />
         </div>
+        <Button onClick={handleAddCompany}>
+          <Plus className="mr-2 h-4 w-4" />
+          Add Company
+        </Button>
       </div>
 
       {/* Companies Grid */}
@@ -266,58 +192,18 @@ export default function CompaniesPage() {
               className="hover:shadow-md transition-shadow"
             >
               <CardHeader className="pb-3">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center space-x-3">
-                    <Avatar className="h-10 w-10">
-                      <AvatarFallback className="bg-[#16A34A] text-white font-semibold text-sm">
-                        {company.name.charAt(0).toUpperCase()}
-                      </AvatarFallback>
-                    </Avatar>
-                    <div className="flex-1">
-                      <h3 className="font-semibold text-sm">{company.name}</h3>
-                      <p className="text-xs text-muted-foreground">
-                        {new Date(company.created_at).toLocaleDateString()}
-                      </p>
-                    </div>
+                <div className="flex items-center space-x-3">
+                  <Avatar className="h-10 w-10">
+                    <AvatarFallback className="bg-[#16A34A] text-white font-semibold text-sm">
+                      {company.name.charAt(0).toUpperCase()}
+                    </AvatarFallback>
+                  </Avatar>
+                  <div className="flex-1">
+                    <h3 className="font-semibold text-sm">{company.name}</h3>
+                    <p className="text-xs text-muted-foreground">
+                      {new Date(company.created_at).toLocaleDateString()}
+                    </p>
                   </div>
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button variant="ghost" size="icon" className="h-8 w-8">
-                        <MoreHorizontal className="h-3 w-3" />
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end">
-                      <DropdownMenuItem
-                        onClick={() => handleViewDetails(company)}
-                      >
-                        View Details
-                      </DropdownMenuItem>
-                      <DropdownMenuItem
-                        onClick={() => handleManageCompany(company)}
-                      >
-                        Manage Company
-                      </DropdownMenuItem>
-                      <DropdownMenuItem
-                        onClick={() => handleEditCompany(company)}
-                      >
-                        Edit Company
-                      </DropdownMenuItem>
-                      <DropdownMenuItem onClick={() => handleBilling(company)}>
-                        Billing
-                      </DropdownMenuItem>
-                      <DropdownMenuItem
-                        onClick={() => handleExportData(company)}
-                      >
-                        Export Data
-                      </DropdownMenuItem>
-                      <DropdownMenuItem
-                        className="text-red-600"
-                        onClick={() => handleSuspendCompany(company)}
-                      >
-                        Suspend
-                      </DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
                 </div>
               </CardHeader>
               <CardContent className="pt-0">
@@ -327,18 +213,6 @@ export default function CompaniesPage() {
                     {getPlanBadge(company.plan)}
                     {getStatusBadge(company.status)}
                   </div>
-
-                  {/* Quick Stats */}
-                  <div className="grid grid-cols-2 gap-3 text-xs">
-                    <div className="flex items-center space-x-2">
-                      <Users className="h-3 w-3 text-muted-foreground" />
-                      <span>{company.member_count} members</span>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <CheckSquare className="h-3 w-3 text-muted-foreground" />
-                      <span>{company.checklist_count} checklists</span>
-                    </div>
-                  </div>
                 </div>
               </CardContent>
             </Card>
@@ -347,146 +221,11 @@ export default function CompaniesPage() {
       )}
 
       {/* Modals */}
-      {selectedCompany && (
-        <CompanyDetailsModal
-          isOpen={showDetailsModal}
-          onClose={() => setShowDetailsModal(false)}
-          company={selectedCompany}
-        />
-      )}
-
-      <DeleteConfirmationModal
-        isOpen={showDeleteModal}
-        onClose={() => setShowDeleteModal(false)}
-        onConfirm={confirmSuspend}
-        title="Suspend Company"
-        description="Are you sure you want to suspend this company? They will lose access to the platform."
-        itemName={companyToDelete?.name || ""}
-      />
-      {selectedCompanyForEdit && (
-        <EditCompanyModal
-          isOpen={showEditModal}
-          onClose={() => setShowEditModal(false)}
-          company={selectedCompanyForEdit}
-        />
-      )}
-
-      {/* {selectedCompanyForBilling && (
-        <CompanyBillingModal
-          isOpen={showBillingModal}
-          onClose={() => setShowBillingModal(false)}
-          company={selectedCompanyForBilling}
-        />
-      )} */}
-
       <CompanyNewDialog
         isOpen={showNewCompanyDialog}
         onClose={() => setShowNewCompanyDialog(false)}
         onSuccess={handleCompanyCreated}
       />
-
-      {/* Company Management Dialog */}
-      <Dialog
-        open={showCompanyManagementDialog}
-        onOpenChange={setShowCompanyManagementDialog}
-      >
-        <DialogContent className="sm:max-w-[425px]">
-          <DialogHeader>
-            <DialogTitle>Manage Company</DialogTitle>
-            <DialogDescription>
-              Manage settings and options for{" "}
-              {selectedCompanyForManagement?.name}
-            </DialogDescription>
-          </DialogHeader>
-          <div className="py-4">
-            <div className="space-y-4">
-              <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                <div>
-                  <h4 className="font-medium">Company Details</h4>
-                  <p className="text-sm text-muted-foreground">
-                    View and edit company information
-                  </p>
-                </div>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => {
-                    setShowCompanyManagementDialog(false);
-                    handleEditCompany(selectedCompanyForManagement!);
-                  }}
-                >
-                  Edit
-                </Button>
-              </div>
-
-              <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                <div>
-                  <h4 className="font-medium">Billing</h4>
-                  <p className="text-sm text-muted-foreground">
-                    Manage subscription and payments
-                  </p>
-                </div>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => {
-                    setShowCompanyManagementDialog(false);
-                    handleBilling(selectedCompanyForManagement!);
-                  }}
-                >
-                  Manage
-                </Button>
-              </div>
-
-              <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                <div>
-                  <h4 className="font-medium">Export Data</h4>
-                  <p className="text-sm text-muted-foreground">
-                    Download company data and reports
-                  </p>
-                </div>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => {
-                    setShowCompanyManagementDialog(false);
-                    handleExportData(selectedCompanyForManagement!);
-                  }}
-                >
-                  Export
-                </Button>
-              </div>
-
-              <div className="flex items-center justify-between p-3 bg-red-50 rounded-lg border border-red-200">
-                <div>
-                  <h4 className="font-medium text-red-800">Suspend Company</h4>
-                  <p className="text-sm text-red-600">
-                    Disable company access to platform
-                  </p>
-                </div>
-                <Button
-                  variant="destructive"
-                  size="sm"
-                  onClick={() => {
-                    setShowCompanyManagementDialog(false);
-                    handleSuspendCompany(selectedCompanyForManagement!);
-                  }}
-                >
-                  Suspend
-                </Button>
-              </div>
-            </div>
-          </div>
-          <DialogFooter>
-            <Button
-              variant="outline"
-              onClick={() => setShowCompanyManagementDialog(false)}
-            >
-              Close
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
     </div>
   );
 }
