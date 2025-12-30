@@ -2,6 +2,8 @@
 
 import { EditChecklistModal } from "@/components/modals/edit-checklist-modal";
 import { OngoingChecklist } from "../../../components/checklist/ongoing-checklist";
+import { CompletedChecklists } from "../../../components/checklist/completed_checklists";
+import { ChecklistTabNavigation } from "../../../components/checklist/navigation/tab-navigation";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -38,6 +40,7 @@ function ChecklistsPageContent() {
   const [showDetailsModal, setShowDetailsModal] = useState(false);
   const [selectedChecklistForDetails, setSelectedChecklistForDetails] =
     useState<any>(null);
+  const [activeTab, setActiveTab] = useState<'ongoing' | 'completed'>('ongoing');
 
   const handleEditChecklist = (checklist: any) => {
     setSelectedChecklist(checklist);
@@ -83,13 +86,21 @@ function ChecklistsPageContent() {
   };
 
   const assignChecklist = () => {
-    router.push("/dashboard/checklists");
+    router.push("/dashboard/checklists/available");
   };
 
   return (
-    <div className="flex-1 space-y-4 p-4 md:p-8 pt-6">
+    <div className="">
+      {/* Tab Navigation */}
+      <ChecklistTabNavigation
+        activeTab={activeTab}
+        onTabChange={setActiveTab}
+        onAssignChecklist={assignChecklist}
+        onUploadChecklist={handleNewChecklist}
+      />
+
       {/* Header with Search */}
-      <div className="flex flex-col gap-4">
+      <div className="flex flex-col gap-4 p-4 md:p-8 pt-6">
         {/* Search, Filters and Action Buttons Row */}
         <div className="flex flex-col lg:flex-row items-start lg:items-center gap-3 lg:gap-4">
           <div className="relative w-full lg:max-w-xs flex-1">
@@ -116,33 +127,25 @@ function ChecklistsPageContent() {
             </Select>
           </div>
 
-          <div className="flex gap-3 w-full lg:w-auto">
-            <Button
-              onClick={() => assignChecklist()}
-              variant="outline"
-              className="flex-shrink-0"
-            >
-              <Plus className="mr-2 h-4 w-4" />
-              Assign Checklist
-            </Button>
-            <Button
-              onClick={() => handleNewChecklist()}
-              className="flex-shrink-0"
-            >
-              <Plus className="mr-2 h-4 w-4" />
-              <span className="hidden lg:inline">Upload New Checklist</span>
-              <span className="lg:hidden">New Checklist</span>
-            </Button>
-          </div>
         </div>
       </div>
 
-      {/* Ongoing Checklists Content */}
-      <OngoingChecklist
-        onEditChecklist={handleEditChecklist}
-        onDeleteChecklist={handleDeleteChecklist}
-        onViewDetails={handleViewDetails}
-      />
+      {/* Tab Content */}
+      <div className="px-4 md:px-8 pb-8">
+        {activeTab === 'ongoing' ? (
+          <OngoingChecklist
+            onEditChecklist={handleEditChecklist}
+            onDeleteChecklist={handleDeleteChecklist}
+            onViewDetails={handleViewDetails}
+          />
+        ) : (
+          <CompletedChecklists
+            onEditChecklist={handleEditChecklist}
+            onDeleteChecklist={handleDeleteChecklist}
+            onViewDetails={handleViewDetails}
+          />
+        )}
+      </div>
 
       {/* Modals */}
       {selectedChecklist && (

@@ -13,8 +13,8 @@ export async function getAuditors(): Promise<GetAuditorsRow[]> {
     return response.data;
 }
 
-export async function getOngoingAudits(): Promise<GetOngoingAuditsRow[]> {
-    const response = await clientV1.get<GetOngoingAuditsRow[]>("/audits/ongoing", {
+export async function getAudits(status: "pending" | "completed"): Promise<GetOngoingAuditsRow[]> {
+    const response = await clientV1.get<GetOngoingAuditsRow[]>(`/audits?status=${status}`, {
         headers: {
             Authorization: `Bearer ${await getAccessToken()}`,
         },
@@ -22,11 +22,4 @@ export async function getOngoingAudits(): Promise<GetOngoingAuditsRow[]> {
     return response.data;
 }
 
-export async function getCompleteAudits(): Promise<GetCompleteAuditsRow[]> {
-    const response = await clientV1.get<GetCompleteAuditsRow[]>("/audits/complete", {
-        headers: {
-            Authorization: `Bearer ${await getAccessToken()}`,
-        },
-    });
-    return response.data;
-}
+

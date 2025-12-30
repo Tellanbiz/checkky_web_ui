@@ -1,10 +1,11 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { AssignedChecklist } from "@/lib/services/checklist/models";
 import {
   useOngoingFilters,
   useChecklistFilterStore,
 } from "@/lib/provider/checklists/index";
+import { useAssignedChecklists, useUpdateChecklistPriority } from "@/lib/services/checklist/hooks";
 import { OngoingChecklistCard } from "./ongoing-checklist-card";
 import { OngoingSidebar } from "./ongoing-sidebar";
 import { Button } from "../ui/button";
@@ -49,10 +50,7 @@ export function OngoingChecklist({
   onViewDetails,
 }: OngoingChecklistProps) {
   const { toast } = useToast();
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
   const [draggedItem, setDraggedItem] = useState<string | null>(null);
-  const [updatingIds, setUpdatingIds] = useState<Set<string>>(new Set());
   const [isDragging, setIsDragging] = useState(false);
   const [selectedChecklist, setSelectedChecklist] =
     useState<AssignedChecklist | null>(null);
@@ -60,25 +58,12 @@ export function OngoingChecklist({
 
   // Get filter state
   const filters = useOngoingFilters();
-  const { checklists, fetchChecklists, updatePriority } =
-    useChecklistFilterStore();
-
-  const loadChecklists = async () => {
-    setLoading(true);
-    setError(null);
-    try {
-      await fetchChecklists();
-    } catch (error) {
-      setError("An unexpected error occurred");
-      console.error("Error fetching checklists:", error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    loadChecklists();
-  }, []);
+  
+  // Use TanStack Query to fetch pending checklists
+  const { data: checklists = [], isLoading, error, refetch } = useAssignedChecklists("pending");
+  
+  // Mutation for updating priority
+  const updatePriorityMutation = useUpdateChecklistPriority();
 
   const handleDragStart = (e: React.DragEvent, checklistId: string) => {
     setDraggedItem(checklistId);
@@ -99,13 +84,12 @@ export function OngoingChecklist({
 
     if (!draggedItem) return;
 
-    setUpdatingIds((prev) => new Set(prev).add(draggedItem));
     setIsDragging(false);
-
+    const checklistId = draggedItem;
     setDraggedItem(null);
 
     try {
-      await updatePriority(draggedItem, newPriority);
+      await updatePriorityMutation.mutateAsync({ checklistId, newPriority });
       toast({
         title: "Priority Updated",
         description: `Checklist moved to ${getPriorityDisplayName(
@@ -118,12 +102,6 @@ export function OngoingChecklist({
         description: "Failed to update priority. Please try again.",
         variant: "destructive",
       });
-    } finally {
-      setUpdatingIds((prev) => {
-        const newSet = new Set(prev);
-        newSet.delete(draggedItem);
-        return newSet;
-      });
     }
   };
 
@@ -132,7 +110,7 @@ export function OngoingChecklist({
     setIsDragging(false);
   };
 
-  // Apply filters to checklists
+  // Apply filters to checklists (status is already filtered by the query)
   const filteredChecklists = checklists.filter((checklist) => {
     // Search filter
     if (filters.searchTerm) {
@@ -143,13 +121,6 @@ export function OngoingChecklist({
         .toLowerCase()
         .includes(searchLower);
       if (!titleMatch && !notesMatch && !assigneeMatch) {
-        return false;
-      }
-    }
-
-    // Status filter
-    if (filters.status !== "all") {
-      if (checklist.status !== filters.status) {
         return false;
       }
     }
@@ -176,7 +147,7 @@ export function OngoingChecklist({
     return "bg-gray-50 border-gray-200 text-gray-700";
   };
 
-  if (loading) {
+  if (isLoading) {
     return (
       <div className="flex items-center justify-center h-64">
         <Loader2 className="h-8 w-8 animate-spin text-primary" />
@@ -188,8 +159,10 @@ export function OngoingChecklist({
     return (
       <div className="space-y-4">
         <div className="text-center py-8">
-          <p className="text-red-600 mb-4">{error}</p>
-          <Button onClick={fetchChecklists} disabled={loading}>
+          <p className="text-red-600 mb-4">
+            {error instanceof Error ? error.message : "An unexpected error occurred"}
+          </p>
+          <Button onClick={() => refetch()} disabled={isLoading}>
             Try Again
           </Button>
         </div>
@@ -246,7 +219,7 @@ export function OngoingChecklist({
                     handleDragEnd={handleDragEnd}
                     handleDrop={handleDrop}
                     draggedItem={draggedItem}
-                    updatingIds={updatingIds}
+                    updatingIds={updatePriorityMutation.isPending && draggedItem ? new Set([draggedItem]) : new Set()}
                   />
                 ))}
 

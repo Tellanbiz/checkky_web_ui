@@ -1,4 +1,5 @@
 import React from 'react';
+import { useRouter } from "next/navigation";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -90,6 +91,7 @@ export function OngoingChecklistCard({
   draggedItem,
   updatingIds,
 }: OngoingChecklistCardProps) {
+  const router = useRouter();
   const progress =
     checklist.checklist_progress.total_questions > 0
       ? (checklist.checklist_progress.answered_questions /
@@ -103,7 +105,7 @@ export function OngoingChecklistCard({
       onDragStart={(e) => handleDragStart(e, checklist.id)}
       onDragEnd={handleDragEnd}
       onDrop={(e) => handleDrop(e, checklist.priority)}
-      onClick={() => onClick(checklist)}
+      onClick={() => router.push(`/dashboard/checklists/answers/${checklist.id}`)}
       className={`relative cursor-pointer hover:shadow-sm transition-all duration-200 bg-white border border-gray-200 ${
         draggedItem === checklist.id ? "opacity-50" : ""
       } rounded-lg ${updatingIds.has(checklist.id) ? "pointer-events-none" : ""}`}
@@ -120,17 +122,7 @@ export function OngoingChecklistCard({
             <p className="text-xs text-gray-500 mt-1 line-clamp-2">{checklist.notes}</p>
           </div>
           <div className="flex items-center gap-1">
-            <Button
-              variant="ghost"
-              size="icon"
-              className="h-6 w-6 p-0 hover:bg-gray-100"
-              onClick={(e) => {
-                e.stopPropagation();
-                // Handle menu actions
-              }}
-            >
-              <MoreHorizontal className="h-4 w-4 text-gray-500" />
-            </Button>
+            
             <Button
               variant="ghost"
               size="icon"

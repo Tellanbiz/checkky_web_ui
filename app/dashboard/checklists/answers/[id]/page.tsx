@@ -2,23 +2,33 @@
 
 import { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation } from "@tanstack/react-query";
 import { getAssignedCheclistWithAnswer } from "@/lib/services/checklist-assigned/get";
 import {
   AssignedChecklistWithAnswer,
   AuditScore,
 } from "@/lib/services/checklist-assigned/models";
+import { completeAudit } from "@/lib/services/auditor/post";
 import { TeamMember } from "@/lib/services/teams/data";
 import { Button } from "@/components/ui/button";
 import { QuestionWidgetFactory } from "@/components/checklist/forms/QuestionWidgetFactory";
 import { AnswerTableOfContents } from "@/components/checklist/forms/AnswerTableOfContents";
 import { AssignAuditorDialog } from "@/components/checklist/answers/AssignAuditorDialog";
-import { ArrowLeft, Loader2, User } from "lucide-react";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from "@/components/ui/dialog";
+import { ArrowLeft, Loader2, User, Info, ChevronRight } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
 
 export default function AnswerPage() {
   const params = useParams();
   const router = useRouter();
   const id = params.id as string;
+  const { toast } = useToast();
   const [answers, setAnswers] = useState<Record<number, string>>({});
   const [comments, setComments] = useState<Record<number, string>>({});
   const [photos, setPhotos] = useState<Record<number, string>>({});
@@ -30,6 +40,7 @@ export default function AnswerPage() {
     { sectionIndex: number; questionIndex: number } | undefined
   >();
   const [assignAuditorDialogOpen, setAssignAuditorDialogOpen] = useState(false);
+  const [descriptionDialogOpen, setDescriptionDialogOpen] = useState(false);
 
   // TanStack Query for fetching checklist data
   const {
@@ -112,6 +123,42 @@ export default function AnswerPage() {
     setAssignAuditorDialogOpen(false);
   };
 
+  const completeAuditMutation = useMutation({
+    mutationFn: () => completeAudit(id),
+    onSuccess: () => {
+      toast({
+        title: "Audit Completed",
+        description: "The audit has been successfully completed.",
+      });
+      // Refresh the data to show updated status
+      window.location.reload();
+    },
+    onError: (error) => {
+      toast({
+        title: "Error",
+        description: "Failed to complete the audit. Please try again.",
+        variant: "destructive",
+      });
+      console.error("Failed to complete audit:", error);
+    },
+  });
+
+  const handleCompleteAudit = () => {
+    // Check if there are any pending audit scores
+    const pendingScores = Object.values(auditScores).some(score => score === AuditScore.Pending);
+    
+    if (pendingScores) {
+      toast({
+        title: "Cannot Complete Audit",
+        description: "Please complete all audit scores before completing the checklist. There are still pending audits that need to be scored.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    completeAuditMutation.mutate();
+  };
+
   if (isLoading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
@@ -191,7 +238,7 @@ export default function AnswerPage() {
     <div className="min-h-screen bg-gray-50">
       {/* Top Navigation */}
       <div className="bg-white border-b border-gray-200">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="px-4">
           <div className="py-4 sm:py-6">
             <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
               <div className="flex-1">
@@ -212,14 +259,37 @@ export default function AnswerPage() {
                       checklist.status.slice(1).replace("_", " ")}
                   </span>
                 </div>
-                {checklist.description && (
-                  <p className="text-sm text-gray-600 break-words">
-                    {checklist.description}
-                  </p>
-                )}
+                
               </div>
 
-              <div className="flex flex-col gap-3 sm:items-end">
+              <div className="flex flex-row space-x-4 gap-3 sm:items-end">
+                {checklist.description && (
+                    <Button
+                      variant="outline"
+                      onClick={() => setDescriptionDialogOpen(true)}
+                      className="text-xs rounded-full"
+                    >
+                      Show Description
+                    </Button>
+                )}
+
+                {checklist.auditor !== undefined && checklist.auditor?.checklist_status !== "completed" && (
+                  <Button
+                    onClick={handleCompleteAudit}
+                    disabled={completeAuditMutation.isPending}
+                    className="bg-green-600 hover:bg-green-700 text-white rounded-full text-xs"
+                  >
+                    {completeAuditMutation.isPending ? (
+                      <>
+                        <Loader2 className="w-3 h-3 mr-1 animate-spin" />
+                        Completing...
+                      </>
+                    ) : (
+                      "Complete Audit"
+                    )}
+                  </Button>
+                )}
+
                 {checklist.auditor ? (
                   <div className="flex items-center gap-2 sm:gap-3">
                     <div className="text-right min-w-0 flex-1">
@@ -231,15 +301,17 @@ export default function AnswerPage() {
                     <div className="w-8 h-8 bg-primary/10 rounded-full flex items-center justify-center flex-shrink-0">
                       <User className="w-4 h-4 text-primary" />
                     </div>
-                    <Button
-                      onClick={() => setAssignAuditorDialogOpen(true)}
-                      variant="outline"
-                      className="text-xs rounded-full flex-shrink-0"
-                      size="sm"
-                    >
-                      <span className="hidden sm:inline">Change</span>
-                      <span className="sm:hidden">Edit</span>
-                    </Button>
+                    {checklist.auditor?.checklist_status !== "completed" && (
+                      <Button
+                        onClick={() => setAssignAuditorDialogOpen(true)}
+                        variant="outline"
+                        className="text-xs rounded-full flex-shrink-0"
+                        size="sm"
+                      >
+                        <span className="hidden sm:inline">Change</span>
+                        <span className="sm:hidden">Edit</span>
+                      </Button>
+                    )}
                   </div>
                 ) : (
                   <Button
@@ -348,6 +420,26 @@ export default function AnswerPage() {
         checklistId={id}
         onAssignAuditor={handleAssignAuditor}
       />
+
+      {/* Description Dialog */}
+      <Dialog open={descriptionDialogOpen} onOpenChange={setDescriptionDialogOpen}>
+        <DialogContent className="sm:max-w-[500px]">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Info className="w-5 h-5 text-primary" />
+              Checklist Description
+            </DialogTitle>
+            <DialogDescription className="text-sm text-gray-500">
+              Full details for {checklist.name}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="mt-4 max-h-[60vh] overflow-y-auto pr-2">
+            <p className="text-sm text-gray-600 leading-relaxed whitespace-pre-wrap break-words">
+              {checklist.description}
+            </p>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

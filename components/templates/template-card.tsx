@@ -1,15 +1,16 @@
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Building, Calendar, FileText, Plus } from "lucide-react";
+import { Building, Calendar, FileText, Plus, Eye } from "lucide-react";
 import { PublicChecklist } from "@/lib/services/checklist/models";
 
 interface TemplateCardProps {
   template: PublicChecklist;
   onAddToChecklist: (template: PublicChecklist) => void;
   isAssigning: boolean;
+  onPreview?: (template: PublicChecklist) => void;
 }
 
-export function TemplateCard({ template, onAddToChecklist, isAssigning }: TemplateCardProps) {
+export function TemplateCard({ template, onAddToChecklist, isAssigning, onPreview }: TemplateCardProps) {
   return (
     <div 
       className={`border rounded-lg transition-colors bg-white cursor-pointer ${
@@ -50,12 +51,28 @@ export function TemplateCard({ template, onAddToChecklist, isAssigning }: Templa
 
         <div className="flex items-center justify-between text-sm text-gray-500">
           <span>{template.item_count} items</span>
-          {isAssigning && (
-            <div className="flex items-center text-blue-600">
-              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600 mr-2"></div>
-              Adding...
-            </div>
-          )}
+          <div className="flex items-center gap-2">
+            {isAssigning && (
+              <div className="flex items-center text-blue-600">
+                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600 mr-2"></div>
+                Adding...
+              </div>
+            )}
+            {onPreview && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onPreview(template);
+                }}
+                className="text-xs"
+              >
+                <Eye className="w-3 h-3 mr-1" />
+                Preview
+              </Button>
+            )}
+          </div>
         </div>
       </div>
     </div>

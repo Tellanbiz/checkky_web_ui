@@ -46,7 +46,7 @@ export const sidebarNavItems: SidebarNavItem[] = [
         defaultExpanded: false,
         children: [
             {
-                name: "Ongoing Checklist",
+                name: "My Checklist",
                 href: "/dashboard/checklists",
             },
             {
@@ -55,7 +55,7 @@ export const sidebarNavItems: SidebarNavItem[] = [
             },
             {
                 name: "Available Templates",
-                href: "/dashboard/checklists/my",
+                href: "/dashboard/checklists/available",
             },
             {
                 name: "Template Library",
@@ -96,21 +96,8 @@ export const sidebarNavItems: SidebarNavItem[] = [
         icon: ClipboardCheck,
         collapsible: true,
         defaultExpanded: false,
-        badge: "In Development",
-        children: [
-            {
-                name: "Ongoing Audits",
-                href: "/dashboard/audits/ongoing",
-            },
-            {
-                name: "Completed Audits",
-                href: "/dashboard/audits/completed",
-            },
-            {
-                name: "Auditors",
-                href: "/dashboard/audits/auditors",
-            },
-        ],
+        href: "/dashboard/audits",
+   
     },
     {
         name: "Account Settings",

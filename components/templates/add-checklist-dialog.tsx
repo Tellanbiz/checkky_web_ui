@@ -3,6 +3,8 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { PublicChecklist } from "@/lib/services/checklist/models";
+import { Eye } from "lucide-react";
+import { useRouter } from "next/navigation";
 
 interface AddChecklistDialogProps {
   open: boolean;
@@ -10,6 +12,7 @@ interface AddChecklistDialogProps {
   template: PublicChecklist | null;
   onConfirm: (title: string, description: string) => Promise<void>;
   isSubmitting: boolean;
+  onPreview?: (template: PublicChecklist) => void;
 }
 
 export function AddChecklistDialog({
@@ -18,7 +21,9 @@ export function AddChecklistDialog({
   template,
   onConfirm,
   isSubmitting,
+  onPreview,
 }: AddChecklistDialogProps) {
+  const router = useRouter();
   const [checklistTitle, setChecklistTitle] = useState("");
   const [checklistDescription, setChecklistDescription] = useState("");
 
@@ -105,6 +110,14 @@ export function AddChecklistDialog({
           >
             Cancel
           </Button>
+         <Button
+              variant="outline"
+              onClick={() => template && router.push(`/dashboard/checklists/${template.id}`)}
+              className="px-8 h-10"
+            >
+              <Eye className="w-4 h-4 mr-2" />
+              Preview
+            </Button>
           <Button
             onClick={handleConfirm}
             disabled={!checklistTitle.trim() || isSubmitting}

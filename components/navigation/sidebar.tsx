@@ -117,8 +117,8 @@ export function Sidebar({ account, mobile = false }: SidebarProps) {
     }
 
     if (isItemCollapsible && item.children && item.children.length > 0) {
-      // Navigate to the first child for collapsible items
-      router.push(item.children[0].href || "/");
+      // Toggle expansion for collapsible items instead of navigating
+      toggleSection(item.name);
     } else if (item.href) {
       if (item.isExternal) {
         // Open external links in a new window/tab
@@ -130,7 +130,7 @@ export function Sidebar({ account, mobile = false }: SidebarProps) {
     }
 
     // Close mobile sidebar after navigation
-    if (mobile) {
+    if (mobile && !isItemCollapsible) {
       // This will be handled by the parent component
       setTimeout(() => {
         const event = new CustomEvent("closeMobileSidebar");
@@ -206,13 +206,14 @@ export function Sidebar({ account, mobile = false }: SidebarProps) {
             <div key={`${itemIndex}-${item.name}`} className="space-y-1">
               <div
                 className={cn(
-                  "flex items-center px-3 py-2 text-sm font-semibold rounded-lg transition-colors cursor-pointer",
+                  "flex items-center px-3 py-2 text-sm font-semibold rounded-lg transition-colors cursor-pointer relative",
                   isSectionActive
                     ? "bg-primary/5 text-primary"
                     : "text-gray-700 hover:bg-gray-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
                 )}
                 onClick={() => handleItemClick(item)}
               >
+               
                 {item.icon && (
                   <item.icon
                     className={cn(
@@ -255,11 +256,14 @@ export function Sidebar({ account, mobile = false }: SidebarProps) {
               {isCollapsible && (
                 <div
                   className={cn(
-                    "space-y-1 transition-all duration-200 ease-in-out",
+                    "relative space-y-1 transition-all duration-200 ease-in-out",
                     !isExpanded && "hidden"
                   )}
                 >
-                  {item.children?.map((child) => {
+                  {/* Vertical line connecting to children */}
+                  <div className="absolute left-0 top-0 bottom-0 w-0.5 bg-gray-200 rounded-full ml-3" />
+                  
+                  {item.children?.map((child, childIndex) => {
                     const isChildActive = child.href === activeHref;
 
                     return (
@@ -268,13 +272,15 @@ export function Sidebar({ account, mobile = false }: SidebarProps) {
                         href={child.href || "#"}
                         aria-current={isChildActive ? "page" : undefined}
                         className={cn(
-                          "flex items-center px-3 py-2 text-sm font-semibold rounded-lg transition-colors",
+                          "flex items-center px-3 py-2 text-sm font-semibold rounded-lg transition-colors relative",
                           child.icon ? "ml-6" : "ml-10",
                           isChildActive
                             ? "text-primary"
                             : "text-gray-600 hover:bg-gray-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
                         )}
                       >
+                        {/* Horizontal line connecting child to vertical line */}
+                        
                         {child.icon && (
                           <child.icon
                             className={cn(

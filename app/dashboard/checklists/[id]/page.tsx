@@ -1,22 +1,91 @@
 "use client";
 
 import { useState, use } from "react";
-import { useRouter } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
 import TextField from "@/components/common/text-field";
 import { Button } from "@/components/ui/button";
 import { QuestionWidgetFactory } from "@/components/checklist/forms/QuestionWidgetFactory";
 import { PreviewWidgetFactory } from "@/components/checklist/forms/PreviewWidgetFactory";
-import { CheckCircleIcon, SearchIcon, FileTextIcon, Users } from "lucide-react";
+import { CheckCircleIcon, SearchIcon, FileTextIcon, Users, Info, Loader2 } from "lucide-react";
 import { getChecklistsInfo } from "@/lib/services/checklist/actions";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from "@/components/ui/dialog";
+
+// Simple Table of Contents component for regular checklists
+function ChecklistTableOfContents({ 
+  checklist, 
+  onSectionClick, 
+  activeSection 
+}: { 
+  checklist: any; 
+  onSectionClick: (sectionIndex: number) => void; 
+  activeSection?: number;
+}) {
+  return (
+    <div className="h-fit sticky top-6">
+      {/* Header */}
+      <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-lg p-4 mb-4 border border-blue-100">
+        <div className="flex items-center gap-2 mb-2">
+          <FileTextIcon className="w-5 h-5 text-blue-600" />
+          <h3 className="text-base font-semibold text-gray-900">Table of Contents</h3>
+        </div>
+        <p className="text-sm text-gray-600 truncate">{checklist.name}</p>
+      </div>
+
+      {/* Sections List */}
+      <div className="space-y-1">
+        {checklist.sections.map((section: any, sectionIndex: number) => {
+          const isActive = activeSection === sectionIndex;
+          const totalQuestions = section.questions.length;
+
+          return (
+            <div key={sectionIndex} className="rounded-lg overflow-hidden border border-gray-200 bg-white">
+              <div
+                className={`flex items-center justify-between p-3 cursor-pointer transition-all ${
+                  isActive 
+                    ? 'bg-blue-50 border-l-4 border-l-blue-500' 
+                    : 'hover:bg-gray-50 border-l-4 border-l-transparent'
+                }`}
+                onClick={() => onSectionClick(sectionIndex)}
+              >
+                <div className="flex items-center gap-2 flex-1 min-w-0">
+                  <span className="w-5 h-5 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center text-xs font-semibold flex-shrink-0">
+                    {section.order_index}
+                  </span>
+                  <span className="text-sm font-medium text-gray-900 truncate">
+                    {section.question_group}
+                  </span>
+                </div>
+                <div className="flex items-center gap-2 flex-shrink-0">
+                  <span className="text-xs text-gray-500">
+                    {totalQuestions} {totalQuestions === 1 ? 'item' : 'items'}
+                  </span>
+                </div>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
 
 export default function ChecklistDetailPage({
   params,
 }: {
   params: Promise<{ id: string }>;
 }) {
-  const { id } = use(params);
+  const resolvedParams = use(params);
+  const id = resolvedParams.id;
   const [searchQuery, setSearchQuery] = useState("");
+  const [descriptionDialogOpen, setDescriptionDialogOpen] = useState(false);
+  const [activeSection, setActiveSection] = useState<number | undefined>();
   const router = useRouter();
 
   // TanStack Query for fetching checklist data
@@ -51,6 +120,7 @@ export default function ChecklistDetailPage({
   const tocSections = filteredSections ?? [];
   const getSectionId = (orderIndex: number) => `section-${orderIndex}`;
   const scrollToSection = (orderIndex: number) => {
+    setActiveSection(orderIndex);
     const el = document.getElementById(getSectionId(orderIndex));
     el?.scrollIntoView({ behavior: "smooth", block: "start" });
   };
@@ -63,7 +133,7 @@ export default function ChecklistDetailPage({
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-16 w-16 border-4 border-primary border-t-transparent mx-auto mb-4"></div>
+          <Loader2 className="animate-spin rounded-full h-16 w-16 border-4 border-primary border-t-transparent mx-auto mb-4" />
           <p className="text-lg text-gray-600 font-medium">
             Loading checklist details...
           </p>
@@ -119,123 +189,89 @@ export default function ChecklistDetailPage({
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Top Navigation Bar */}
-      <div className="bg-white shadow-sm border-b border-gray-200">
-        <div className="max-w-7xl mx-auto px-2 sm:px-3 lg:px-4">
-          <div className="flex flex-col gap-4 py-6 sm:flex-row sm:items-center sm:justify-between">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-gray-100 rounded-xl flex items-center justify-center">
-                <FileTextIcon className="w-5 h-5 text-gray-700" />
-              </div>
-              <div>
-                <h1 className="text-2xl font-bold text-gray-900">
-                  {checklist.name}
-                </h1>
-                <p className="text-sm text-gray-600">{checklist.description}</p>
-              </div>
-            </div>
-
-            <div className="flex flex-col gap-3 w-full sm:w-auto sm:flex-row sm:items-center">
-              {/* Assign Button */}
-              <Button
-                onClick={handleAssignChecklist}
-                className="bg-primary hover:bg-primary/90 text-primary-foreground font-medium rounded-full w-full sm:w-auto"
-              >
-                <Users className="mr-2 h-4 w-4" />
-                Assign Checklist
-              </Button>
-
-              {/* Search Field */}
-              <div className="relative w-full sm:w-80">
-                <div className="absolute inset-y-0 left-0 pl-2 flex items-center pointer-events-none">
-                  <SearchIcon className="h-5 w-5 text-gray-400" />
+      {/* Top Navigation */}
+      <div className="bg-white border-b border-gray-200">
+        <div className="px-4">
+          <div className="py-4 sm:py-6">
+            <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+              <div className="flex-1">
+                <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3 mb-2">
+                  <h1 className="text-xl sm:text-2xl font-bold text-gray-900 break-words">
+                    {checklist.name}
+                  </h1>
                 </div>
-                <TextField
-                  placeholder="Search sections and questions..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-8 pr-3 py-2 w-full border-gray-200 focus:border-primary focus:ring-primary"
-                />
+                
+              </div>
+
+              <div className="flex flex-row space-x-4 gap-3 sm:items-end">
+                {checklist.description && (
+                    <Button
+                      variant="outline"
+                      onClick={() => setDescriptionDialogOpen(true)}
+                      className="text-xs rounded-full"
+                    >
+                      Show Description
+                    </Button>
+                )}
+
+                {/* Assign Button */}
+                <Button
+                  onClick={handleAssignChecklist}
+                  className="bg-primary hover:bg-primary/90 text-primary-foreground font-medium rounded-full text-sm w-full sm:w-auto justify-center"
+                  size="sm"
+                >
+                  <Users className="mr-1.5 h-4 w-4" />
+                  <span className="hidden sm:inline">Assign Checklist</span>
+                  <span className="sm:hidden">Assign</span>
+                </Button>
+
+                {/* Search Field */}
+                <div className="relative w-full sm:w-80">
+                  <div className="absolute inset-y-0 left-0 pl-2 flex items-center pointer-events-none">
+                    <SearchIcon className="h-5 w-5 text-gray-400" />
+                  </div>
+                  <TextField
+                    placeholder="Search sections and questions..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="pl-8 pr-3 py-2 w-full border-gray-200 focus:border-primary focus:ring-primary"
+                  />
+                </div>
               </div>
             </div>
           </div>
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="grid grid-cols-1 lg:grid-cols-[320px_1fr] gap-8">
-          {/* Table of Contents Sidebar */}
-          <div className="hidden lg:block">
-            <div className="sticky top-8 bg-white rounded-2xl border border-gray-200 p-6 shadow-sm">
-              <div className="font-semibold text-gray-900 mb-4 text-lg">
-                Contents
-              </div>
-              <div className="space-y-1">
-                {tocSections.length === 0 ? (
-                  <div className="text-sm text-gray-500 italic py-2">
-                    No sections available
-                  </div>
-                ) : (
-                  tocSections.map((section: any) => (
-                    <button
-                      key={section.order_index}
-                      type="button"
-                      onClick={() => scrollToSection(section.order_index)}
-                      className="w-full text-left px-4 py-3 rounded-xl text-sm text-gray-700 hover:bg-primary/5 hover:text-primary hover:border-primary/20 border border-transparent transition-all duration-200 group"
-                    >
-                      <div className="flex items-center gap-3">
-                        <span className="w-6 h-6 bg-gray-100 group-hover:bg-primary/10 text-gray-600 group-hover:text-primary rounded-full flex items-center justify-center text-xs font-semibold transition-colors flex-shrink-0">
-                          {section.order_index}
-                        </span>
-                        <span className="line-clamp-2 font-medium group-hover:text-primary transition-colors">
-                          {section.question_group}
-                        </span>
-                      </div>
-                    </button>
-                  ))
-                )}
-              </div>
-            </div>
+      <div className="flex">
+        {/* Mobile Table of Contents */}
+        <div className="lg:hidden w-full border-b border-gray-200 bg-white">
+          <div className="p-4">
+            <ChecklistTableOfContents 
+              checklist={checklist} 
+              onSectionClick={scrollToSection} 
+              activeSection={activeSection}
+            />
           </div>
+        </div>
 
-          {/* Mobile Table of Contents */}
-          <div className="lg:hidden mb-6">
-            <div className="bg-white rounded-2xl border border-gray-200 p-4 shadow-sm">
-              <div className="font-semibold text-gray-900 mb-3 text-base">
-                Contents
-              </div>
-              <div className="grid gap-2">
-                {tocSections.length === 0 ? (
-                  <div className="text-sm text-gray-500 italic py-2">
-                    No sections available
-                  </div>
-                ) : (
-                  tocSections.map((section: any) => (
-                    <button
-                      key={section.order_index}
-                      type="button"
-                      onClick={() => scrollToSection(section.order_index)}
-                      className="text-left px-3 py-2 rounded-lg border border-gray-200 bg-gray-50 hover:bg-white hover:border-primary/30 transition-all duration-200 group"
-                    >
-                      <div className="flex items-center gap-2">
-                        <span className="w-5 h-5 bg-gray-100 group-hover:bg-primary/10 text-gray-600 group-hover:text-primary rounded-full flex items-center justify-center text-xs font-semibold transition-colors flex-shrink-0">
-                          {section.order_index}
-                        </span>
-                        <span className="text-sm font-medium text-gray-900 group-hover:text-primary line-clamp-1 transition-colors">
-                          {section.question_group}
-                        </span>
-                      </div>
-                    </button>
-                  ))
-                )}
-              </div>
-            </div>
+        {/* Sidebar - Table of Contents (Desktop Only) */}
+        <div className="hidden lg:block w-80 border-r border-gray-200 bg-white">
+          <div className="sticky top-0 p-4 max-h-screen overflow-y-auto">
+            <ChecklistTableOfContents 
+              checklist={checklist} 
+              onSectionClick={scrollToSection} 
+              activeSection={activeSection}
+            />
           </div>
+        </div>
 
-          {/* Main Content Area */}
-          <div className="space-y-6">
+        {/* Main Content */}
+        <div className="flex-1 p-3 sm:p-4 md:p-6 lg:p-8">
+          <div className="max-w-4xl mx-auto space-y-4 sm:space-y-6">
+            {/* Questions by Section */}
             {filteredSections?.length === 0 ? (
-              <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-12 text-center">
+              <div className="bg-white rounded-xl sm:rounded-2xl shadow-sm border border-gray-200 p-12 text-center">
                 <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
                   <SearchIcon className="w-8 h-8 text-gray-400" />
                 </div>
@@ -247,22 +283,24 @@ export default function ChecklistDetailPage({
                 </p>
               </div>
             ) : (
-              <div className="space-y-6">
+              <div className="space-y-4 sm:space-y-6">
                 {filteredSections?.map((section: any) => (
                   <div
                     key={section.order_index}
                     id={getSectionId(section.order_index)}
-                    className="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden"
+                    className="bg-white rounded-xl sm:rounded-2xl border border-gray-200 overflow-hidden shadow-sm"
                   >
-                    <div className="bg-gray-50 px-6 py-4 border-b border-gray-200">
-                      <h2 className="text-lg font-semibold text-gray-900 flex items-center gap-3">
-                        <span className="w-8 h-8 bg-primary text-primary-foreground rounded-full flex items-center justify-center text-sm font-bold">
+                    <div className="bg-gray-50 px-4 sm:px-6 py-3 sm:py-4 border-b border-gray-200">
+                      <h2 className="text-base sm:text-lg font-semibold text-gray-900 flex items-center gap-2 sm:gap-3">
+                        <span className="w-6 h-6 sm:w-8 sm:h-8 bg-primary text-primary-foreground rounded-full flex items-center justify-center text-xs sm:text-sm font-bold">
                           {section.order_index}
                         </span>
-                        {section.question_group}
+                        <span className="break-words">
+                          {section.question_group}
+                        </span>
                       </h2>
                     </div>
-                    <div className="p-6 space-y-6">
+                    <div className="p-4 sm:p-6 space-y-4 sm:space-y-6">
                       {section.questions
                         .filter(
                           (question: any) =>
@@ -292,6 +330,26 @@ export default function ChecklistDetailPage({
           </div>
         </div>
       </div>
+
+      {/* Description Dialog */}
+      <Dialog open={descriptionDialogOpen} onOpenChange={setDescriptionDialogOpen}>
+        <DialogContent className="sm:max-w-[500px]">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Info className="w-5 h-5 text-primary" />
+              Checklist Description
+            </DialogTitle>
+            <DialogDescription className="text-sm text-gray-500">
+              Full details for {checklist.name}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="mt-4 max-h-[60vh] overflow-y-auto pr-2">
+            <p className="text-sm text-gray-600 leading-relaxed whitespace-pre-wrap break-words">
+              {checklist.description}
+            </p>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

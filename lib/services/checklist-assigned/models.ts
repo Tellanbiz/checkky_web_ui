@@ -48,6 +48,7 @@ export interface AssignedChecklistWithAnswer {
     id: string;
     member_id: string;
     role: string;
+    checklist_status: string
   },
   sections: {
     order_index: number;

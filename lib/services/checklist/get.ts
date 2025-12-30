@@ -4,8 +4,9 @@ import { clientV1 } from "@/lib/client/client";
 import { AssignedChecklist, CheckList, ChecklistInfo, PublicChecklist } from "./models";
 import { getAccessToken } from "../auth/auth-get";
 
-export async function getChecklists(name?: string): Promise<CheckList[]> {
-    const res = await clientV1.get<CheckList[]>(`/checklists?name=${name ?? "none"}`, {
+export async function getChecklists(name?: string, status?: string): Promise<CheckList[]> {
+    var url = `/checklists?name=${name ?? "none"}&status=${status ?? "none"}`
+    const res = await clientV1.get<CheckList[]>(url, {
         headers: {
             Authorization: `Bearer ${await getAccessToken()}`,
         },
