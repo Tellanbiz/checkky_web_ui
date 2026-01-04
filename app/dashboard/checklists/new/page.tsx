@@ -214,7 +214,7 @@ export default function NewChecklistPage() {
         description: `Your checklist "${formData.name}" has been created and is now available for use in workflows.`,
       });
 
-      router.push("/dashboard/checklists/available?refresh=true");
+      router.push("/dashboard/checklists/available");
     } catch (error) {
       setUploadProgress(0);
       // Error handling is done in the hook

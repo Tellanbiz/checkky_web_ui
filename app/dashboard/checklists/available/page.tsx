@@ -5,25 +5,11 @@ import { useAvailableFilterActions } from "@/lib/provider/checklists/index";
 import { Input } from "@/components/ui/input";
 import { Search, Filter, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { useRouter, useSearchParams } from "next/navigation";
-import { useEffect } from "react";
+import { useRouter } from "next/navigation";
 
 export default function MyChecklistsPage() {
   const availableActions = useAvailableFilterActions();
   const router = useRouter();
-  const searchParams = useSearchParams();
-
-  // Check if we need to refresh (coming from new checklist creation)
-  useEffect(() => {
-    if (searchParams.get("refresh") === "true") {
-      // Remove the refresh parameter
-      const newUrl = window.location.pathname;
-      router.replace(newUrl);
-      
-      // Trigger a refresh by clearing the query cache
-      window.location.reload();
-    }
-  }, [searchParams, router]);
 
   const handleNewChecklist = () => {
     router.push("/dashboard/checklists/new");
