@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { PublicChecklist } from "@/lib/services/checklist/models";
@@ -28,7 +28,7 @@ import {
   Zap,
 } from "lucide-react";
 
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { AddChecklistDialog } from "@/components/templates/add-checklist-dialog";
 import { TemplateCard } from "@/components/templates/template-card";
 import { useQuery } from "@tanstack/react-query";
@@ -59,6 +59,7 @@ const CATEGORIES = [
 export default function TemplatesPage() {
   const { toast } = useToast();
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] =
     useState<(typeof CATEGORIES)[number]["value"]>("none");
@@ -80,6 +81,18 @@ export default function TemplatesPage() {
       getPublicChecklists(searchTerm || "none", 0, selectedCategory),
     staleTime: 5 * 60 * 1000, // 5 minutes
   });
+
+  // Check if we need to refresh (coming from template copying)
+  useEffect(() => {
+    if (searchParams.get("refresh") === "true") {
+      // Remove the refresh parameter
+      const newUrl = window.location.pathname;
+      router.replace(newUrl);
+      
+      // Trigger a refresh by invalidating the query
+      refetchTemplates();
+    }
+  }, [searchParams, router, refetchTemplates]);
 
   const handleSearch = (value: string) => {
     setSearchTerm(value);
@@ -110,8 +123,8 @@ export default function TemplatesPage() {
       setShowDialog(false);
       setSelectedTemplate(null);
 
-      // Navigate to checklists page with available tab
-      router.push("/dashboard/checklists?tab=available");
+      // Navigate to checklists page with available tab and refresh flag
+      router.push("/dashboard/checklists/available?refresh=true");
     } catch (error) {
       console.error("Failed to copy checklist:", error);
       toast({
