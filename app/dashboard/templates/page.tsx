@@ -79,6 +79,15 @@ export default function TemplatesPage() {
     queryFn: () =>
       getPublicChecklists(searchTerm || "none", 0, selectedCategory),
     staleTime: 5 * 60 * 1000, // 5 minutes
+    retry: (failureCount, error: any) => {
+      // Don't retry on 502 errors (server issues)
+      if (error?.response?.status === 502) {
+        return false;
+      }
+      // Retry up to 2 times for other errors
+      return failureCount < 2;
+    },
+    retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 5000),
   });
 
   const handleSearch = (value: string) => {
@@ -127,21 +136,28 @@ export default function TemplatesPage() {
 
   // Handle errors
   if (templatesError) {
+    const is502Error = (templatesError as any)?.response?.status === 502;
+    
     return (
       <div className="flex-1 space-y-4 p-4 md:p-8 pt-6">
         <div className="flex items-center justify-center h-64">
-          <div className="text-red-500 text-center">
-            <p className="text-lg font-semibold">Error loading templates</p>
-            <p className="text-sm text-gray-600">
-              {templatesError instanceof Error
-                ? templatesError.message
-                : "Failed to load templates"}
+          <div className="text-red-500 text-center max-w-md">
+            <p className="text-lg font-semibold">
+              {is502Error ? "Server Temporarily Unavailable" : "Error loading templates"}
+            </p>
+            <p className="text-sm text-gray-600 mt-2">
+              {is502Error 
+                ? "The server is temporarily down for maintenance. Please try again in a few minutes."
+                : templatesError instanceof Error
+                  ? templatesError.message
+                  : "Failed to load templates"
+              }
             </p>
             <button
               onClick={() => refetchTemplates()}
-              className="mt-4 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+              className="mt-4 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors"
             >
-              Retry
+              {is502Error ? "Try Again" : "Retry"}
             </button>
           </div>
         </div>

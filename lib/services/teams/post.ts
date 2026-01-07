@@ -22,3 +22,12 @@ export async function acceptTeamInvite(token: string, invite_id: string, accepte
     return response.data;
 }
 
+export async function updateTeamMemberRole(token: string, member_id: string | number, role: string): Promise<Result> {
+    const response = await clientV1.put<Result>('/companies/team/members/role', { member_id: String(member_id), role }, {
+        headers: {
+            Authorization: `Bearer ${token}`,
+        },
+    });
+    return response.data;
+}
+

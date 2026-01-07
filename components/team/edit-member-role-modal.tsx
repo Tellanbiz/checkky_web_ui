@@ -22,6 +22,7 @@ import { Shield, UserCheck, Eye, Users, Save, X, Loader2 } from "lucide-react";
 import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { TeamMember } from "@/lib/services/teams/data";
+import { updateTeamMemberRoleAction } from "@/lib/services/teams/actions";
 
 interface EditMemberRoleModalProps {
   isOpen: boolean;
@@ -118,8 +119,11 @@ export function EditMemberRoleModal({
 
     setLoading(true);
     try {
-      // TODO: Implement actual role update API call
-      // const result = await updateMemberRoleAction(member.id, selectedRole);
+      const result = await updateTeamMemberRoleAction(member.id, selectedRole);
+
+      if (!result.success) {
+        throw new Error(result.error || "Failed to update member role");
+      }
 
       toast({
         title: "Role Updated",
