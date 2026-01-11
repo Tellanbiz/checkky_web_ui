@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Loader2, RefreshCw } from "lucide-react";
+import { Loader2 } from "lucide-react";
 import { InviteMemberModal } from "@/components/team/invite-member-modal";
 import { ViewProfileModal } from "@/components/team/view-profile-modal";
 import { DeleteConfirmationModal } from "@/components/team/delete-confirmation-modal";
@@ -30,7 +30,12 @@ export default function TeamPage() {
   const { toast } = useToast();
 
   // TanStack Query hooks
-  const { data: teamMembers = [], isLoading, error, refetch } = useTeamMembers();
+  const {
+    data: teamMembers = [],
+    isLoading,
+    error,
+    refetch,
+  } = useTeamMembers();
   const updateRoleMutation = useUpdateTeamMemberRole();
   const removeMemberMutation = useRemoveTeamMember();
 
@@ -73,10 +78,6 @@ export default function TeamPage() {
     setMemberToEditRole(null);
   };
 
-  const handleRefresh = async () => {
-    await refetch();
-  };
-
   const handleInviteMember = () => {
     setShowInviteModal(true);
   };
@@ -104,7 +105,6 @@ export default function TeamPage() {
       {/* Header */}
       <TeamMembersHeader
         onInviteMember={handleInviteMember}
-        onRefresh={handleRefresh}
         isLoading={isLoading}
       />
 

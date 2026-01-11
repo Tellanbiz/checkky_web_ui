@@ -3,6 +3,7 @@ import {
     Book,
     Building2,
     ClipboardCheck,
+    CreditCard,
     FolderOpen,
     HelpCircle,
     LayoutDashboard,
@@ -97,12 +98,17 @@ export const sidebarNavItems: SidebarNavItem[] = [
         collapsible: true,
         defaultExpanded: false,
         href: "/dashboard/audits",
-   
     },
     {
         name: "Account Settings",
         isSectionHeader: true,
         className: "pt-6",
+    },
+    {
+        name: "Payments and Billing",
+        icon: CreditCard,
+        collapsible: false,
+        href: "/dashboard/billing",
     },
     {
         name: "My Workspaces",

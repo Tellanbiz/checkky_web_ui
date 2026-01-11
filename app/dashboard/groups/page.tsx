@@ -157,7 +157,7 @@ function GroupsPageContent() {
   };
 
   // Filter and sort groups
-  const filteredGroups = groups
+  const filteredGroups = (Array.isArray(groups) ? groups : [])
     .filter((group) => {
       if (searchTerm) {
         const searchLower = searchTerm.toLowerCase();

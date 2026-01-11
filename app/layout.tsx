@@ -1,6 +1,7 @@
 import type React from "react";
 import type { Metadata } from "next";
 import { Hanken_Grotesk } from "next/font/google";
+import { PullToRefreshProvider } from "@/components/providers/pull-to-refresh-provider";
 import "./globals.css";
 
 const hankenGrotesk = Hanken_Grotesk({

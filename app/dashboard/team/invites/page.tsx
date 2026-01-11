@@ -6,8 +6,13 @@ import { useToast } from "@/hooks/use-toast";
 import { TeamInvite } from "@/lib/services/teams/data";
 import { DeleteConfirmationModal } from "@/components/team/delete-confirmation-modal";
 import { InviteMemberModal } from "@/components/team/invite-member-modal";
-import { useTeamInvites, useInviteTeamMember, useResendTeamInvite, InvitesHeader, InvitesTable } from "@/components/team/invites";
-
+import {
+  useTeamInvites,
+  useInviteTeamMember,
+  useResendTeamInvite,
+  InvitesHeader,
+  InvitesTable,
+} from "@/components/team/invites";
 
 export default function Page() {
   const [showInviteModal, setShowInviteModal] = useState(false);
@@ -26,25 +31,12 @@ export default function Page() {
   };
 
   const confirmDelete = () => {
-    console.log("Deleting invite:", itemToDelete);
-    // Here you would actually delete the invite
     setShowDeleteModal(false);
     setItemToDelete(null);
   };
 
-  const handleInviteSent = async (inviteData: {
-    email: string;
-    role: "admin" | "auditor" | "assignee" | "viewer";
-  }) => {
-    inviteMutation.mutate(inviteData);
-  };
-
   const handleResendInvite = (invite: TeamInvite) => {
     resendMutation.mutate(invite);
-  };
-
-  const handleRefresh = async () => {
-    await refetch();
   };
 
   const handleInviteMember = () => {
@@ -62,11 +54,7 @@ export default function Page() {
   return (
     <div className="space-y-6 p-8">
       {/* Header */}
-      <InvitesHeader
-        onInviteMember={handleInviteMember}
-        onRefresh={handleRefresh}
-        isRefreshing={isLoading}
-      />
+      <InvitesHeader onInviteMember={handleInviteMember} />
 
       {/* Team Invites Table */}
       <div className="space-y-4">

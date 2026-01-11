@@ -6,10 +6,11 @@ import { AuditsTabNavigation } from "../../../components/audits/navigation/tab-n
 import { OngoingAuditList } from "@/components/audits/ongoing-audit-list";
 import { CompletedAuditList } from "@/components/audits/completed-audit-list";
 import { getAudits } from "@/lib/services/auditors/get";
-import { GetOngoingAuditsRow } from "@/lib/services/auditors/data";
 
 export default function AuditsPage() {
-  const [activeTab, setActiveTab] = useState<'ongoing' | 'completed'>('ongoing');
+  const [activeTab, setActiveTab] = useState<"ongoing" | "completed">(
+    "ongoing"
+  );
 
   // Helper functions
   const getPriorityColor = (priority: string) => {
@@ -59,51 +60,52 @@ export default function AuditsPage() {
   };
 
   // TanStack Query for ongoing audits
-  const { data: ongoingAudits = [], isLoading: isLoadingOngoing, refetch: refetchOngoing } = useQuery({
-    queryKey: ['audits', 'pending'],
-    queryFn: () => getAudits('pending'),
+  const {
+    data: ongoingAudits = [],
+    isLoading: isLoadingOngoing,
+    refetch: refetchOngoing,
+  } = useQuery({
+    queryKey: ["audits", "pending"],
+    queryFn: () => getAudits("pending"),
+    staleTime: 0,
+    gcTime: 0,
+    refetchOnWindowFocus: true,
+    refetchOnReconnect: true,
   });
 
   // TanStack Query for completed audits
-  const { data: completedAudits = [], isLoading: isLoadingCompleted, refetch: refetchCompleted } = useQuery({
-    queryKey: ['audits', 'completed'],
-    queryFn: () => getAudits('completed'),
+  const {
+    data: completedAudits = [],
+    isLoading: isLoadingCompleted,
+    refetch: refetchCompleted,
+  } = useQuery({
+    queryKey: ["audits", "completed"],
+    queryFn: () => getAudits("completed"),
+    staleTime: 0,
+    gcTime: 0,
+    refetchOnWindowFocus: true,
+    refetchOnReconnect: true,
   });
 
-  const handleRefresh = () => {
-    if (activeTab === 'ongoing') {
-      refetchOngoing();
-    } else {
-      refetchCompleted();
-    }
-  };
-
   return (
-    <div className="">
+    <div className="min-h-screen bg-background">
       {/* Tab Navigation */}
-      <AuditsTabNavigation
-        activeTab={activeTab}
-        onTabChange={setActiveTab}
-        onRefresh={handleRefresh}
-        onFilter={() => {
-          // Add filter functionality here
-        }}
-      />
+      <AuditsTabNavigation activeTab={activeTab} onTabChange={setActiveTab} />
 
       {/* Header with Search */}
-      <div className="flex flex-col gap-4 p-4 pt-6">
+      <div className="flex flex-col gap-4 p-3 sm:p-4 pt-4 sm:pt-6">
         {/* Search, Filters and Action Buttons Row */}
-        <div className="flex flex-col lg:flex-row items-start lg:items-center gap-3 lg:gap-4">
-          <div className="relative w-full lg:max-w-xs flex-1">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 sm:gap-4">
+          <div className="relative w-full sm:max-w-xs flex-1">
             {/* Add search functionality here if needed */}
           </div>
         </div>
       </div>
 
       {/* Tab Content */}
-      <div className="px-4 md:px-8 pb-8">
-        {activeTab === 'ongoing' ? (
-          <OngoingAuditList 
+      <div className="px-3 sm:px-4 lg:px-8 pb-8">
+        {activeTab === "ongoing" ? (
+          <OngoingAuditList
             audits={ongoingAudits}
             getPriorityColor={getPriorityColor}
             getStatusColor={getStatusColor}
@@ -112,7 +114,7 @@ export default function AuditsPage() {
             calculateProgress={calculateProgress}
           />
         ) : (
-          <CompletedAuditList 
+          <CompletedAuditList
             audits={completedAudits}
             getPriorityColor={getPriorityColor}
             getInitials={getInitials}
@@ -124,4 +126,3 @@ export default function AuditsPage() {
     </div>
   );
 }
-
