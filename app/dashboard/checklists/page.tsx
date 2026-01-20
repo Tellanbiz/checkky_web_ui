@@ -4,7 +4,8 @@ import { EditChecklistModal } from "@/components/modals/edit-checklist-modal";
 import { OngoingChecklist } from "../../../components/checklist/ongoing-checklist";
 import { CompletedChecklists } from "../../../components/checklist/completed_checklists";
 import { ChecklistTabNavigation } from "../../../components/checklist/navigation/tab-navigation";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -23,6 +24,10 @@ import {
   useOngoingFilterActions,
   useChecklistFilterStore,
 } from "@/lib/provider/checklists/index";
+import { useQuery } from "@tanstack/react-query";
+import { getGroups } from "@/lib/services/groups";
+import { buildGroupTree } from "@/lib/utils/group-tree";
+import type { GroupTreeNode } from "@/lib/utils/group-tree";
 
 export default function ChecklistsPage() {
   return <ChecklistsPageContent />;
@@ -40,7 +45,45 @@ function ChecklistsPageContent() {
   const [showDetailsModal, setShowDetailsModal] = useState(false);
   const [selectedChecklistForDetails, setSelectedChecklistForDetails] =
     useState<any>(null);
-  const [activeTab, setActiveTab] = useState<'ongoing' | 'completed'>('ongoing');
+  const [activeTab, setActiveTab] = useState<"ongoing" | "completed">(
+    "ongoing",
+  );
+  const searchParams = useSearchParams();
+  const [selectedGroupId, setSelectedGroupId] = useState<string | null>(null);
+
+  // Sync selectedGroupId with URL query parameter
+  useEffect(() => {
+    const groupParam = searchParams.get("group");
+    if (groupParam) {
+      setSelectedGroupId(groupParam);
+    }
+  }, [searchParams]);
+
+  const { data: groups = [] } = useQuery({
+    queryKey: ["groups"],
+    queryFn: getGroups,
+    staleTime: 1000 * 60 * 5,
+  });
+
+  const groupTree = buildGroupTree(groups);
+
+  const renderGroupOption = (
+    node: GroupTreeNode,
+    depth: number = 0,
+  ): React.JSX.Element[] => {
+    const indent = "\u00A0\u00A0".repeat(depth);
+    const result: React.JSX.Element[] = [
+      <SelectItem key={node.group.id} value={node.group.id}>
+        {indent}
+        {depth > 0 && "└ "}
+        {node.group.name} ({node.group.no_of_checklists})
+      </SelectItem>,
+    ];
+    node.children.forEach((child) => {
+      result.push(...renderGroupOption(child, depth + 1));
+    });
+    return result;
+  };
 
   const handleEditChecklist = (checklist: any) => {
     setSelectedChecklist(checklist);
@@ -125,18 +168,41 @@ function ChecklistsPageContent() {
                 <SelectItem value="overdue">Overdue</SelectItem>
               </SelectContent>
             </Select>
-          </div>
 
+            <Select
+              value={selectedGroupId || "all"}
+              onValueChange={(value) => {
+                const newValue = value === "all" ? null : value;
+                setSelectedGroupId(newValue);
+                // Update URL to reflect the filter
+                if (newValue) {
+                  router.push(`/dashboard/checklists?group=${newValue}`);
+                } else {
+                  router.push("/dashboard/checklists");
+                }
+              }}
+            >
+              <SelectTrigger className="w-full lg:w-[180px] bg-white">
+                <SelectValue placeholder="All Groups" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Groups</SelectItem>
+                <SelectItem value="none">No Group</SelectItem>
+                {groupTree.map((node) => renderGroupOption(node))}
+              </SelectContent>
+            </Select>
+          </div>
         </div>
       </div>
 
       {/* Tab Content */}
       <div className="px-4 md:px-8 pb-8">
-        {activeTab === 'ongoing' ? (
+        {activeTab === "ongoing" ? (
           <OngoingChecklist
             onEditChecklist={handleEditChecklist}
             onDeleteChecklist={handleDeleteChecklist}
             onViewDetails={handleViewDetails}
+            groupId={selectedGroupId}
           />
         ) : (
           <CompletedChecklists

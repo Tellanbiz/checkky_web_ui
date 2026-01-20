@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import React, { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { Loader2 } from "lucide-react";
@@ -18,6 +18,8 @@ import {
   GroupsEmptyState,
   GroupDialog,
 } from "@/components/groups";
+import { buildGroupTree } from "@/lib/utils/group-tree";
+import type { GroupTreeNode } from "@/lib/utils/group-tree";
 
 export default function GroupsPage() {
   return <GroupsPageContent />;
@@ -32,10 +34,12 @@ function GroupsPageContent() {
   const [selectedGroup, setSelectedGroup] = useState<Group | null>(null);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [groupToDelete, setGroupToDelete] = useState<Group | null>(null);
+  const [expandedGroups, setExpandedGroups] = useState<Set<string>>(new Set());
   const [formData, setFormData] = useState({
     name: "",
     description: "",
     color: "bg-blue-100 text-blue-800",
+    parent_group_id: "",
   });
 
   const {
@@ -56,6 +60,7 @@ function GroupsPageContent() {
         name: "",
         description: "",
         color: "bg-blue-100 text-blue-800",
+        parent_group_id: "",
       });
       setIsAddDialogOpen(false);
       toast.success("Group added successfully");
@@ -74,6 +79,7 @@ function GroupsPageContent() {
         name: "",
         description: "",
         color: "bg-blue-100 text-blue-800",
+        parent_group_id: "",
       });
       setIsEditDialogOpen(false);
       setSelectedGroup(null);
@@ -104,6 +110,9 @@ function GroupsPageContent() {
     createMutation.mutate({
       name: formData.name,
       description: formData.description,
+      parent_group_id: formData.parent_group_id
+        ? Number(formData.parent_group_id)
+        : undefined,
     });
   };
 
@@ -120,6 +129,9 @@ function GroupsPageContent() {
       data: {
         name: formData.name,
         description: formData.description,
+        parent_group_id: formData.parent_group_id
+          ? Number(formData.parent_group_id)
+          : undefined,
       },
     });
   };
@@ -143,6 +155,7 @@ function GroupsPageContent() {
       name: group.name,
       description: group.description,
       color: "bg-blue-100 text-blue-800", // Default color, not used in dialog
+      parent_group_id: group.parent_group_id ?? "",
     });
     setIsEditDialogOpen(true);
   };
@@ -152,13 +165,14 @@ function GroupsPageContent() {
       name: "",
       description: "",
       color: "bg-blue-100 text-blue-800",
+      parent_group_id: "",
     });
     setSelectedGroup(null);
   };
 
   // Filter and sort groups
-  const filteredGroups = (Array.isArray(groups) ? groups : [])
-    .filter((group) => {
+  const filteredGroups = (Array.isArray(groups) ? groups : []).filter(
+    (group) => {
       if (searchTerm) {
         const searchLower = searchTerm.toLowerCase();
         return (
@@ -167,21 +181,67 @@ function GroupsPageContent() {
         );
       }
       return true;
-    })
-    .sort((a, b) => {
-      switch (sortBy) {
-        case "name":
-          return a.name.localeCompare(b.name);
-        case "created":
-          return (
-            new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-          );
-        case "checklists":
-          return b.no_of_checklists - a.no_of_checklists;
-        default:
-          return 0;
+    },
+  );
+
+  // Build hierarchical tree
+  const groupTree = buildGroupTree(filteredGroups, (a, b) => {
+    switch (sortBy) {
+      case "name":
+        return a.name.localeCompare(b.name);
+      case "created":
+        return (
+          new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+        );
+      case "checklists":
+        return b.no_of_checklists - a.no_of_checklists;
+      default:
+        return 0;
+    }
+  });
+
+  const toggleGroup = (groupId: string) => {
+    setExpandedGroups((prev) => {
+      const newSet = new Set(prev);
+      if (newSet.has(groupId)) {
+        newSet.delete(groupId);
+      } else {
+        newSet.add(groupId);
       }
+      return newSet;
     });
+  };
+
+  const renderGroupNode = (node: GroupTreeNode, depth: number = 0) => {
+    const isExpanded = expandedGroups.has(node.group.id);
+    const hasChildren = node.children.length > 0;
+
+    return (
+      <div key={node.group.id} className="space-y-2">
+        <div style={{ paddingLeft: `${depth * 1.5}rem` }}>
+          <GroupCard
+            group={node.group}
+            onEdit={openEditDialog}
+            onDelete={handleDeleteGroup}
+            isUpdatePending={updateMutation.isPending}
+            isDeletePending={deleteMutation.isPending}
+            hasChildren={hasChildren}
+            isExpanded={isExpanded}
+            onToggle={() => toggleGroup(node.group.id)}
+          />
+        </div>
+        {hasChildren && isExpanded && (
+          <div className="space-y-2">
+            {node.children.map((child) => (
+              <React.Fragment key={child.group.id}>
+                {renderGroupNode(child, depth + 1)}
+              </React.Fragment>
+            ))}
+          </div>
+        )}
+      </div>
+    );
+  };
 
   if (error) {
     return (
@@ -220,27 +280,17 @@ function GroupsPageContent() {
         onAddGroup={() => setIsAddDialogOpen(true)}
       />
 
-      {/* Groups Grid */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-        {filteredGroups.map((group) => (
-          <GroupCard
-            key={group.id}
-            group={group}
-            onEdit={openEditDialog}
-            onDelete={handleDeleteGroup}
-            isUpdatePending={updateMutation.isPending}
-            isDeletePending={deleteMutation.isPending}
+      {/* Groups Hierarchical Display */}
+      <div className="space-y-4">
+        {groupTree.length > 0 ? (
+          groupTree.map((node) => renderGroupNode(node))
+        ) : (
+          <GroupsEmptyState
+            searchTerm={searchTerm}
+            onAddGroup={() => setIsAddDialogOpen(true)}
           />
-        ))}
+        )}
       </div>
-
-      {/* Empty State */}
-      {filteredGroups.length === 0 && (
-        <GroupsEmptyState
-          searchTerm={searchTerm}
-          onAddGroup={() => setIsAddDialogOpen(true)}
-        />
-      )}
 
       {/* Add Group Dialog */}
       <GroupDialog
@@ -255,6 +305,7 @@ function GroupsPageContent() {
         formData={formData}
         onFormDataChange={setFormData}
         isPending={createMutation.isPending}
+        groups={Array.isArray(groups) ? groups : []}
       />
 
       {/* Edit Group Dialog */}
@@ -270,6 +321,8 @@ function GroupsPageContent() {
         formData={formData}
         onFormDataChange={setFormData}
         isPending={updateMutation.isPending}
+        groups={Array.isArray(groups) ? groups : []}
+        currentGroupId={selectedGroup?.id}
       />
 
       {/* Delete Confirmation Modal */}

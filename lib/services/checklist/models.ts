@@ -1,10 +1,10 @@
 export interface CheckList {
-    id: string;
-    name: string;
-    description: string;
-    created_at: string;
-    section_count: number;
-    item_count: number;
+  id: string;
+  name: string;
+  description: string;
+  created_at: string;
+  section_count: number;
+  item_count: number;
 }
 
 export interface ChecklistInfo {
@@ -30,34 +30,35 @@ export interface ChecklistInfo {
 }
 
 export interface AssignedChecklist {
+  id: string;
+  title: string;
+  notes: string;
+  status: 'pending' | 'completed';
+  priority: 'high' | 'mid' | 'low';
+  member_id: string;
+  checklist_id: string;
+  group_id?: number | null;
+  created_at: string; // ISO timestamp or date string
+  assigned_member: {
     id: string;
-    title: string;
-    notes: string;
-    status: 'pending' | 'completed';
-    priority: 'high' | 'mid' | 'low';
-    member_id: string;
-    checklist_id: string;
-    created_at: string; // ISO timestamp or date string
-    assigned_member: {
-        id: string;
-        name: string;
-        email: string;
-        can_answer: boolean;
-    };
-    checklist_progress: {
-        total_questions: number;
-        answered_questions: number;
-    };
+    name: string;
+    email: string;
+    can_answer: boolean;
+  };
+  checklist_progress: {
+    total_questions: number;
+    answered_questions: number;
+  };
 }
 
 export interface AssignedChecklistParams {
-    title: string;
-    notes: string;
-    priority: 'high' | 'mid' | 'low';
-    checklist_id: string;
-    member_ids: string[];
-    section_id: string;
-    geofence_enabled: boolean;
+  title: string;
+  notes: string;
+  priority: 'high' | 'mid' | 'low';
+  checklist_id: string;
+  member_ids: string[];
+  section_id: string;
+  geofence_enabled: boolean;
 }
 
 export interface PublicChecklist {

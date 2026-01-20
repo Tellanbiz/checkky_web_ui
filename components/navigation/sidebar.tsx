@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
-import { useMemo, useEffect, useState } from "react";
+import React, { useMemo, useEffect, useState } from "react";
 import { cn } from "@/lib/utils";
 import {
   Select,
@@ -12,7 +12,16 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { CheckSquare, Building, ChevronDown, ChevronRight } from "lucide-react";
+import {
+  CheckSquare,
+  Building,
+  ChevronDown,
+  ChevronRight,
+  FolderOpen,
+  Folder,
+  Plus,
+  Trash2,
+} from "lucide-react";
 import { useCompany } from "../../hooks/use-company";
 import { useCompanies } from "../../hooks/use-companies";
 import type { Company } from "@/lib/services/company/models";
@@ -21,6 +30,9 @@ import { useToast } from "@/hooks/use-toast";
 import { sidebarNavItems } from "./data";
 import { Account } from "@/lib/services/accounts/models";
 import { ComingSoonDialog } from "@/components/ui/coming-soon-dialog";
+import { getGroups } from "@/lib/services/groups";
+import { buildGroupTree } from "@/lib/utils/group-tree";
+import type { GroupTreeNode } from "@/lib/utils/group-tree";
 
 type SidebarProps = {
   account: Account | undefined;
@@ -72,14 +84,51 @@ export function Sidebar({ account, mobile = false }: SidebarProps) {
 
   // State for managing expanded/collapsed sections
   const [expandedSections, setExpandedSections] = useState<Set<string>>(
-    new Set()
+    new Set(),
   );
+
+  // State for managing expanded groups
+  const [expandedGroups, setExpandedGroups] = useState<Set<string>>(new Set());
+
+  // Fetch groups
+  const { data: groups = [] } = useQuery({
+    queryKey: ["groups"],
+    queryFn: getGroups,
+    staleTime: 1000 * 60 * 5,
+  });
+
+  // Build hierarchical group tree
+  const groupTree = buildGroupTree(groups, (a, b) =>
+    a.name.localeCompare(b.name),
+  );
+
+  // Get active group from URL
+  const searchParams = new URLSearchParams(
+    pathname.includes("?") ? pathname.split("?")[1] : "",
+  );
+  const activeGroupId = searchParams.get("group");
+  const activeGroup =
+    activeGroupId && activeGroupId !== "none"
+      ? groups.find((g) => g.id === activeGroupId)
+      : null;
+
+  // Count ungrouped checklists
+  const ungroupedCount = groups.reduce((sum, group) => {
+    if (!group.parent_group_id || group.parent_group_id === "0") {
+      return sum;
+    }
+    return sum;
+  }, 0);
 
   // State for coming soon dialog
   const [comingSoonDialog, setComingSoonDialog] = useState<{
     open: boolean;
     featureName: string;
   }>({ open: false, featureName: "" });
+
+  // State for group actions
+  const [showCreateGroupDialog, setShowCreateGroupDialog] = useState(false);
+  const [groupToDelete, setGroupToDelete] = useState<string | null>(null);
 
   // Initialize expanded sections based on defaultExpanded
   useEffect(() => {
@@ -108,7 +157,8 @@ export function Sidebar({ account, mobile = false }: SidebarProps) {
   ]);
 
   const handleItemClick = (item: (typeof sidebarNavItems)[0]) => {
-    const isItemCollapsible = item.collapsible && item.children;
+    const isItemCollapsible =
+      item.collapsible && (item.children || item.isGroupsItem);
 
     // Show coming soon dialog for items with badges
     if (item.badge) {
@@ -116,8 +166,8 @@ export function Sidebar({ account, mobile = false }: SidebarProps) {
       return;
     }
 
-    if (isItemCollapsible && item.children && item.children.length > 0) {
-      // Toggle expansion for collapsible items instead of navigating
+    if (isItemCollapsible) {
+      // Toggle expansion for collapsible items (including Groups)
       toggleSection(item.name);
     } else if (item.href) {
       if (item.isExternal) {
@@ -151,9 +201,86 @@ export function Sidebar({ account, mobile = false }: SidebarProps) {
     });
   };
 
+  const toggleGroup = (groupId: string) => {
+    setExpandedGroups((prev) => {
+      const newSet = new Set(prev);
+      if (newSet.has(groupId)) {
+        newSet.delete(groupId);
+      } else {
+        newSet.add(groupId);
+      }
+      return newSet;
+    });
+  };
+
+  const renderGroupNode = (node: GroupTreeNode, depth: number = 0) => {
+    const isExpanded = expandedGroups.has(node.group.id);
+    const hasChildren = node.children.length > 0;
+    const isActive =
+      pathname === `/dashboard/checklists?group=${node.group.id}`;
+
+    return (
+      <React.Fragment key={node.group.id}>
+        <div className="relative group/item">
+          <Link
+            href={`/dashboard/checklists?group=${node.group.id}`}
+            className={cn(
+              "flex items-center px-3 py-1.5 text-sm rounded-lg transition-colors",
+              isActive
+                ? "bg-primary/5 text-primary"
+                : "text-gray-600 hover:bg-gray-100",
+            )}
+            style={{ paddingLeft: `${0.75 + depth * 1}rem` }}
+          >
+            {hasChildren && (
+              <button
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  toggleGroup(node.group.id);
+                }}
+                className="mr-1 hover:bg-gray-200 rounded p-0.5"
+              >
+                {isExpanded ? (
+                  <ChevronDown className="w-3 h-3" />
+                ) : (
+                  <ChevronRight className="w-3 h-3" />
+                )}
+              </button>
+            )}
+            {!hasChildren && <span className="w-4 mr-1" />}
+            <Folder className="w-4 h-4 mr-2 flex-shrink-0" />
+            <span className="truncate flex-1">{node.group.name}</span>
+            {node.group.no_of_checklists > 0 && (
+              <span className="ml-auto text-xs text-gray-400">
+                {node.group.no_of_checklists}
+              </span>
+            )}
+          </Link>
+          <button
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              router.push(`/dashboard/groups?delete=${node.group.id}`);
+            }}
+            className="absolute right-2 top-1/2 -translate-y-1/2 p-1 hover:bg-red-100 rounded opacity-0 group-hover/item:opacity-100 transition-opacity"
+            title="Delete Group"
+          >
+            <Trash2 className="w-3 h-3 text-red-600" />
+          </button>
+        </div>
+        {hasChildren && isExpanded && (
+          <div className="space-y-0.5">
+            {node.children.map((child) => renderGroupNode(child, depth + 1))}
+          </div>
+        )}
+      </React.Fragment>
+    );
+  };
+
   const activeHref = useMemo(
     () => getActiveSidebarHref(pathname, sidebarNavItems),
-    [pathname]
+    [pathname],
   );
 
   return (
@@ -178,7 +305,8 @@ export function Sidebar({ account, mobile = false }: SidebarProps) {
       <nav className="flex-1 px-4 py-6 space-y-1 overflow-y-auto">
         {sidebarNavItems.map((item, itemIndex) => {
           const isExpanded = expandedSections.has(item.name);
-          const isCollapsible = item.collapsible && item.children;
+          const isCollapsible =
+            item.collapsible && (item.children || item.isGroupsItem);
           const isActive = item.href === activeHref;
           const isSectionHeader = item.isSectionHeader;
 
@@ -209,27 +337,45 @@ export function Sidebar({ account, mobile = false }: SidebarProps) {
                   "flex items-center px-3 py-2 text-sm font-semibold rounded-lg transition-colors cursor-pointer relative",
                   isSectionActive
                     ? "bg-primary/5 text-primary"
-                    : "text-gray-700 hover:bg-gray-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+                    : "text-gray-700 hover:bg-gray-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary",
                 )}
                 onClick={() => handleItemClick(item)}
               >
-               
                 {item.icon && (
                   <item.icon
                     className={cn(
                       "w-5 h-5 mr-3 flex-shrink-0",
-                      isSectionActive ? "text-primary" : "text-gray-500"
+                      isSectionActive ? "text-primary" : "text-gray-500",
                     )}
                   />
                 )}
-                <span className="truncate flex-1">{item.name}</span>
+                <span className="truncate flex-1">
+                  {item.name}
+                  {item.isGroupsItem && activeGroup && (
+                    <span className="ml-2 text-xs text-gray-400 font-normal">
+                      / {activeGroup.name}
+                    </span>
+                  )}
+                </span>
+                {item.isGroupsItem && (
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      router.push("/dashboard/groups");
+                    }}
+                    className="ml-auto p-1 hover:bg-gray-200 rounded transition-colors"
+                    title="Manage Groups"
+                  >
+                    <Plus className="w-4 h-4" />
+                  </button>
+                )}
                 {item.badge && (
                   <span
                     className={cn(
                       "ml-auto text-xs px-2 py-0.5 rounded-full",
                       isSectionActive
                         ? "bg-primary/20 text-primary"
-                        : "bg-gray-100 text-gray-600"
+                        : "bg-gray-100 text-gray-600",
                     )}
                   >
                     {item.badge}
@@ -257,54 +403,73 @@ export function Sidebar({ account, mobile = false }: SidebarProps) {
                 <div
                   className={cn(
                     "relative space-y-1 transition-all duration-200 ease-in-out",
-                    !isExpanded && "hidden"
+                    !isExpanded && "hidden",
                   )}
                 >
                   {/* Vertical line connecting to children */}
                   <div className="absolute left-0 top-0 bottom-0 w-0.5 bg-gray-200 rounded-full ml-3" />
-                  
-                  {item.children?.map((child, childIndex) => {
-                    const isChildActive = child.href === activeHref;
 
-                    return (
+                  {/* Render hierarchical groups if this is the Groups item */}
+                  {item.isGroupsItem ? (
+                    <div className="ml-6 space-y-0.5">
+                      {groupTree.map((node) => renderGroupNode(node))}
                       <Link
-                        key={child.name}
-                        href={child.href || "#"}
-                        aria-current={isChildActive ? "page" : undefined}
+                        href="/dashboard/checklists?group=none"
                         className={cn(
-                          "flex items-center px-3 py-2 text-sm font-semibold rounded-lg transition-colors relative",
-                          child.icon ? "ml-6" : "ml-10",
-                          isChildActive
-                            ? "text-primary"
-                            : "text-gray-600 hover:bg-gray-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+                          "flex items-center px-3 py-1.5 text-sm rounded-lg transition-colors",
+                          pathname === "/dashboard/checklists?group=none"
+                            ? "bg-primary/5 text-primary"
+                            : "text-gray-600 hover:bg-gray-100",
                         )}
                       >
-                        {/* Horizontal line connecting child to vertical line */}
-                        
-                        {child.icon && (
-                          <child.icon
-                            className={cn(
-                              "w-4 h-4 mr-3 flex-shrink-0",
-                              isChildActive ? "text-primary" : "text-gray-400"
-                            )}
-                          />
-                        )}
-                        <span className="truncate">{child.name}</span>
-                        {child.badge && (
-                          <span
-                            className={cn(
-                              "ml-auto text-xs px-2 py-0.5 rounded-full",
-                              isChildActive
-                                ? "bg-primary/20 text-primary"
-                                : "bg-gray-100 text-gray-600"
-                            )}
-                          >
-                            {child.badge}
-                          </span>
-                        )}
+                        <FolderOpen className="w-4 h-4 mr-2 flex-shrink-0" />
+                        <span className="truncate flex-1">No Group</span>
                       </Link>
-                    );
-                  })}
+                    </div>
+                  ) : (
+                    item.children?.map((child, childIndex) => {
+                      const isChildActive = child.href === activeHref;
+
+                      return (
+                        <Link
+                          key={child.name}
+                          href={child.href || "#"}
+                          aria-current={isChildActive ? "page" : undefined}
+                          className={cn(
+                            "flex items-center px-3 py-2 text-sm font-semibold rounded-lg transition-colors relative",
+                            child.icon ? "ml-6" : "ml-10",
+                            isChildActive
+                              ? "text-primary"
+                              : "text-gray-600 hover:bg-gray-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary",
+                          )}
+                        >
+                          {child.icon && (
+                            <child.icon
+                              className={cn(
+                                "w-4 h-4 mr-3 flex-shrink-0",
+                                isChildActive
+                                  ? "text-primary"
+                                  : "text-gray-400",
+                              )}
+                            />
+                          )}
+                          <span className="truncate">{child.name}</span>
+                          {child.badge && (
+                            <span
+                              className={cn(
+                                "ml-auto text-xs px-2 py-0.5 rounded-full",
+                                isChildActive
+                                  ? "bg-primary/20 text-primary"
+                                  : "bg-gray-100 text-gray-600",
+                              )}
+                            >
+                              {child.badge}
+                            </span>
+                          )}
+                        </Link>
+                      );
+                    })
+                  )}
                 </div>
               )}
             </div>

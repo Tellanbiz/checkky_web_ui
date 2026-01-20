@@ -5,7 +5,10 @@ import {
   useOngoingFilters,
   useChecklistFilterStore,
 } from "@/lib/provider/checklists/index";
-import { useAssignedChecklists, useUpdateChecklistPriority } from "@/lib/services/checklist/hooks";
+import {
+  useAssignedChecklists,
+  useUpdateChecklistPriority,
+} from "@/lib/services/checklist/hooks";
 import { OngoingChecklistCard } from "./ongoing-checklist-card";
 import { OngoingSidebar } from "./ongoing-sidebar";
 import { Button } from "../ui/button";
@@ -16,6 +19,7 @@ interface OngoingChecklistProps {
   onEditChecklist: (checklist: any) => void;
   onDeleteChecklist: (checklist: any) => void;
   onViewDetails: (checklist: any) => void;
+  groupId?: string | null;
 }
 
 const getPriorityDisplayName = (priority: string) => {
@@ -48,6 +52,7 @@ export function OngoingChecklist({
   onEditChecklist,
   onDeleteChecklist,
   onViewDetails,
+  groupId,
 }: OngoingChecklistProps) {
   const { toast } = useToast();
   const [draggedItem, setDraggedItem] = useState<string | null>(null);
@@ -58,10 +63,15 @@ export function OngoingChecklist({
 
   // Get filter state
   const filters = useOngoingFilters();
-  
+
   // Use TanStack Query to fetch pending checklists
-  const { data: checklists = [], isLoading, error, refetch } = useAssignedChecklists("pending");
-  
+  const {
+    data: checklists = [],
+    isLoading,
+    error,
+    refetch,
+  } = useAssignedChecklists("pending");
+
   // Mutation for updating priority
   const updatePriorityMutation = useUpdateChecklistPriority();
 
@@ -78,7 +88,7 @@ export function OngoingChecklist({
 
   const handleDrop = async (
     e: React.DragEvent,
-    newPriority: "high" | "mid" | "low"
+    newPriority: "high" | "mid" | "low",
   ) => {
     e.preventDefault();
 
@@ -93,7 +103,7 @@ export function OngoingChecklist({
       toast({
         title: "Priority Updated",
         description: `Checklist moved to ${getPriorityDisplayName(
-          newPriority
+          newPriority,
         )}`,
       });
     } catch (error) {
@@ -112,6 +122,16 @@ export function OngoingChecklist({
 
   // Apply filters to checklists (status is already filtered by the query)
   const filteredChecklists = checklists.filter((checklist) => {
+    if (groupId && groupId !== "all") {
+      if (groupId === "none") {
+        if (checklist.group_id) {
+          return false;
+        }
+      } else if (String(checklist.group_id) !== groupId) {
+        return false;
+      }
+    }
+
     // Search filter
     if (filters.searchTerm) {
       const searchLower = filters.searchTerm.toLowerCase();
@@ -135,7 +155,7 @@ export function OngoingChecklist({
 
   const getChecklistsByPriority = (priority: "high" | "mid" | "low") => {
     return filteredChecklists.filter(
-      (checklist) => checklist.priority === priority
+      (checklist) => checklist.priority === priority,
     );
   };
 
@@ -160,7 +180,9 @@ export function OngoingChecklist({
       <div className="space-y-4">
         <div className="text-center py-8">
           <p className="text-red-600 mb-4">
-            {error instanceof Error ? error.message : "An unexpected error occurred"}
+            {error instanceof Error
+              ? error.message
+              : "An unexpected error occurred"}
           </p>
           <Button onClick={() => refetch()} disabled={isLoading}>
             Try Again
@@ -187,7 +209,7 @@ export function OngoingChecklist({
               {/* Column Header */}
               <div
                 className={`p-3 border-b ${getColumnHeaderStyles(
-                  priority
+                  priority,
                 )} rounded-t-lg`}
               >
                 <div className="flex items-center justify-between">
@@ -219,7 +241,11 @@ export function OngoingChecklist({
                     handleDragEnd={handleDragEnd}
                     handleDrop={handleDrop}
                     draggedItem={draggedItem}
-                    updatingIds={updatePriorityMutation.isPending && draggedItem ? new Set([draggedItem]) : new Set()}
+                    updatingIds={
+                      updatePriorityMutation.isPending && draggedItem
+                        ? new Set([draggedItem])
+                        : new Set()
+                    }
                   />
                 ))}
 

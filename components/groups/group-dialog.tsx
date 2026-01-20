@@ -8,6 +8,13 @@ import {
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Loader2 } from "lucide-react";
 import type { Group } from "@/lib/services/groups";
 
@@ -21,13 +28,17 @@ interface GroupDialogProps {
     name: string;
     description: string;
     color: string;
+    parent_group_id: string;
   };
   onFormDataChange: (data: {
     name: string;
     description: string;
     color: string;
+    parent_group_id: string;
   }) => void;
   isPending: boolean;
+  groups: Group[];
+  currentGroupId?: string | null;
 }
 
 export function GroupDialog({
@@ -39,7 +50,13 @@ export function GroupDialog({
   formData,
   onFormDataChange,
   isPending,
+  groups,
+  currentGroupId,
 }: GroupDialogProps) {
+  const availableParents = groups
+    .filter((group) => group.id !== currentGroupId)
+    .sort((a, b) => a.name.localeCompare(b.name));
+
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
       <DialogContent className="max-w-md">
@@ -71,6 +88,31 @@ export function GroupDialog({
               rows={3}
               disabled={isPending}
             />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="parent-group">Parent Group</Label>
+            <Select
+              value={formData.parent_group_id || "none"}
+              onValueChange={(value) =>
+                onFormDataChange({
+                  ...formData,
+                  parent_group_id: value === "none" ? "" : value,
+                })
+              }
+              disabled={isPending}
+            >
+              <SelectTrigger id="parent-group">
+                <SelectValue placeholder="No parent (top level)" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="none">No parent (top level)</SelectItem>
+                {availableParents.map((group) => (
+                  <SelectItem key={group.id} value={group.id}>
+                    {group.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
           <div className="flex justify-end space-x-2 pt-4">
             <Button variant="outline" onClick={onClose} disabled={isPending}>
