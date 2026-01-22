@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import React, { useMemo, useEffect, useState } from "react";
 import { cn } from "@/lib/utils";
 import {
@@ -31,8 +31,11 @@ import { sidebarNavItems } from "./data";
 import { Account } from "@/lib/services/accounts/models";
 import { ComingSoonDialog } from "@/components/ui/coming-soon-dialog";
 import { getGroups } from "@/lib/services/groups";
+import { createGroup } from "@/lib/services/groups/post";
 import { buildGroupTree } from "@/lib/utils/group-tree";
 import type { GroupTreeNode } from "@/lib/utils/group-tree";
+import { GroupDialog } from "@/components/groups/group-dialog";
+import type { Group } from "@/lib/services/groups";
 
 type SidebarProps = {
   account: Account | undefined;
@@ -128,7 +131,62 @@ export function Sidebar({ account, mobile = false }: SidebarProps) {
 
   // State for group actions
   const [showCreateGroupDialog, setShowCreateGroupDialog] = useState(false);
-  const [groupToDelete, setGroupToDelete] = useState<string | null>(null);
+  const [parentGroupForNew, setParentGroupForNew] = useState<string>("");
+  const [newGroupFormData, setNewGroupFormData] = useState({
+    name: "",
+    description: "none",
+    parent_group_id: undefined as number | undefined,
+  });
+
+  const queryClient = useQueryClient();
+
+  // Mutation for creating a group
+  const createGroupMutation = useMutation({
+    mutationFn: createGroup,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["groups"] });
+      setShowCreateGroupDialog(false);
+      setNewGroupFormData({
+        name: "",
+        description: "none",
+        parent_group_id: undefined,
+      });
+      setParentGroupForNew("");
+      toast({
+        title: "Success",
+        description: "Group created successfully",
+      });
+    },
+    onError: (error) => {
+      toast({
+        title: "Error",
+        description: error instanceof Error ? error.message : "Failed to create group",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const handleCreateSubgroup = (parentGroupId: string) => {
+    setParentGroupForNew(parentGroupId);
+    setNewGroupFormData({
+      name: "",
+      description: "none",
+      parent_group_id: parseInt(parentGroupId),
+    });
+    setShowCreateGroupDialog(true);
+  };
+
+  const handleSubmitNewGroup = () => {
+    if (!newGroupFormData.name.trim()) {
+      toast({
+        title: "Error",
+        description: "Group name is required",
+        variant: "destructive",
+      });
+      return;
+    }
+    createGroupMutation.mutate(newGroupFormData);
+  };
 
   // Initialize expanded sections based on defaultExpanded
   useEffect(() => {
@@ -249,25 +307,37 @@ export function Sidebar({ account, mobile = false }: SidebarProps) {
               </button>
             )}
             {!hasChildren && <span className="w-4 mr-1" />}
-            <Folder className="w-4 h-4 mr-2 flex-shrink-0" />
             <span className="truncate flex-1">{node.group.name}</span>
             {node.group.no_of_checklists > 0 && (
-              <span className="ml-auto text-xs text-gray-400">
+              <span className="ml-2 text-xs text-gray-400">
                 {node.group.no_of_checklists}
               </span>
             )}
           </Link>
-          <button
-            onClick={(e) => {
-              e.preventDefault();
-              e.stopPropagation();
-              router.push(`/dashboard/groups?delete=${node.group.id}`);
-            }}
-            className="absolute right-2 top-1/2 -translate-y-1/2 p-1 hover:bg-red-100 rounded opacity-0 group-hover/item:opacity-100 transition-opacity"
-            title="Delete Group"
-          >
-            <Trash2 className="w-3 h-3 text-red-600" />
-          </button>
+          <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-1 opacity-0 group-hover/item:opacity-100 transition-opacity">
+            <button
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                handleCreateSubgroup(node.group.id);
+              }}
+              className="p-1 hover:bg-green-100 rounded"
+              title="Add Subgroup"
+            >
+              <Plus className="w-3 h-3 text-green-600" />
+            </button>
+            <button
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                router.push(`/dashboard/groups?delete=${node.group.id}`);
+              }}
+              className="p-1 hover:bg-red-100 rounded"
+              title="Delete Group"
+            >
+              <Trash2 className="w-3 h-3 text-red-600" />
+            </button>
+          </div>
         </div>
         {hasChildren && isExpanded && (
           <div className="space-y-0.5">
@@ -361,10 +431,16 @@ export function Sidebar({ account, mobile = false }: SidebarProps) {
                   <button
                     onClick={(e) => {
                       e.stopPropagation();
-                      router.push("/dashboard/groups");
+                      setNewGroupFormData({
+                        name: "",
+                        description: "none",
+                        parent_group_id: undefined,
+                      });
+                      setParentGroupForNew("");
+                      setShowCreateGroupDialog(true);
                     }}
                     className="ml-auto p-1 hover:bg-gray-200 rounded transition-colors"
-                    title="Manage Groups"
+                    title="Create Group"
                   >
                     <Plus className="w-4 h-4" />
                   </button>
@@ -606,6 +682,39 @@ export function Sidebar({ account, mobile = false }: SidebarProps) {
         open={comingSoonDialog.open}
         onOpenChange={(open) => setComingSoonDialog({ open, featureName: "" })}
         featureName={comingSoonDialog.featureName}
+      />
+
+      {/* Create Subgroup Dialog */}
+      <GroupDialog
+        isOpen={showCreateGroupDialog}
+        onClose={() => {
+          setShowCreateGroupDialog(false);
+          setNewGroupFormData({
+            name: "",
+            description: "none",
+            parent_group_id: undefined,
+          });
+          setParentGroupForNew("");
+        }}
+        onSubmit={handleSubmitNewGroup}
+        title="Create Subgroup"
+        submitText="Create"
+        formData={{
+          name: newGroupFormData.name,
+          description: "none",
+          color: "",
+          parent_group_id: parentGroupForNew,
+        }}
+        onFormDataChange={(data) => {
+          setNewGroupFormData({
+            name: data.name,
+            description: "none",
+            parent_group_id: data.parent_group_id ? parseInt(data.parent_group_id) : undefined,
+          });
+        }}
+        isPending={createGroupMutation.isPending}
+        groups={groups}
+        currentGroupId={null}
       />
     </div>
   );

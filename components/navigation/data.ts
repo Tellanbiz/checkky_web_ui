@@ -54,24 +54,19 @@ export const sidebarNavItems: SidebarNavItem[] = [
         href: "/dashboard/team",
     },
     {
-        name: "More Tools",
-        icon: MoreHorizontal,
-        collapsible: true,
-        defaultExpanded: false,
-        children: [
-            {
-                name: "Workflow Automation",
-                href: "/dashboard/workflows",
-            },
-            {
-                name: "Location Management",
-                href: "/dashboard/sections",
-            },
-            {
-                name: "Audit Management",
-                href: "/dashboard/audits",
-            },
-        ],
+        name: "Workflow Automation",
+        href: "/dashboard/workflows",
+        icon: Workflow,
+    },
+    {
+        name: "Location Management",
+        href: "/dashboard/sections",
+        icon: Map,
+    },
+    {
+        name: "Audit Management",
+        href: "/dashboard/audits",
+        icon: ClipboardCheck,
     },
     {
         name: "Groups",
@@ -79,7 +74,7 @@ export const sidebarNavItems: SidebarNavItem[] = [
         className: "pt-6",
     },
     {
-        name: "Checklist Groups",
+        name: "Groups",
         icon: Folder,
         collapsible: true,
         defaultExpanded: true,

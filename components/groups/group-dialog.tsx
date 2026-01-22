@@ -77,19 +77,6 @@ export function GroupDialog({
             />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="description">Description</Label>
-            <Textarea
-              id="description"
-              placeholder="Enter group description"
-              value={formData.description}
-              onChange={(e) =>
-                onFormDataChange({ ...formData, description: e.target.value })
-              }
-              rows={3}
-              disabled={isPending}
-            />
-          </div>
-          <div className="space-y-2">
             <Label htmlFor="parent-group">Parent Group</Label>
             <Select
               value={formData.parent_group_id || "none"}
