@@ -59,6 +59,16 @@ function ChecklistsPageContent() {
     }
   }, [searchParams]);
 
+  // Sync activeTab with URL query parameter
+  useEffect(() => {
+    const tabParam = searchParams.get("tab");
+    if (tabParam === "completed") {
+      setActiveTab("completed");
+    } else {
+      setActiveTab("ongoing");
+    }
+  }, [searchParams]);
+
   const { data: groups = [] } = useQuery({
     queryKey: ["groups"],
     queryFn: getGroups,
@@ -132,12 +142,24 @@ function ChecklistsPageContent() {
     router.push("/dashboard/checklists/available");
   };
 
+  const handleTabChange = (tab: "ongoing" | "completed") => {
+    setActiveTab(tab);
+    // Update URL query parameter
+    const url = new URL(window.location.href);
+    if (tab === "completed") {
+      url.searchParams.set("tab", "completed");
+    } else {
+      url.searchParams.delete("tab");
+    }
+    router.replace(url.pathname + url.search);
+  };
+
   return (
     <div className="">
       {/* Tab Navigation */}
       <ChecklistTabNavigation
         activeTab={activeTab}
-        onTabChange={setActiveTab}
+        onTabChange={handleTabChange}
         onAssignChecklist={assignChecklist}
         onUploadChecklist={handleNewChecklist}
       />

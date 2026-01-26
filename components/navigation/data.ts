@@ -2,7 +2,9 @@ import {
     Archive,
     Book,
     Building2,
+    CheckCircle,
     ClipboardCheck,
+    Clock,
     CreditCard,
     Folder,
     FolderOpen,
@@ -47,6 +49,26 @@ export const sidebarNavItems: SidebarNavItem[] = [
         name: "My Checklists",
         href: "/dashboard/checklists",
         icon: ListTodo,
+        collapsible: true,
+        defaultExpanded: true,
+        children: [
+            {
+                name: "Ongoing Checklists",
+                href: "/dashboard/checklists",
+                icon: Clock,
+            },
+            {
+                name: "Available Checklists",
+                href: "/dashboard/checklists/available",
+                icon: ListTodo,
+            },
+
+            {
+                name: "Available Templates",
+                href: "/dashboard/templates",
+                icon: Book,
+            },
+        ],
     },
     {
         name: "Team Members",
