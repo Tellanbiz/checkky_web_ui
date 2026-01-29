@@ -185,7 +185,7 @@ export default function InvitesPage() {
                 You don't have any pending team invitations at the moment.
               </p>
               <Button
-                onClick={() => router.push("/auth/continue")}
+                onClick={() => router.push("/dashboard")}
                 className="bg-green-600 hover:bg-green-700"
               >
                 <Building2 className="h-4 w-4 mr-2" />
@@ -246,7 +246,7 @@ export default function InvitesPage() {
                       <div className="flex items-center gap-2">
                         <Badge
                           className={`${getStatusColor(
-                            invite.status
+                            invite.status,
                           )} flex items-center gap-1`}
                         >
                           {getStatusIcon(invite.status)}
@@ -299,11 +299,11 @@ export default function InvitesPage() {
         <div className="mt-8 text-center">
           <Button
             variant="outline"
-            onClick={() => router.push("/auth/continue")}
+            onClick={() => router.push("/dashboard")}
             className="border-green-200 text-green-600 hover:bg-green-50"
           >
             <ArrowRight className="h-4 w-4 mr-2" />
-            Back to Options
+            Back to Dashboard
           </Button>
         </div>
       </div>
