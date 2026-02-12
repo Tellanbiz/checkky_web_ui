@@ -24,6 +24,7 @@ import {
 
 import { useEffect, useState } from "react";
 import { getClientAccount } from "@/lib/services/auth/client-auth";
+import { logout } from "@/lib/services/auth/auth-post";
 import { Account } from "@/lib/services/accounts/models";
 import { usePathname, useRouter } from "next/navigation";
 import { Sidebar } from "./navigation/sidebar";
@@ -98,11 +99,7 @@ export function Header({
 
   const handleLogout = async () => {
     try {
-      // Delete the access_token cookie
-      document.cookie =
-        "access_token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 UTC;";
-
-      // Redirect to auth page
+      await logout();
       router.push("/auth");
     } catch (error) {
       console.error("Logout failed:", error);
@@ -196,8 +193,8 @@ export function Header({
                     {loading
                       ? "..."
                       : account
-                      ? getInitials(account.full_name)
-                      : "U"}
+                        ? getInitials(account.full_name)
+                        : "U"}
                   </AvatarFallback>
                 </Avatar>
               </div>

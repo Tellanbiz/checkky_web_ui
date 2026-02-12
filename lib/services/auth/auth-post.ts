@@ -31,6 +31,11 @@ export async function signInWithEmail(formData: FormData) {
 }
 
 
+export async function logout() {
+    const cookieStore = await cookies();
+    cookieStore.delete("access_token");
+}
+
 export async function signUpWithEmail(params: SignUpParams) {
     const res = await clientV1.post("/auth/email/signup", params);
 

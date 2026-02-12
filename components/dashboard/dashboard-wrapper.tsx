@@ -15,29 +15,42 @@ import { useToast } from "@/hooks/use-toast";
 import { useCompanies } from "@/hooks/use-companies";
 import { useCreateCompany } from "@/hooks/use-create-company";
 import { Account } from "@/lib/services/accounts/models";
-import { Menu, X } from "lucide-react";
+import { getAccount } from "@/lib/services/auth/auth-get";
+import { Menu, X, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 interface DashboardWrapperProps {
-  account: Account | undefined;
   children: React.ReactNode;
 }
 
-export function DashboardWrapper({ account, children }: DashboardWrapperProps) {
+export function DashboardWrapper({ children }: DashboardWrapperProps) {
   const router = useRouter();
   const pathname = usePathname();
   const { toast } = useToast();
   const { data: companies = [], isLoading: loading, error } = useCompanies();
+  const {
+    data: account,
+    isLoading: accountLoading,
+    error: accountError,
+  } = useQuery<Account>({
+    queryKey: ["account"],
+    queryFn: getAccount,
+    retry: false,
+    staleTime: 1000 * 60 * 5,
+  });
   const createCompanyMutation = useCreateCompany();
   const [showCompanyDialog, setShowCompanyDialog] = useState(false);
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
 
-  // Redirect to login on unauthorized errors
+  // Redirect to auth on error (account fetch failure or unauthorized)
   useEffect(() => {
-    if (error && /unauthorized|401/i.test(error.message)) {
-      router.replace("/login");
+    if (accountError) {
+      router.replace("/auth");
     }
-  }, [error, router]);
+    if (error && /unauthorized|401/i.test(error.message)) {
+      router.replace("/auth");
+    }
+  }, [error, accountError, router]);
 
   // Combined redirect and dialog management
   useEffect(() => {
@@ -85,7 +98,7 @@ export function DashboardWrapper({ account, children }: DashboardWrapperProps) {
     return () => {
       window.removeEventListener(
         "closeMobileSidebar",
-        handleMobileSidebarClose
+        handleMobileSidebarClose,
       );
     };
   }, []);
@@ -119,13 +132,25 @@ export function DashboardWrapper({ account, children }: DashboardWrapperProps) {
     }
   };
 
-  // Early return: if unauthorized, show brief redirect UI
-  if (error && /unauthorized|401/i.test(error.message)) {
+  // Early return: if unauthorized or account error, show brief redirect UI
+  if (accountError || (error && /unauthorized|401/i.test(error.message))) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="min-h-screen bg-white flex items-center justify-center">
         <div className="text-center">
-          <div className="w-8 h-8 border-4 border-gray-300 border-t-blue-500 rounded-full animate-spin mx-auto mb-4"></div>
+          <Loader2 className="h-12 w-12 animate-spin text-green-600 mx-auto mb-4" />
           <p className="text-gray-600">Redirecting to login...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Show loading while account is being fetched
+  if (accountLoading) {
+    return (
+      <div className="min-h-screen bg-white flex items-center justify-center">
+        <div className="text-center">
+          <Loader2 className="h-12 w-12 animate-spin text-green-600 mx-auto mb-4" />
+          <p className="text-lg text-gray-600">Loading...</p>
         </div>
       </div>
     );

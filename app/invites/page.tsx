@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -18,104 +18,95 @@ import {
   AlertCircle,
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import {
   getMyTeamInvitesAction,
   acceptTeamInviteAction,
 } from "@/lib/services/teams/actions";
 import { TeamInviteInfo } from "@/lib/services/teams/data";
+import { Account } from "@/lib/services/accounts/models";
+import { getAccount } from "@/lib/services/auth/auth-get";
 
 export default function InvitesPage() {
   const router = useRouter();
   const { toast } = useToast();
-  const [invites, setInvites] = useState<TeamInviteInfo[]>([]);
-  const [loading, setLoading] = useState(true);
   const [processing, setProcessing] = useState<string | null>(null);
+  const queryClient = useQueryClient();
 
-  useEffect(() => {
-    const fetchInvites = async () => {
-      try {
-        const invitesData = await getMyTeamInvitesAction();
-        setInvites(invitesData);
-      } catch (error) {
-        console.error("Error fetching invites:", error);
-        toast({
-          title: "Error",
-          description: "Failed to load team invitations.",
-          variant: "destructive",
-        });
-      } finally {
-        setLoading(false);
-      }
-    };
+  // Fetch account - redirect to signup if not authenticated
+  const { error: accountError } = useQuery<Account>({
+    queryKey: ["account"],
+    queryFn: getAccount,
+    retry: false,
+  });
 
-    fetchInvites();
-  }, [toast]);
+  React.useEffect(() => {
+    if (accountError) {
+      router.push("/auth/signup");
+    }
+  }, [accountError, router]);
 
-  const handleAcceptInvite = async (inviteId: string) => {
-    setProcessing(inviteId);
-    try {
-      const result = await acceptTeamInviteAction(inviteId, true);
+  const {
+    data: invites = [],
+    isLoading,
+    error,
+  } = useQuery<TeamInviteInfo[]>({
+    queryKey: ["teamInvites"],
+    queryFn: getMyTeamInvitesAction,
+    retry: false,
+  });
 
+  const acceptInviteMutation = useMutation({
+    mutationFn: ({ inviteId, accept }: { inviteId: string; accept: boolean }) =>
+      acceptTeamInviteAction(inviteId, accept),
+    onSuccess: (result, variables) => {
       if (result.success) {
         toast({
-          title: "Invite Accepted!",
-          description: "You have successfully joined the team.",
+          title: variables.accept ? "Invite Accepted!" : "Invite Declined",
+          description: variables.accept
+            ? "You have successfully joined the team."
+            : "You have declined the team invitation.",
         });
 
-        // Remove the accepted invite from the list
-        setInvites((prev) => prev.filter((invite) => invite.id !== inviteId));
+        // Update the invites list by invalidating the query
+        queryClient.invalidateQueries({ queryKey: ["teamInvites"] });
 
         // Redirect to dashboard after successful acceptance
-        setTimeout(() => {
-          router.push("/dashboard");
-        }, 1500);
+        if (variables.accept) {
+          setTimeout(() => {
+            router.push("/dashboard");
+          }, 1500);
+        }
       } else {
         toast({
           title: "Error",
-          description: result.error || "Failed to accept invite",
+          description:
+            result.error ||
+            `Failed to ${variables.accept ? "accept" : "decline"} invite`,
           variant: "destructive",
         });
       }
-    } catch (error) {
+    },
+    onError: () => {
       toast({
         title: "Error",
-        description: "Failed to accept invite. Please try again.",
+        description: `Failed to process invite. Please try again.`,
         variant: "destructive",
       });
-    } finally {
+    },
+    onSettled: () => {
       setProcessing(null);
-    }
+    },
+  });
+
+  const handleAcceptInvite = (inviteId: string) => {
+    setProcessing(inviteId);
+    acceptInviteMutation.mutate({ inviteId, accept: true });
   };
 
-  const handleDeclineInvite = async (inviteId: string) => {
+  const handleDeclineInvite = (inviteId: string) => {
     setProcessing(inviteId);
-    try {
-      const result = await acceptTeamInviteAction(inviteId, false);
-
-      if (result.success) {
-        toast({
-          title: "Invite Declined",
-          description: "You have declined the team invitation.",
-        });
-
-        // Remove the declined invite from the list
-        setInvites((prev) => prev.filter((invite) => invite.id !== inviteId));
-      } else {
-        toast({
-          title: "Error",
-          description: result.error || "Failed to decline invite",
-          variant: "destructive",
-        });
-      }
-    } catch (error) {
-      toast({
-        title: "Error",
-        description: "Failed to decline invite. Please try again.",
-        variant: "destructive",
-      });
-    } finally {
-      setProcessing(null);
-    }
+    acceptInviteMutation.mutate({ inviteId, accept: false });
   };
 
   const getStatusColor = (status: string) => {
@@ -144,7 +135,7 @@ export default function InvitesPage() {
     }
   };
 
-  if (loading) {
+  if (isLoading) {
     return (
       <div className="min-h-screen bg-white flex items-center justify-center">
         <div className="text-center">
