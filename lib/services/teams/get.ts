@@ -12,8 +12,8 @@ export async function getTeamInvites(token: string): Promise<TeamInvite[]> {
 
 
 
-export async function getTeamInviteInfo(token: string, team_id: string): Promise<TeamInviteInfo> {
-    const response = await clientV1.get<TeamInviteInfo>(`/companies/team/invites/info?team_id=${team_id}`, {
+export async function getTeamInviteInfo(token: string, invite_id: string): Promise<TeamInviteInfo> {
+    const response = await clientV1.get<TeamInviteInfo>(`/companies/team/invites/info?invite_id=${invite_id}`, {
         headers: {
             Authorization: `Bearer ${token}`,
         },

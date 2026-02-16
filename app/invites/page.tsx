@@ -179,8 +179,7 @@ export default function InvitesPage() {
                 onClick={() => router.push("/dashboard")}
                 className="bg-green-600 hover:bg-green-700"
               >
-                <Building2 className="h-4 w-4 mr-2" />
-                Create Your Own Company
+                Go to Dashboard
               </Button>
             </CardContent>
           </Card>
