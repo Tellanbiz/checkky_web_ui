@@ -1,6 +1,9 @@
+"use client";
+
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { getAssignedChecklists } from "./get";
 import { updateAssignedPriority } from "./post";
+import { createChecklistWithProgress, deleteUploadedChecklist } from "./client";
 import { AssignedChecklist } from "./models";
 
 export const useAssignedChecklists = (status?: string) => {
@@ -18,15 +21,15 @@ export const useAssignedChecklists = (status?: string) => {
 
 export const useUpdateChecklistPriority = () => {
   const queryClient = useQueryClient();
-  
+
   return useMutation({
     mutationFn: async ({ checklistId, newPriority }: { checklistId: string; newPriority: "high" | "mid" | "low" }) => {
       const result = await updateAssignedPriority(checklistId, newPriority);
-      
+
       if (result.error) {
         throw new Error(result.error);
       }
-      
+
       return result;
     },
     onSuccess: () => {
@@ -34,3 +37,29 @@ export const useUpdateChecklistPriority = () => {
     },
   });
 };
+
+export function useCreateChecklist() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: createChecklistWithProgress,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["checklists"] });
+      queryClient.invalidateQueries({ queryKey: ["my-checklists"] });
+    },
+    onError: (error) => {
+      console.error("Failed to create checklist:", error);
+    },
+  });
+}
+
+export function useDeleteUploadedChecklist() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: deleteUploadedChecklist,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["checklists"] });
+    },
+  });
+}

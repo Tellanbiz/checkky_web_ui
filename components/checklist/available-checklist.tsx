@@ -18,6 +18,8 @@ import {
   Eye,
   Loader2,
   ArrowRight,
+  Trash2,
+  ShieldCheck,
 } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
@@ -25,11 +27,18 @@ import { getAllChecklists } from "@/lib/services/checklist/actions";
 import { CheckList } from "@/lib/services/checklist/models";
 import { useRouter } from "next/navigation";
 import { useAvailableFilters } from "@/lib/provider/checklists/index";
+import { useDeleteUploadedChecklist } from "@/lib/services/checklist";
+import { DeleteConfirmationModal } from "@/components/team/delete-confirmation-modal";
+import { useState } from "react";
 
 export function AvailableChecklist() {
   const { toast } = useToast();
   const router = useRouter();
   const filters = useAvailableFilters();
+  const deleteChecklistMutation = useDeleteUploadedChecklist();
+  const [checklistToDelete, setChecklistToDelete] = useState<CheckList | null>(
+    null,
+  );
 
   // TanStack Query for fetching checklists
   const {
@@ -76,7 +85,7 @@ export function AvailableChecklist() {
     .sort(
       (
         a: { created_at: string | number | Date; name: string },
-        b: { created_at: string | number | Date; name: any }
+        b: { created_at: string | number | Date; name: any },
       ) => {
         switch (filters.sortBy) {
           case "recent":
@@ -89,11 +98,35 @@ export function AvailableChecklist() {
           default:
             return 0;
         }
-      }
+      },
     );
 
   const handleViewChecklist = (checklist: CheckList) => {
     router.push(`/dashboard/checklists/${checklist.id}`);
+  };
+
+  const handleDeleteChecklist = async () => {
+    if (!checklistToDelete) {
+      return;
+    }
+
+    try {
+      await deleteChecklistMutation.mutateAsync(checklistToDelete.id);
+      toast({
+        title: "Checklist deleted",
+        description: `"${checklistToDelete.name}" has been removed from your uploaded checklists.`,
+      });
+      setChecklistToDelete(null);
+    } catch (error) {
+      toast({
+        title: "Unable to delete checklist",
+        description:
+          error instanceof Error
+            ? error.message
+            : "Please try again in a moment.",
+        variant: "destructive",
+      });
+    }
   };
 
   const formatDate = (dateString: string) => {
@@ -134,6 +167,23 @@ export function AvailableChecklist() {
                 {/* Header */}
                 <div className="flex items-start justify-between gap-2">
                   <div className="flex-1 min-w-0">
+                    <div className="mb-2 flex flex-wrap items-center gap-2">
+                      <Badge
+                        variant="outline"
+                        className="border-emerald-200 bg-emerald-50 text-emerald-800"
+                      >
+                        {checklist.category.replaceAll("_", " ")}
+                      </Badge>
+                      {checklist.can_delete && (
+                        <Badge
+                          variant="outline"
+                          className="border-amber-200 bg-amber-50 text-amber-700"
+                        >
+                          <ShieldCheck className="mr-1 h-3.5 w-3.5" />
+                          Uploaded by you
+                        </Badge>
+                      )}
+                    </div>
                     <h3 className="font-bold text-base text-gray-900 line-clamp-2 group-hover:text-primary transition-colors">
                       {checklist.name}
                     </h3>
@@ -143,8 +193,24 @@ export function AvailableChecklist() {
                       </p>
                     )}
                   </div>
-                  <div className="flex-shrink-0 opacity-0 group-hover:opacity-100 transition-opacity">
-                    <ArrowRight className="h-4 w-4 text-primary" />
+                  <div className="flex flex-shrink-0 items-center gap-1">
+                    {checklist.can_delete && (
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="icon"
+                        className="h-8 w-8 text-red-500 opacity-0 transition-opacity hover:bg-red-50 hover:text-red-600 group-hover:opacity-100"
+                        onClick={(event) => {
+                          event.stopPropagation();
+                          setChecklistToDelete(checklist);
+                        }}
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    )}
+                    <div className="opacity-0 transition-opacity group-hover:opacity-100">
+                      <ArrowRight className="h-4 w-4 text-primary" />
+                    </div>
                   </div>
                 </div>
 
@@ -189,6 +255,15 @@ export function AvailableChecklist() {
           </div>
         </div>
       )}
+
+      <DeleteConfirmationModal
+        isOpen={!!checklistToDelete}
+        onClose={() => setChecklistToDelete(null)}
+        onConfirm={handleDeleteChecklist}
+        title="Delete Uploaded Checklist"
+        description="This removes the checklist template and any assigned copies that depend on it."
+        itemName={checklistToDelete?.name || ""}
+      />
     </div>
   );
 }

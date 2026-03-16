@@ -1,17 +1,11 @@
-"use server"
+"use server";
 
 import { clientV1 } from "@/lib/client/client";
-import { AssignedChecklistParams } from "./models";
 import { getAccessToken } from "../auth/auth-get";
+import { CreateChecklistData, AssignedChecklistParams } from "./models";
 
-export interface CreateChecklistData {
-    name: string;
-    description: string;
-    category: string;
-    checklistGroupId?: string;
-    checklist: File;
-    isPublic?: boolean;
-}
+
+
 
 export async function createChecklist(data: CreateChecklistData): Promise<any> {
     // Validate required fields
@@ -25,9 +19,9 @@ export async function createChecklist(data: CreateChecklistData): Promise<any> {
     formData.append('category', data.category);
     formData.append('checklist', data.checklist);
 
-    // Only append checklistGroupId if it exists
-    if (data.checklistGroupId) {
-        formData.append('checklist_group_id', data.checklistGroupId);
+    // Only append checklist_group_id if it exists
+    if (data.checklist_group_id) {
+        formData.append('checklist_group_id', data.checklist_group_id);
     }
 
     // Only append isPublic if it's explicitly true to avoid breaking existing API
@@ -83,3 +77,4 @@ export async function copyChecklist(params: { name: string, description: string,
     });
     return res.status != 200 ? { error: res.data.error } : res.data;
 }
+

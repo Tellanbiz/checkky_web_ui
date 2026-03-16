@@ -1,8 +1,11 @@
 "use server";
 
-import { assignChecklist as assignChecklistService, createChecklist as createChecklistService, CreateChecklistData } from "./post";
+import {
+    assignChecklist as assignChecklistService,
+    createChecklist as createChecklistService,
+} from "./post";
 import { getAssignedChecklists, getChecklistInfo, getChecklists } from "./get";
-import { AssignedChecklistParams } from "./models";
+import { AssignedChecklistParams, CreateChecklistData } from "./models";
 
 export async function createChecklist(data: CreateChecklistData): Promise<any> {
     return createChecklistService(data);
@@ -34,3 +37,4 @@ export async function assignChecklist(data: AssignedChecklistParams): Promise<an
     const result = await assignChecklistService(data);
     return { success: true, data: result };
 }
+

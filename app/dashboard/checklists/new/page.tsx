@@ -45,27 +45,8 @@ import {
 import { useQuery } from "@tanstack/react-query";
 import { GroupTableSelector } from "@/components/checklist/group-table-selector";
 import { useToast } from "@/hooks/use-toast";
-import { useCreateChecklist } from "@/lib/services/checklists/hooks";
-
-// Categories from the database schema
-const CATEGORIES = [
-  { value: "none", label: "None" },
-  { value: "agriculture", label: "Agriculture" },
-  { value: "construction", label: "Construction" },
-  { value: "manufacturing", label: "Manufacturing" },
-  { value: "healthcare", label: "Healthcare" },
-  { value: "food_processing", label: "Food Processing" },
-  { value: "transportation", label: "Transportation" },
-  { value: "retail", label: "Retail" },
-  { value: "hospitality", label: "Hospitality" },
-  { value: "education", label: "Education" },
-  { value: "government", label: "Government" },
-  { value: "technology", label: "Technology" },
-  { value: "energy", label: "Energy" },
-  { value: "mining", label: "Mining" },
-  { value: "waste_management", label: "Waste Management" },
-  { value: "financial_services", label: "Financial Services" },
-] as const;
+import { useCreateChecklist } from "@/lib/services/checklist";
+import { CHECKLIST_CATEGORIES } from "@/lib/checklist-categories";
 
 export default function NewChecklistPage() {
   const router = useRouter();
@@ -345,7 +326,7 @@ export default function NewChecklistPage() {
                     <SelectValue placeholder="Select an industry category" />
                   </SelectTrigger>
                   <SelectContent>
-                    {CATEGORIES.map((category) => (
+                    {CHECKLIST_CATEGORIES.map((category) => (
                       <SelectItem key={category.value} value={category.value}>
                         {category.label}
                       </SelectItem>
@@ -560,7 +541,6 @@ export default function NewChecklistPage() {
               </Alert>
             </CardContent>
           </Card>
-
         </form>
       </div>
     </div>

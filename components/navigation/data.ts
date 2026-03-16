@@ -62,6 +62,11 @@ export const sidebarNavItems: SidebarNavItem[] = [
                 href: "/dashboard/checklists/available",
                 icon: ListTodo,
             },
+            {
+                name: "AI Checklist Builder",
+                href: "/dashboard/checklists/ai",
+                icon: ChevronRight,
+            },
 
             {
                 name: "Available Templates",

@@ -3,6 +3,8 @@ export interface CheckList {
   name: string;
   description: string;
   created_at: string;
+  category: string;
+  can_delete: boolean;
   section_count: number;
   item_count: number;
 }
@@ -72,4 +74,14 @@ export interface PublicChecklist {
     id: string;
     name: string;
   };
+}
+
+export interface CreateChecklistData {
+  name: string;
+  description: string;
+  category: string;
+  checklist_group_id?: string;
+  checklist: File;
+  isPublic?: boolean;
+  onProgress?: (progress: number) => void;
 }

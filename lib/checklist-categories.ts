@@ -1,0 +1,18 @@
+export const CHECKLIST_CATEGORIES = [
+  { value: "none", label: "None" },
+  { value: "agriculture", label: "Agriculture" },
+  { value: "construction", label: "Construction" },
+  { value: "manufacturing", label: "Manufacturing" },
+  { value: "healthcare", label: "Healthcare" },
+  { value: "food_processing", label: "Food Processing" },
+  { value: "transportation", label: "Transportation" },
+  { value: "retail", label: "Retail" },
+  { value: "hospitality", label: "Hospitality" },
+  { value: "education", label: "Education" },
+  { value: "government", label: "Government" },
+  { value: "technology", label: "Technology" },
+  { value: "energy", label: "Energy" },
+  { value: "mining", label: "Mining" },
+  { value: "waste_management", label: "Waste Management" },
+  { value: "financial_services", label: "Financial Services" },
+] as const;
