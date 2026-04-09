@@ -27,6 +27,7 @@ import {
   Loader2,
   User,
   Calendar,
+  ArrowRight,
 } from "lucide-react";
 import { useSearchParams } from "next/navigation";
 
@@ -40,6 +41,8 @@ import { AssignedChecklist } from "@/lib/services/checklist/models";
 import { useRouter } from "next/navigation";
 import { DashboardCharts } from "@/components/dashboard-charts";
 import { useTeamMembers } from "@/components/team/members";
+import { getAccount } from "@/lib/services/auth/auth-get";
+import { Account } from "@/lib/services/accounts/models";
 import {
   Dialog,
   DialogContent,
@@ -91,6 +94,12 @@ export default function Dashboard() {
   const [selectedMemberId, setSelectedMemberId] = useState<string>("all");
   const [showOnboardingPrompt, setShowOnboardingPrompt] = useState(false);
   const { data: teamMembers = [] } = useTeamMembers();
+
+  const { data: account } = useQuery<Account>({
+    queryKey: ["account"],
+    queryFn: getAccount,
+    staleTime: 1000 * 60 * 5,
+  });
 
   useEffect(() => {
     if (searchParams.get("welcome") === "onboarding") {
@@ -250,6 +259,24 @@ export default function Dashboard() {
           </Select>
         </div>
       </div>
+
+      {account?.onboarding_required && (
+        <Card className="border-primary/20 bg-white">
+          <CardContent className="flex flex-col gap-4 p-5 sm:flex-row sm:items-center sm:justify-between">
+            <div className="space-y-1">
+              <p className="text-sm font-semibold">Get started with onboarding</p>
+              <p className="text-sm text-muted-foreground">
+                Complete your onboarding to tailor checklist suggestions,
+                workflow setup, and team configuration to your operation.
+              </p>
+            </div>
+            <Button onClick={() => router.push("/dashboard/onboarding")}>
+              Continue onboarding
+              <ArrowRight className="ml-2 h-4 w-4" />
+            </Button>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Overview Cards */}
       <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">

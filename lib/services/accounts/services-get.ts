@@ -1,6 +1,6 @@
 "use server"
 import { clientV1 } from "@/lib/client/client";
-import { Account, Farm } from "./models";
+import { Account, Farm, OnboardingProfile } from "./models";
 import { getAccessToken } from "../auth/auth-get";
 
 export async function getAccount(): Promise<Account> {
@@ -21,4 +21,14 @@ export async function getFarms(token: string): Promise<Farm[]> {
     });
     const farms: Farm[] = res.data as Farm[];
     return farms
+}
+
+export async function getOnboardingProfile(): Promise<OnboardingProfile> {
+    const res = await clientV1.get("/account/onboarding", {
+        headers: {
+            Authorization: `Bearer ${await getAccessToken()}`,
+        },
+    });
+
+    return res.data as OnboardingProfile;
 }

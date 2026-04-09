@@ -6,6 +6,7 @@ import { redirect, RedirectType } from "next/navigation";
 import { cookies } from "next/headers";
 import { AuthResult } from "@/lib/services/auth/models";
 import {
+    SaveOnboardingParams,
     RequestEmailChangeParams,
     UpdateProfileParams,
     VerifyEmailChangeParams,
@@ -63,6 +64,27 @@ export async function verifyEmailChange(params: VerifyEmailChangeParams) {
 
     try {
         const res = await clientV1.post("/account/email-change/verify", params, {
+            headers: {
+                Authorization: `Bearer ${token}`,
+            },
+        });
+
+        return res.data;
+    } catch (error) {
+        throw new Error(clientError(error));
+    }
+}
+
+export async function saveOnboardingProfile(params: SaveOnboardingParams) {
+    const cookieStore = await cookies();
+    const token = cookieStore.get("access_token")?.value;
+
+    if (!token) {
+        throw new Error("Not authenticated");
+    }
+
+    try {
+        const res = await clientV1.put("/account/onboarding", params, {
             headers: {
                 Authorization: `Bearer ${token}`,
             },
