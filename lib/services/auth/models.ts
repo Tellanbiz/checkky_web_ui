@@ -7,6 +7,10 @@ export interface SignUpParams {
     email: string;
     password: string;
     repassword: string;
+    country: string;
+    team_members: string;
+    industry: string;
+    position: string;
 }
 
 export interface SignUpVerificationParams {

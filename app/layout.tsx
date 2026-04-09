@@ -1,12 +1,13 @@
 import type React from "react";
 import type { Metadata } from "next";
-import { Hanken_Grotesk } from "next/font/google";
+import { Figtree } from "next/font/google";
 import { PullToRefreshProvider } from "@/components/providers/pull-to-refresh-provider";
 import "./globals.css";
 
-const hankenGrotesk = Hanken_Grotesk({
+const figtree = Figtree({
   subsets: ["latin"],
   display: "swap",
+  variable: "--font-figtree",
 });
 
 export const metadata: Metadata = {
@@ -23,7 +24,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body className={hankenGrotesk.className}>{children}</body>
+      <body className={figtree.className}>{children}</body>
     </html>
   );
 }

@@ -1,10 +1,15 @@
 "use server";
 
 import { clientV1 } from "@/lib/client/client";
+import { clientError } from "@/lib/client/client";
 import { redirect, RedirectType } from "next/navigation";
 import { cookies } from "next/headers";
 import { AuthResult } from "@/lib/services/auth/models";
-import { UpdateProfileParams } from "./models";
+import {
+    RequestEmailChangeParams,
+    UpdateProfileParams,
+    VerifyEmailChangeParams,
+} from "./models";
 
 export async function updateProfile(params: UpdateProfileParams) {
     const cookieStore = await cookies();
@@ -25,6 +30,48 @@ export async function updateProfile(params: UpdateProfileParams) {
     }
 
     return res.data;
+}
+
+export async function requestEmailChange(params: RequestEmailChangeParams) {
+    const cookieStore = await cookies();
+    const token = cookieStore.get("access_token")?.value;
+
+    if (!token) {
+        throw new Error("Not authenticated");
+    }
+
+    try {
+        const res = await clientV1.post("/account/email-change/request", params, {
+            headers: {
+                Authorization: `Bearer ${token}`,
+            },
+        });
+
+        return res.data;
+    } catch (error) {
+        throw new Error(clientError(error));
+    }
+}
+
+export async function verifyEmailChange(params: VerifyEmailChangeParams) {
+    const cookieStore = await cookies();
+    const token = cookieStore.get("access_token")?.value;
+
+    if (!token) {
+        throw new Error("Not authenticated");
+    }
+
+    try {
+        const res = await clientV1.post("/account/email-change/verify", params, {
+            headers: {
+                Authorization: `Bearer ${token}`,
+            },
+        });
+
+        return res.data;
+    } catch (error) {
+        throw new Error(clientError(error));
+    }
 }
 
 export async function updateCurrentFarm(formData: FormData) {

@@ -1,6 +1,11 @@
 "use client";
 
 import { WorkspaceInfo } from "@/lib/services/workflows/models";
+import {
+  formatReminderText,
+  formatWorkflowTimeList,
+  parseWorkflowScheduleConfig,
+} from "@/lib/workflow-schedule";
 
 const formatDate = (
   dateString: string | { Microseconds: number; Valid: boolean }
@@ -28,80 +33,6 @@ const formatTime = (
   return date.toLocaleTimeString();
 };
 
-const formatScheduleInfo = (workflow: WorkspaceInfo) => {
-  const { schedule_type, scheduled_time, day_of_week, day_of_month, month } =
-    workflow;
-
-  if (!scheduled_time) {
-    return schedule_type.charAt(0).toUpperCase() + schedule_type.slice(1);
-  }
-
-  // Format time from "1:54PM" to "1:54 PM"
-  const formatTime = (time: any) => {
-    if (!time) return "";
-    if (typeof time !== "string") {
-      return "Invalid Time";
-    }
-    // Add space before AM/PM if not present
-    return time.replace(/([AP]M)$/, " $1");
-  };
-
-  const formattedTime = formatTime(scheduled_time);
-
-  switch (schedule_type) {
-    case "once":
-      return `Once at ${formattedTime}`;
-
-    case "daily":
-      return `Daily at ${formattedTime}`;
-
-    case "weekly":
-      if (day_of_week !== null) {
-        const days = [
-          "Sunday",
-          "Monday",
-          "Tuesday",
-          "Wednesday",
-          "Thursday",
-          "Friday",
-          "Saturday",
-        ];
-        return `${days[day_of_week]} at ${formattedTime}`;
-      }
-      return `Weekly at ${formattedTime}`;
-
-    case "monthly":
-      if (day_of_month !== null) {
-        const suffix = getDaySuffix(day_of_month);
-        return `Monthly on the ${day_of_month}${suffix} at ${formattedTime}`;
-      }
-      return `Monthly at ${formattedTime}`;
-
-    case "yearly":
-      if (month !== null && day_of_month !== null) {
-        const months = [
-          "January",
-          "February",
-          "March",
-          "April",
-          "May",
-          "June",
-          "July",
-          "August",
-          "September",
-          "October",
-          "November",
-          "December",
-        ];
-        const suffix = getDaySuffix(day_of_month);
-        return `${
-          months[month - 1]
-        } ${day_of_month}${suffix} at ${formattedTime}`;
-      }
-      return `Yearly at ${formattedTime}`;
-  }
-};
-
 const getDaySuffix = (day: number) => {
   if (day >= 11 && day <= 13) return "th";
   switch (day % 10) {
@@ -123,6 +54,9 @@ interface WorkflowScheduleSectionProps {
 export function WorkflowScheduleSection({
   workflow,
 }: WorkflowScheduleSectionProps) {
+  const scheduleConfig = parseWorkflowScheduleConfig(workflow.scheduled_time);
+  const formattedTimes = formatWorkflowTimeList(scheduleConfig.times);
+
   return (
     <div className="border border-gray-200 rounded-lg p-6">
       <h2 className="text-lg font-semibold text-gray-900 mb-2">
@@ -143,13 +77,42 @@ export function WorkflowScheduleSection({
           </p>
         </div>
         <div>
-          <label className="text-sm font-medium text-gray-500">
-            Scheduled Time
-          </label>
+          <label className="text-sm font-medium text-gray-500">Run Times</label>
           <p className="mt-1 text-sm text-gray-900">
-            {workflow.scheduled_time}
+            {formattedTimes}
           </p>
         </div>
+        {(workflow.schedule_type === "daily" ||
+          workflow.schedule_type === "weekly") && (
+          <div>
+            <label className="text-sm font-medium text-gray-500">
+              Reminder
+            </label>
+            <p className="mt-1 text-sm text-gray-900">
+              {formatReminderText(scheduleConfig.reminderMinutes)}
+            </p>
+          </div>
+        )}
+        {workflow.schedule_type === "weekly" && (
+          <div>
+            <label className="text-sm font-medium text-gray-500">
+              Day of Week
+            </label>
+            <p className="mt-1 text-sm text-gray-900">
+              {
+                [
+                  "Sunday",
+                  "Monday",
+                  "Tuesday",
+                  "Wednesday",
+                  "Thursday",
+                  "Friday",
+                  "Saturday",
+                ][workflow.day_of_week]
+              }
+            </p>
+          </div>
+        )}
         {workflow.schedule_type === "monthly" && (
           <div>
             <label className="text-sm font-medium text-gray-500">
@@ -190,6 +153,17 @@ export function WorkflowScheduleSection({
             Timezone
           </label>
           <p className="mt-1 text-sm text-gray-900">{workflow.timezone}</p>
+        </div>
+        <div className="sm:col-span-2">
+          <label className="text-sm font-medium text-gray-500">Summary</label>
+          <p className="mt-1 text-sm text-gray-900">
+            {workflow.schedule_type.charAt(0).toUpperCase() +
+              workflow.schedule_type.slice(1)}{" "}
+            workflow running at {formattedTimes}
+            {(workflow.schedule_type === "daily" ||
+              workflow.schedule_type === "weekly") &&
+              ` with ${formatReminderText(scheduleConfig.reminderMinutes).toLowerCase()}.`}
+          </p>
         </div>
         <div>
           <label className="text-sm font-medium text-gray-500">

@@ -1,14 +1,30 @@
+export interface PendingEmailChange {
+    id: string;
+    new_email: string;
+    requested_at: string;
+    expires_at: string;
+}
+
 export interface Account {
+    id: string;
     picture: string;
     full_name: string;
     email: string;
     current_company_id: string;
+    pending_email_change?: PendingEmailChange | null;
 }
 
 export interface UpdateProfileParams {
     full_name: string;
-    email: string;
     picture?: string;
+}
+
+export interface RequestEmailChangeParams {
+    email: string;
+}
+
+export interface VerifyEmailChangeParams {
+    code: string;
 }
 
 export interface Farm {

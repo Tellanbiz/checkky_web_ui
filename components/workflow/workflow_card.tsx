@@ -12,6 +12,11 @@ import {
   WorkflowStatus,
   ChecklistPriority,
 } from "@/lib/services/workflows/models";
+import {
+  formatReminderText,
+  formatWorkflowTimeList,
+  parseWorkflowScheduleConfig,
+} from "@/lib/workflow-schedule";
 
 interface WorkflowCardProps {
   workflow: Workflow;
@@ -75,30 +80,20 @@ const safeRender = (value: any): string => {
 const formatScheduleInfo = (workflow: Workflow) => {
   const { schedule_type, scheduled_time, day_of_week, day_of_month, month } =
     workflow;
+  const scheduleConfig = parseWorkflowScheduleConfig(scheduled_time);
+  const formattedTimes = formatWorkflowTimeList(scheduleConfig.times);
+  const reminderText = formatReminderText(scheduleConfig.reminderMinutes);
 
   if (!scheduled_time) {
     return schedule_type.charAt(0).toUpperCase() + schedule_type.slice(1);
   }
 
-  // Format time from "1:54PM" to "1:54 PM"
-  const formatTime = (time: any) => {
-    if (!time) return "";
-    const safeTime = safeRender(time);
-    if (safeTime === "Invalid Data" || safeTime === "N/A") {
-      return "Invalid Time";
-    }
-    // Add space before AM/PM if not present
-    return safeTime.replace(/([AP]M)$/, " $1");
-  };
-
-  const formattedTime = formatTime(scheduled_time);
-
   switch (schedule_type) {
     case "once":
-      return `Once at ${formattedTime}`;
+      return `Once at ${formattedTimes}`;
 
     case "daily":
-      return `Daily at ${formattedTime}`;
+      return `Daily at ${formattedTimes} (${reminderText})`;
 
     case "weekly":
       if (day_of_week !== null) {
@@ -111,16 +106,16 @@ const formatScheduleInfo = (workflow: Workflow) => {
           "Friday",
           "Saturday",
         ];
-        return `${days[day_of_week]} at ${formattedTime}`;
+        return `${days[day_of_week]} at ${formattedTimes} (${reminderText})`;
       }
-      return `Weekly at ${formattedTime}`;
+      return `Weekly at ${formattedTimes} (${reminderText})`;
 
     case "monthly":
       if (day_of_month !== null) {
         const suffix = getDaySuffix(day_of_month);
-        return `Monthly on the ${day_of_month}${suffix} at ${formattedTime}`;
+        return `Monthly on the ${day_of_month}${suffix} at ${formattedTimes}`;
       }
-      return `Monthly at ${formattedTime}`;
+      return `Monthly at ${formattedTimes}`;
 
     case "yearly":
       if (month !== null && day_of_month !== null) {
@@ -141,9 +136,9 @@ const formatScheduleInfo = (workflow: Workflow) => {
         const suffix = getDaySuffix(day_of_month);
         return `${
           months[month - 1]
-        } ${day_of_month}${suffix} at ${formattedTime}`;
+        } ${day_of_month}${suffix} at ${formattedTimes}`;
       }
-      return `Yearly at ${formattedTime}`;
+      return `Yearly at ${formattedTimes}`;
   }
 };
 

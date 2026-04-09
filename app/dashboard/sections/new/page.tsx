@@ -45,6 +45,7 @@ export default function NewSectionPage() {
   };
 
   const handleCoordinatesChange = (lat: string, lng: string) => {
+    setInitialMapPosition({ lat, lng });
     if (!isSelectingNew && formData.points) {
       setShowClearDialog(true);
       return;

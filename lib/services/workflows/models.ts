@@ -41,6 +41,9 @@ export interface WorkflowParams {
   checklist_id: string;
   schedule_type: ScheduleType;
   scheduled_time: string; // Format like "1:54PM"
+  scheduled_times?: string[];
+  reminder_minutes?: number;
+  day_of_week: number;
   day_of_month: number;
   month: number;
   geofence_enabled: boolean;

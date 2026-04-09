@@ -1,111 +1,91 @@
 import {
-    Archive,
-    Book,
-    Building2,
-    CheckCircle,
+    BookOpen,
     ClipboardCheck,
     Clock,
-    CreditCard,
     Folder,
-    FolderOpen,
-    HelpCircle,
     LayoutDashboard,
     ListTodo,
-    Mail,
     Map,
-    MoreHorizontal,
-    UserCircle,
+    Store,
+    UserCircle2,
     Users,
     Workflow,
-    ChevronRight,
     type LucideIcon
 } from "lucide-react";
 
 export interface SidebarNavItem {
     name: string;
     href?: string;
+    activeMatchHrefs?: string[];
     icon?: LucideIcon;
     badge?: string;
-    children?: SidebarNavItem[];
-    collapsible?: boolean;
-    defaultExpanded?: boolean;
-    isSectionHeader?: boolean;
-    className?: string;
+    isDivider?: boolean;
     isExternal?: boolean;
-    isGroupsItem?: boolean;
+    isDepartments?: boolean;
+    isComingSoon?: boolean;
 }
 
 export const sidebarNavItems: SidebarNavItem[] = [
-    {
-        name: "General",
-        isSectionHeader: true,
-    },
+    // Section 1: Overview & Checklists
     {
         name: "Dashboard",
         href: "/dashboard",
         icon: LayoutDashboard,
     },
     {
-        name: "My Checklists",
+        name: "Active Checklists",
         href: "/dashboard/checklists",
+        icon: Clock,
+    },
+    {
+        name: "Browse Checklists",
+        href: "/dashboard/checklists/available",
         icon: ListTodo,
-        collapsible: true,
-        defaultExpanded: true,
-        children: [
-            {
-                name: "Ongoing Checklists",
-                href: "/dashboard/checklists",
-                icon: Clock,
-            },
-            {
-                name: "Available Checklists",
-                href: "/dashboard/checklists/available",
-                icon: ListTodo,
-            },
-            {
-                name: "AI Checklist Builder",
-                href: "/dashboard/checklists/ai",
-                icon: ChevronRight,
-            },
-
-            {
-                name: "Available Templates",
-                href: "/dashboard/templates",
-                icon: Book,
-            },
-        ],
     },
     {
-        name: "Team Members",
-        icon: Users,
-        href: "/dashboard/team",
+        name: "Marketplace",
+        href: "/dashboard/templates",
+        icon: Store,
     },
+    // --- divider ---
+    { name: "divider-1", isDivider: true },
+    // Section 2: Management
     {
-        name: "Workflow Automation",
+        name: "Workflows",
         href: "/dashboard/workflows",
         icon: Workflow,
     },
     {
-        name: "Location Management",
+        name: "Team Members",
+        href: "/dashboard/team",
+        icon: Users,
+    },
+    {
+        name: "Locations",
         href: "/dashboard/sections",
         icon: Map,
     },
     {
-        name: "Audit Management",
+        name: "Audits",
         href: "/dashboard/audits",
         icon: ClipboardCheck,
     },
     {
-        name: "Groups",
-        isSectionHeader: true,
-        className: "pt-6",
+        name: "Departments",
+        icon: Folder,
+        isDepartments: true,
+    },
+    // --- divider ---
+    { name: "divider-3", isDivider: true },
+    // Section 3: Account & Resources
+    {
+        name: "Account",
+        href: "/dashboard/account/settings",
+        icon: UserCircle2,
     },
     {
-        name: "Groups",
-        icon: Folder,
-        collapsible: true,
-        defaultExpanded: true,
-        isGroupsItem: true,
-        children: [],
+        name: "Resources",
+        href: "/dashboard/guidelines",
+        icon: BookOpen,
     },
 ];

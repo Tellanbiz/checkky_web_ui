@@ -61,7 +61,7 @@ export async function completeSignUpWithEmail(params: SignUpVerificationParams) 
             path: "/",
         });
 
-        redirect(`/dashboard`, RedirectType.push);
+        redirect(`/dashboard?welcome=onboarding`, RedirectType.push);
     } else {
         redirect(`/?error=unable to authenticate`, RedirectType.replace);
     }

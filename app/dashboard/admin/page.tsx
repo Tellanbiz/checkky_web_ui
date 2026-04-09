@@ -168,7 +168,6 @@ const AdminPage = () => {
         </div>
       </div>
 
-      {/* System Overview */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -221,7 +220,6 @@ const AdminPage = () => {
         </Card>
       </div>
 
-      {/* System Status and Pending Actions */}
       <div className="grid gap-4 md:grid-cols-2">
         <Card>
           <CardHeader>
@@ -256,8 +254,8 @@ const AdminPage = () => {
                         stat.status === "good"
                           ? "bg-green-500"
                           : stat.status === "warning"
-                          ? "bg-yellow-500"
-                          : "bg-red-500"
+                            ? "bg-yellow-500"
+                            : "bg-red-500"
                       }`}
                     />
                   </div>
@@ -313,7 +311,6 @@ const AdminPage = () => {
         </Card>
       </div>
 
-      {/* Recent Activity */}
       <Card>
         <CardHeader>
           <CardTitle>Recent System Activity</CardTitle>
@@ -330,10 +327,10 @@ const AdminPage = () => {
                     activity.status === "success"
                       ? "bg-green-100"
                       : activity.status === "warning"
-                      ? "bg-yellow-100"
-                      : activity.status === "error"
-                      ? "bg-red-100"
-                      : "bg-blue-100"
+                        ? "bg-yellow-100"
+                        : activity.status === "error"
+                          ? "bg-red-100"
+                          : "bg-blue-100"
                   }`}
                 >
                   {activity.status === "success" && (
@@ -361,7 +358,6 @@ const AdminPage = () => {
         </CardContent>
       </Card>
 
-      {/* Quick Actions */}
       <div className="grid gap-4 md:grid-cols-3">
         <Card>
           <CardHeader>
@@ -436,7 +432,6 @@ const AdminPage = () => {
         </Card>
       </div>
 
-      {/* All Modals */}
       <AdminReviewModal
         isOpen={showReviewModal}
         onClose={() => setShowReviewModal(false)}

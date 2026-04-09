@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Suspense } from "react";
 import { useQuery } from "@tanstack/react-query";
 import {
@@ -28,6 +28,7 @@ import {
   User,
   Calendar,
 } from "lucide-react";
+import { useSearchParams } from "next/navigation";
 
 import {
   getOverviewReportAction,
@@ -39,6 +40,15 @@ import { AssignedChecklist } from "@/lib/services/checklist/models";
 import { useRouter } from "next/navigation";
 import { DashboardCharts } from "@/components/dashboard-charts";
 import { useTeamMembers } from "@/components/team/members";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
 
 const getPriorityDisplayName = (priority: string) => {
   switch (priority) {
@@ -77,8 +87,16 @@ const formatDate = (dateString: string) => {
 
 export default function Dashboard() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [selectedMemberId, setSelectedMemberId] = useState<string>("all");
+  const [showOnboardingPrompt, setShowOnboardingPrompt] = useState(false);
   const { data: teamMembers = [] } = useTeamMembers();
+
+  useEffect(() => {
+    if (searchParams.get("welcome") === "onboarding") {
+      setShowOnboardingPrompt(true);
+    }
+  }, [searchParams]);
 
   const memberIdParam =
     selectedMemberId !== "all" ? selectedMemberId : undefined;
@@ -169,6 +187,46 @@ export default function Dashboard() {
 
   return (
     <div className="flex-1 space-y-4 p-4 md:p-8 pt-6">
+      <Dialog
+        open={showOnboardingPrompt}
+        onOpenChange={(open) => {
+          setShowOnboardingPrompt(open);
+          if (!open) {
+            router.replace("/dashboard");
+          }
+        }}
+      >
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Continue onboarding?</DialogTitle>
+            <DialogDescription>
+              Your account is ready. If you want, you can continue with the
+              richer onboarding flow so we can tailor workflows, team setup, and
+              checklist recommendations more precisely.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => {
+                setShowOnboardingPrompt(false);
+                router.replace("/dashboard");
+              }}
+            >
+              Maybe later
+            </Button>
+            <Button
+              onClick={() => {
+                setShowOnboardingPrompt(false);
+                router.push("/dashboard/onboarding");
+              }}
+            >
+              Continue onboarding
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <h2 className="text-2xl sm:text-3xl font-bold tracking-tight">
           Dashboard
