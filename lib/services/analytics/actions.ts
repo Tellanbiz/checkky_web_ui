@@ -5,9 +5,11 @@ import { getAccessToken } from "../auth/auth-get";
 
 export interface AnalyticsData {
     completion_rate: number;
-    avg_response_time: number;
     total_checklists: number;
-    active_tasks: number;
+    assigned_checklists: number;
+    completed_checklists: number;
+    pending_checklists: number;
+    total_members: number;
     performance_data: MonthlyPerformance[];
     category_data: CategoryDistribution[];
     team_performance: TeamMemberStats[];

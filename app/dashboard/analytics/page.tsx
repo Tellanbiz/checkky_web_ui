@@ -16,7 +16,6 @@ import {
   Download,
   TrendingUp,
   CheckCircle,
-  Clock,
   AlertTriangle,
   Loader2,
 } from "lucide-react";
@@ -256,57 +255,61 @@ export default function AnalyticsPage() {
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">
-              Completion Rate
-            </CardTitle>
+            <CardTitle className="text-sm font-medium">Completion Rate</CardTitle>
             <TrendingUp className="h-4 w-4 text-green-600" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              {analyticsData.completion_rate.toFixed(1)}%
+              {analyticsData.completion_rate.toFixed(2)}%
             </div>
-            <p className="text-xs text-green-600">+2.1% from last month</p>
+            <p className="text-xs text-muted-foreground">
+              {analyticsData.completed_checklists} of {analyticsData.assigned_checklists} assigned
+            </p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">
-              Avg Response Time
-            </CardTitle>
-            <Clock className="h-4 w-4 text-blue-600" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">
-              {analyticsData.avg_response_time.toFixed(1)}h
-            </div>
-            <p className="text-xs text-green-600">-0.3h from last month</p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Quality Score</CardTitle>
-            <CheckCircle className="h-4 w-4 text-green-600" />
+            <CardTitle className="text-sm font-medium">Total Checklists</CardTitle>
+            <CheckCircle className="h-4 w-4 text-blue-600" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
               {analyticsData.total_checklists}
             </div>
-            <p className="text-xs text-green-600">+12 from last month</p>
+            <p className="text-xs text-muted-foreground">
+              {analyticsData.assigned_checklists} assigned to members
+            </p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Risk Items</CardTitle>
-            <AlertTriangle className="h-4 w-4 text-red-600" />
+            <CardTitle className="text-sm font-medium">Completed</CardTitle>
+            <CheckCircle className="h-4 w-4 text-green-600" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              {analyticsData.active_tasks}
+              {analyticsData.completed_checklists}
             </div>
-            <p className="text-xs text-red-600">+2 from last month</p>
+            <p className="text-xs text-muted-foreground">
+              checklists completed
+            </p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Pending</CardTitle>
+            <AlertTriangle className="h-4 w-4 text-amber-500" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">
+              {analyticsData.pending_checklists}
+            </div>
+            <p className="text-xs text-muted-foreground">
+              {analyticsData.total_members} active team members
+            </p>
           </CardContent>
         </Card>
       </div>
@@ -422,7 +425,11 @@ export default function AnalyticsPage() {
                   <CartesianGrid strokeDasharray="3 3" />
                   <XAxis dataKey="name" />
                   <YAxis />
-                  <Tooltip />
+                  <Tooltip formatter={(value: number, name: string) =>
+                    name === "Tasks Completed"
+                      ? [value, name]
+                      : [`${Number(value).toFixed(2)}%`, name]
+                  } />
                   <Legend />
                   <Bar
                     dataKey="completed"
@@ -473,7 +480,7 @@ export default function AnalyticsPage() {
                     <div className="flex-1">
                       <p className="text-sm font-medium">{member.name}</p>
                       <p className="text-xs text-muted-foreground">
-                        Quality: {member.quality}%
+                        Quality: {member.quality.toFixed(2)}%
                       </p>
                     </div>
                     <Badge variant="secondary">{member.completed} tasks</Badge>
