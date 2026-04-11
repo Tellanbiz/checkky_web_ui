@@ -15,9 +15,17 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Plus, Search, Filter } from "lucide-react";
+import { Plus, Search, Filter, Download } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useRouter } from "next/navigation";
+import { downloadReportAction } from "@/lib/services/reports/actions";
+import { ReportPreviewModal } from "@/components/modals/report-preview-modal";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { ChecklistDetailsModal } from "@/components/modals/checklist-details-modal";
 import { DeleteConfirmationModal } from "@/components/team/delete-confirmation-modal";
 import {
@@ -45,6 +53,13 @@ function ChecklistsPageContent() {
   const [showDetailsModal, setShowDetailsModal] = useState(false);
   const [selectedChecklistForDetails, setSelectedChecklistForDetails] =
     useState<any>(null);
+  const [reportPreview, setReportPreview] = useState<{
+    open: boolean;
+    data: string | null;
+    filename: string;
+    contentType: string;
+    loading: boolean;
+  }>({ open: false, data: null, filename: "", contentType: "", loading: false });
   const [activeTab, setActiveTab] = useState<"ongoing" | "completed">(
     "ongoing",
   );
@@ -154,6 +169,32 @@ function ChecklistsPageContent() {
     router.replace(url.pathname + url.search);
   };
 
+  const handleDownloadReport = async (
+    type: "completed-summary" | "member-performance" | "group-compliance",
+  ) => {
+    try {
+      setReportPreview({ open: true, data: null, filename: "", contentType: "", loading: true });
+      const result = await downloadReportAction({ type, format: "pdf" });
+      if (!result.success || !result.data) throw new Error(result.error ?? "Download failed");
+      const reportNames: Record<string, string> = {
+        "completed-summary": "Completed Checklists Summary",
+        "member-performance": "Member Performance Report",
+        "group-compliance": "Group Compliance Report",
+      };
+      const dateStr = new Date().toISOString().split("T")[0];
+      setReportPreview({
+        open: true,
+        data: result.data,
+        filename: `${reportNames[type]} - ${dateStr}.pdf`,
+        contentType: result.contentType ?? "application/pdf",
+        loading: false,
+      });
+    } catch (error) {
+      setReportPreview({ open: false, data: null, filename: "", contentType: "", loading: false });
+      toast({ title: "Error", description: "Failed to generate report. Please try again.", variant: "destructive" });
+    }
+  };
+
   return (
     <div className="">
       {/* Tab Navigation */}
@@ -214,6 +255,28 @@ function ChecklistsPageContent() {
               </SelectContent>
             </Select>
           </div>
+
+          {activeTab === "completed" && (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" className="ml-auto shrink-0">
+                  <Download className="mr-2 h-4 w-4" />
+                  Download Report
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem onClick={() => handleDownloadReport("completed-summary")}>
+                  Completed Summary
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => handleDownloadReport("member-performance")}>
+                  Member Performance
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => handleDownloadReport("group-compliance")}>
+                  Group Compliance
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          )}
         </div>
       </div>
 
@@ -260,6 +323,15 @@ function ChecklistsPageContent() {
           checklist={selectedChecklistForDetails}
         />
       )}
+
+      <ReportPreviewModal
+        isOpen={reportPreview.open}
+        onClose={() => setReportPreview((p) => ({ ...p, open: false }))}
+        reportData={reportPreview.data}
+        filename={reportPreview.filename}
+        contentType={reportPreview.contentType}
+        loading={reportPreview.loading}
+      />
     </div>
   );
 }

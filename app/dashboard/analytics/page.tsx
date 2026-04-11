@@ -40,6 +40,14 @@ import {
   exportAnalyticsData,
   type AnalyticsData,
 } from "@/lib/services/analytics/actions";
+import { downloadReportAction } from "@/lib/services/reports/actions";
+import { ReportPreviewModal } from "@/components/modals/report-preview-modal";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { useToast } from "@/hooks/use-toast";
 
 export default function AnalyticsPage() {
@@ -49,6 +57,13 @@ export default function AnalyticsPage() {
   );
   const [loading, setLoading] = useState(true);
   const [dateRange, setDateRange] = useState<DateRange | undefined>();
+  const [reportPreview, setReportPreview] = useState<{
+    open: boolean;
+    data: string | null;
+    filename: string;
+    contentType: string;
+    loading: boolean;
+  }>({ open: false, data: null, filename: "", contentType: "", loading: false });
 
   useEffect(() => {
     loadAnalyticsData();
@@ -93,6 +108,42 @@ export default function AnalyticsPage() {
         description: "Failed to export analytics data. Please try again.",
         variant: "destructive",
       });
+    }
+  };
+
+  const handleDownloadReport = async (
+    type: "overview" | "yearly" | "priority" | "completed-summary" | "member-performance" | "group-compliance",
+  ) => {
+    try {
+      setReportPreview({ open: true, data: null, filename: "", contentType: "", loading: true });
+      const result = await downloadReportAction({
+        type,
+        format: "pdf",
+        year: new Date().getFullYear(),
+        ...(dateRange?.from ? { start_date: dateRange.from.toISOString().split("T")[0] } : {}),
+        ...(dateRange?.to ? { end_date: dateRange.to.toISOString().split("T")[0] } : {}),
+      });
+      if (!result.success || !result.data) throw new Error(result.error ?? "Download failed");
+      const reportNames: Record<string, string> = {
+        overview: "Compliance Overview Report",
+        yearly: `Yearly Report ${new Date().getFullYear()}`,
+        priority: "Priority Breakdown Report",
+        "completed-summary": "Completed Checklists Summary",
+        "member-performance": "Member Performance Report",
+        "group-compliance": "Group Compliance Report",
+      };
+      const dateStr = new Date().toISOString().split("T")[0];
+      setReportPreview({
+        open: true,
+        data: result.data,
+        filename: `${reportNames[type]} - ${dateStr}.pdf`,
+        contentType: result.contentType ?? "application/pdf",
+        loading: false,
+      });
+    } catch (error) {
+      console.error("Failed to download report:", error);
+      setReportPreview({ open: false, data: null, filename: "", contentType: "", loading: false });
+      toast({ title: "Error", description: "Failed to generate report. Please try again.", variant: "destructive" });
     }
   };
 
@@ -158,10 +209,38 @@ export default function AnalyticsPage() {
             value={dateRange}
             onChange={(range: DateRange | undefined) => setDateRange(range)}
           />
-          <Button onClick={() => handleExport("csv")}>
+          <Button onClick={() => handleExport("csv")} variant="outline">
             <Download className="mr-2 h-4 w-4" />
-            Export Report
+            Export CSV
           </Button>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button>
+                <Download className="mr-2 h-4 w-4" />
+                Download Report
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem onClick={() => handleDownloadReport("overview")}>
+                Overview Report
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => handleDownloadReport("yearly")}>
+                Yearly Report
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => handleDownloadReport("priority")}>
+                Priority Breakdown
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => handleDownloadReport("completed-summary")}>
+                Completed Summary
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => handleDownloadReport("member-performance")}>
+                Member Performance
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => handleDownloadReport("group-compliance")}>
+                Group Compliance
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
       </div>
 
@@ -473,6 +552,15 @@ export default function AnalyticsPage() {
           </CardContent>
         </Card>
       </div>
+
+      <ReportPreviewModal
+        isOpen={reportPreview.open}
+        onClose={() => setReportPreview((p) => ({ ...p, open: false }))}
+        reportData={reportPreview.data}
+        filename={reportPreview.filename}
+        contentType={reportPreview.contentType}
+        loading={reportPreview.loading}
+      />
     </div>
   );
 }

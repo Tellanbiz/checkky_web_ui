@@ -1,7 +1,7 @@
 "use server";
 
 import { cookies } from "next/headers";
-import { getYearlyReport, getMonthlyReport, getOverviewReport } from "./get";
+import { getYearlyReport, getMonthlyReport, getOverviewReport, downloadReport } from "./get";
 import { MonthlyReport, MonthlyTasks } from "./models";
 
 export async function getOverviewReportAction(member_id?: string): Promise<any> {
@@ -60,6 +60,48 @@ export async function getMonthlyReportAction(member_id?: string, params?: { star
         return {
             success: false,
             error: error instanceof Error ? error.message : 'Failed to fetch monthly report'
+        };
+    }
+}
+
+export async function downloadReportAction(params: {
+    type: "overview" | "yearly" | "priority" | "completed-summary" | "member-performance" | "group-compliance" | "checklist-detail";
+    format?: "pdf" | "html";
+    year?: number;
+    start_date?: string;
+    end_date?: string;
+    member_id?: string;
+    assigned_checklist_id?: string;
+}): Promise<{
+    success: boolean;
+    data?: string;
+    filename?: string;
+    contentType?: string;
+    error?: string;
+}> {
+    try {
+        const cookieStore = await cookies();
+        const token = cookieStore.get("access_token")?.value;
+
+        if (!token) {
+            throw new Error("Not authenticated");
+        }
+
+        const result = await downloadReport(token, params);
+        const base64 = Buffer.from(result.data).toString("base64");
+        const contentType = params.format === "html" ? "text/html" : "application/pdf";
+
+        return {
+            success: true,
+            data: base64,
+            filename: result.filename,
+            contentType,
+        };
+    } catch (error) {
+        console.error("Error downloading report:", error);
+        return {
+            success: false,
+            error: error instanceof Error ? error.message : "Failed to download report",
         };
     }
 }
