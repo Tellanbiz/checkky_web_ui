@@ -95,7 +95,16 @@ export default function AnalyticsPage() {
         start_date: dateRange?.from?.toISOString().split("T")[0],
         end_date: dateRange?.to?.toISOString().split("T")[0],
       };
-      await exportAnalyticsData(format, params);
+      const result = await exportAnalyticsData(format, params);
+      const blob = new Blob([result.data], { type: result.contentType });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = result.filename;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
       toast({
         title: "Success",
         description: `Analytics data exported as ${format.toUpperCase()}`,
