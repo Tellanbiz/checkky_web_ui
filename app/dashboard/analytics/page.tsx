@@ -64,7 +64,6 @@ export default function AnalyticsPage() {
     contentType: string;
     loading: boolean;
   }>({ open: false, data: null, filename: "", contentType: "", loading: false });
-
   useEffect(() => {
     loadAnalyticsData();
   }, [dateRange]);

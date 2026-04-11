@@ -1,5 +1,6 @@
 import {
     BookOpen,
+    BarChart2,
     ClipboardCheck,
     Clock,
     Folder,
@@ -61,6 +62,11 @@ export const sidebarNavItems: SidebarNavItem[] = [
         icon: Users,
     },
     {
+        name: "Departments",
+        icon: Folder,
+        isDepartments: true,
+    },
+    {
         name: "Locations",
         href: "/dashboard/sections",
         icon: Map,
@@ -71,9 +77,9 @@ export const sidebarNavItems: SidebarNavItem[] = [
         icon: ClipboardCheck,
     },
     {
-        name: "Departments",
-        icon: Folder,
-        isDepartments: true,
+        name: "Analytics",
+        href: "/dashboard/analytics",
+        icon: BarChart2,
     },
     // --- divider ---
     { name: "divider-3", isDivider: true },
