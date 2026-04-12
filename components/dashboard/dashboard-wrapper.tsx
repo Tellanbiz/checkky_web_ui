@@ -55,37 +55,38 @@ export function DashboardWrapper({ children }: DashboardWrapperProps) {
   // Combined redirect and dialog management
   useEffect(() => {
     const hasCompanies = companies.length > 0;
-    const onCompanyCreatePage = pathname === "/dashboard/companies/new";
-    const onCompaniesPage = pathname === "/companies";
+    const onDashboardPage = pathname === "/dashboard";
+    const onOnboardingPage = pathname === "/dashboard/onboarding";
     if (loading) return;
 
     // If unauthorized, let the other effect handle redirect
     if (error && /unauthorized|401/i.test(error.message)) return;
 
-    if (!hasCompanies && !onCompanyCreatePage) {
-      router.replace("/dashboard/companies/new");
-      return;
-    }
+    if (!hasCompanies) {
+      if (account?.onboarding_required) {
+        if (!onDashboardPage && !onOnboardingPage) {
+          router.replace("/dashboard");
+        }
+        setShowCompanyDialog(false);
+        return;
+      }
 
-    // Redirect away from creation if companies exist
-    if (hasCompanies && onCompanyCreatePage) {
-      router.replace("/dashboard");
+      if (!onDashboardPage) {
+        router.replace("/dashboard");
+        return;
+      }
+
+      setShowCompanyDialog(true);
       return;
     }
 
     // Check if user has companies but none selected
-    if (
-      hasCompanies &&
-      account &&
-      !account.current_company_id &&
-      !onCompaniesPage
-    ) {
+    if (hasCompanies && account && !account.current_company_id) {
       router.replace("/dashboard");
       return;
     }
 
-    // Manage dialog visibility only on /dashboard with no companies
-    setShowCompanyDialog(!hasCompanies && pathname === "/dashboard");
+    setShowCompanyDialog(false);
   }, [loading, companies.length, pathname, router, error, account]);
 
   // Handle mobile sidebar close event
@@ -156,12 +157,8 @@ export function DashboardWrapper({ children }: DashboardWrapperProps) {
     );
   }
 
-  // If no companies and not on company creation page, show loading
-  if (
-    !loading &&
-    companies.length === 0 &&
-    pathname !== "/dashboard/companies/new"
-  ) {
+  // While deciding the first-time route, keep the transition quiet.
+  if (!loading && companies.length === 0 && pathname !== "/dashboard") {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
@@ -170,11 +167,6 @@ export function DashboardWrapper({ children }: DashboardWrapperProps) {
         </div>
       </div>
     );
-  }
-
-  // If on company creation page, don't show the dashboard layout
-  if (pathname === "/dashboard/companies/new") {
-    return <>{children}</>;
   }
 
   // If we have companies, show the normal dashboard layout

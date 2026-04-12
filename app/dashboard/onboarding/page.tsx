@@ -199,14 +199,21 @@ export default function OnboardingPage() {
 
   const validateStep = (step: number) => {
     if (step === 1) {
+      const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
       if (
         !form.org_name ||
         !form.country ||
         !form.industry ||
+        !form.position ||
+        !form.team_members ||
         !form.contact_name ||
+        !form.contact_role ||
         !form.contact_email
       ) {
-        return "Add your organisation, country, industry, and contact details before continuing.";
+        return "Add your organisation, country, role, team size, and full contact details before continuing.";
+      }
+      if (!emailPattern.test(form.contact_email.trim())) {
+        return "Enter a valid contact email before continuing.";
       }
     }
     if (step === 2) {
