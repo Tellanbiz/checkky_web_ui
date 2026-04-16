@@ -5,9 +5,11 @@ import { getAccessToken } from "../auth/auth-get";
 
 export interface AnalyticsData {
     completion_rate: number;
-    avg_response_time: number;
     total_checklists: number;
-    active_tasks: number;
+    assigned_checklists: number;
+    completed_checklists: number;
+    pending_checklists: number;
+    total_members: number;
     performance_data: MonthlyPerformance[];
     category_data: CategoryDistribution[];
     team_performance: TeamMemberStats[];
@@ -62,7 +64,7 @@ export async function getAnalyticsData(params?: AnalyticsParams): Promise<Analyt
     return response.data;
 }
 
-export async function exportAnalyticsData(format: "json" | "csv" = "json", params?: AnalyticsParams): Promise<any> {
+export async function exportAnalyticsData(format: "json" | "csv" = "json", params?: AnalyticsParams): Promise<{ data: string; filename: string; contentType: string }> {
     const searchParams = new URLSearchParams();
     searchParams.append("format", format);
 
@@ -84,19 +86,9 @@ export async function exportAnalyticsData(format: "json" | "csv" = "json", param
         },
     });
 
-    if (format === "csv") {
-        // Handle CSV download
-        const blob = new Blob([response.data], { type: "text/csv" });
-        const url = window.URL.createObjectURL(blob);
-        const a = document.createElement("a");
-        a.href = url;
-        a.download = `analytics-${new Date().toISOString().split("T")[0]}.csv`;
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        window.URL.revokeObjectURL(url);
-        return response.data;
-    }
+    const contentType = format === "csv" ? "text/csv" : "application/json";
+    const raw = typeof response.data === "string" ? response.data : JSON.stringify(response.data);
+    const filename = `analytics-${new Date().toISOString().split("T")[0]}.${format}`;
 
-    return response.data;
+    return { data: raw, filename, contentType };
 }

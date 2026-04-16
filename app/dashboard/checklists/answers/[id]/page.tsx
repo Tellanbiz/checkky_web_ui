@@ -22,8 +22,10 @@ import {
   DialogTitle,
   DialogDescription,
 } from "@/components/ui/dialog";
-import { ArrowLeft, Loader2, User, Info, ChevronRight } from "lucide-react";
+import { ArrowLeft, Loader2, User, Info, ChevronRight, Download } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { downloadReportAction } from "@/lib/services/reports/actions";
+import { ReportPreviewModal } from "@/components/modals/report-preview-modal";
 
 export default function AnswerPage() {
   const params = useParams();
@@ -42,6 +44,35 @@ export default function AnswerPage() {
   >();
   const [assignAuditorDialogOpen, setAssignAuditorDialogOpen] = useState(false);
   const [descriptionDialogOpen, setDescriptionDialogOpen] = useState(false);
+  const [reportPreview, setReportPreview] = useState<{
+    open: boolean;
+    data: string | null;
+    filename: string;
+    contentType: string;
+    loading: boolean;
+  }>({ open: false, data: null, filename: "", contentType: "", loading: false });
+
+  const handleDownloadDetailReport = async () => {
+    try {
+      setReportPreview({ open: true, data: null, filename: "", contentType: "", loading: true });
+      const result = await downloadReportAction({
+        type: "checklist-detail",
+        format: "pdf",
+        assigned_checklist_id: id,
+      });
+      if (!result.success || !result.data) throw new Error(result.error ?? "Download failed");
+      setReportPreview({
+        open: true,
+        data: result.data,
+        filename: result.filename ?? `checklist-detail-${id}.pdf`,
+        contentType: result.contentType ?? "application/pdf",
+        loading: false,
+      });
+    } catch (error) {
+      setReportPreview({ open: false, data: null, filename: "", contentType: "", loading: false });
+      toast({ title: "Error", description: "Failed to generate report. Please try again.", variant: "destructive" });
+    }
+  };
 
   // TanStack Query for fetching checklist data
   const {
@@ -344,6 +375,17 @@ export default function AnswerPage() {
                     <span className="sm:hidden">Assign</span>
                   </Button>
                 )}
+
+                {checklist.status === "completed" && (
+                  <Button
+                    variant="outline"
+                    onClick={handleDownloadDetailReport}
+                    className="text-xs rounded-full ml-auto shrink-0"
+                  >
+                    <Download className="w-3 h-3 mr-1" />
+                    Download Report
+                  </Button>
+                )}
               </div>
             </div>
           </div>
@@ -431,6 +473,15 @@ export default function AnswerPage() {
           </div>
         </div>
       </div>
+
+      <ReportPreviewModal
+        isOpen={reportPreview.open}
+        onClose={() => setReportPreview((p) => ({ ...p, open: false }))}
+        reportData={reportPreview.data}
+        filename={reportPreview.filename}
+        contentType={reportPreview.contentType}
+        loading={reportPreview.loading}
+      />
 
       {/* Assign Auditor Dialog */}
       <AssignAuditorDialog
