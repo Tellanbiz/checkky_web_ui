@@ -19,6 +19,7 @@ interface QuestionWidgetFactoryProps {
     default_answer: string | null;
     photo_available: string;
     answer_options: string[];
+    corrective_option?: string | null;
     corrective_actions: string[];
     policy: string | null;
     answer: string | null;

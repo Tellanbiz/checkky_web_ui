@@ -2,13 +2,15 @@
 
 import { useState, use } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import TextField from "@/components/common/text-field";
 import { Button } from "@/components/ui/button";
-import { QuestionWidgetFactory } from "@/components/checklist/forms/QuestionWidgetFactory";
 import { PreviewWidgetFactory } from "@/components/checklist/forms/PreviewWidgetFactory";
-import { CheckCircleIcon, SearchIcon, FileTextIcon, Users, Info, Loader2 } from "lucide-react";
+import { SearchIcon, FileTextIcon, Users, Info, Loader2, Edit3 } from "lucide-react";
 import { getChecklistsInfo } from "@/lib/services/checklist/actions";
+import { updateChecklistItem } from "@/lib/services/checklist/post";
+import { ChecklistItemUpdateData } from "@/lib/services/checklist/models";
+import { ChecklistItemEditDialog } from "@/components/checklist/checklist-item-edit-dialog";
 import {
   Dialog,
   DialogContent,
@@ -86,7 +88,9 @@ export default function ChecklistDetailPage({
   const [searchQuery, setSearchQuery] = useState("");
   const [descriptionDialogOpen, setDescriptionDialogOpen] = useState(false);
   const [activeSection, setActiveSection] = useState<number | undefined>();
+  const [editingItem, setEditingItem] = useState<(ChecklistItemUpdateData & { policy: string | null }) | null>(null);
   const router = useRouter();
+  const queryClient = useQueryClient();
 
   // TanStack Query for fetching checklist data
   const {
@@ -127,6 +131,30 @@ export default function ChecklistDetailPage({
 
   const handleAssignChecklist = () => {
     router.push(`/dashboard/checklists/assign/${id}`);
+  };
+
+  const updateItemMutation = useMutation({
+    mutationFn: updateChecklistItem,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["checklist", id] });
+      setEditingItem(null);
+    },
+  });
+
+  const openEditItem = (question: any, section: any) => {
+    setEditingItem({
+      id: question.id,
+      order_index: section.order_index,
+      question_group: question.question_group || section.question_group,
+      checklist_item_caption: question.checklist_item_caption,
+      question_type: question.question_type,
+      default_answer: question.default_answer,
+      photo_available: question.photo_available || "No",
+      answer_options: question.answer_options || [],
+      corrective_option: question.corrective_option || "",
+      corrective_actions: question.corrective_actions || [],
+      policy: question.policy,
+    });
   };
 
   if (isLoading) {
@@ -319,6 +347,18 @@ export default function ChecklistDetailPage({
                             key={question.id}
                             className="bg-white border border-gray-200 rounded-xl p-4 hover:border-primary/30 transition-all"
                           >
+                            <div className="mb-3 flex justify-end">
+                              <Button
+                                type="button"
+                                variant="outline"
+                                size="sm"
+                                className="rounded-full bg-white"
+                                onClick={() => openEditItem(question, section)}
+                              >
+                                <Edit3 className="mr-1.5 h-3.5 w-3.5" />
+                                Edit item
+                              </Button>
+                            </div>
                             <PreviewWidgetFactory question={question} />
                           </div>
                         ))}
@@ -350,6 +390,14 @@ export default function ChecklistDetailPage({
           </div>
         </DialogContent>
       </Dialog>
+
+      <ChecklistItemEditDialog
+        open={!!editingItem}
+        onOpenChange={(open) => !open && setEditingItem(null)}
+        question={editingItem}
+        isSaving={updateItemMutation.isPending}
+        onSave={(data) => updateItemMutation.mutate(data)}
+      />
     </div>
   );
 }

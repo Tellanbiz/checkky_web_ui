@@ -38,7 +38,7 @@ export async function getChecklistInfo(id?: string): Promise<ChecklistInfo> {
 }
 
 export async function getAssignedChecklists(): Promise<AssignedChecklist[]> {
-    const res = await clientV1.get<AssignedChecklist[]>(`/checklists/assigned`, {
+    const res = await clientV1.get<AssignedChecklist[]>(`/checklists/assigned/my`, {
         headers: {
             Authorization: `Bearer ${await getAccessToken()}`,
         },

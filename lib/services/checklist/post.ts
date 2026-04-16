@@ -2,7 +2,7 @@
 
 import { clientV1 } from "@/lib/client/client";
 import { getAccessToken } from "../auth/auth-get";
-import { CreateChecklistData, AssignedChecklistParams } from "./models";
+import { CreateChecklistData, AssignedChecklistParams, ChecklistItemUpdateData } from "./models";
 
 
 
@@ -56,6 +56,15 @@ export async function updateAssignedPriority(id: string, priority: "low" | "mid"
     return res.status != 200 ? { error: res.data.error } : res.data;
 }
 
+export async function updateChecklistItem(data: ChecklistItemUpdateData): Promise<any> {
+    const res = await clientV1.put(`/checklist/items/${data.id}`, data, {
+        headers: {
+            Authorization: `Bearer ${await getAccessToken()}`,
+        },
+    });
+    return res.status != 200 ? { error: res.data.error } : res.data;
+}
+
 
 
 export async function deleteAssignedChecklist(id: string): Promise<any> {
@@ -77,4 +86,3 @@ export async function copyChecklist(params: { name: string, description: string,
     });
     return res.status != 200 ? { error: res.data.error } : res.data;
 }
-

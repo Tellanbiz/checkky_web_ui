@@ -13,6 +13,7 @@ interface PreviewWidgetFactoryProps {
     default_answer: string | null;
     photo_available: string;
     answer_options: string[];
+    corrective_option?: string | null;
     corrective_actions: string[];
     policy: string | null;
     answer: string | null;
@@ -198,7 +199,7 @@ export function PreviewWidgetFactory({ question }: PreviewWidgetFactoryProps) {
         question.corrective_actions.length > 0 && (
           <div>
             <h4 className="text-sm font-medium text-gray-700 mb-2">
-              Corrective Actions:
+              Corrective Actions{question.corrective_option ? ` when "${question.corrective_option}" is selected` : ""}:
             </h4>
             <div className="space-y-2">
               {question.corrective_actions

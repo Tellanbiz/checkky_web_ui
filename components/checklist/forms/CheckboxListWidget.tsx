@@ -12,6 +12,7 @@ interface CheckboxListWidgetProps {
     checklist_item_caption: string;
     default_answer: string | null;
     answer_options: string[];
+    corrective_option?: string | null;
     corrective_actions: string[];
     policy: string | null;
     is_answered: boolean;
@@ -33,6 +34,10 @@ export function CheckboxListWidget({
 }: CheckboxListWidgetProps) {
   const [comment, setComment] = useState('');
   const selectedValues = value ? value.split(',') : [];
+  const showCorrectiveActions =
+    !!question.corrective_option &&
+    selectedValues.includes(question.corrective_option) &&
+    question.corrective_actions.length > 0;
 
   const handleCheckboxChange = (option: string, checked: boolean) => {
     let newValues: string[];
@@ -66,23 +71,36 @@ export function CheckboxListWidget({
 
       {/* Checkbox Options */}
       <div className="space-y-3">
-        {question.answer_options.map((option, index) => (
-          <div key={index} className="flex items-center space-x-3 p-3 border rounded-lg">
+        {question.answer_options.map((option, index) => {
+          const isSelected = selectedValues.includes(option);
+          const isCorrective = question.corrective_option === option;
+
+          return (
+          <div
+            key={index}
+            className={`flex items-center space-x-3 p-3 border rounded-lg transition-colors ${
+              isSelected
+                ? isCorrective
+                  ? 'border-orange-300 bg-orange-50'
+                  : 'border-primary/40 bg-primary/5'
+                : 'border-gray-200 bg-white hover:bg-gray-50'
+            }`}
+          >
             <Checkbox
               id={`checkbox-${question.id}-${index}`}
-              checked={selectedValues.includes(option)}
+              checked={isSelected}
               onCheckedChange={(checked) => handleCheckboxChange(option, checked as boolean)}
               className="flex-shrink-0"
-              disabled
             />
             <Label
               htmlFor={`checkbox-${question.id}-${index}`}
-              className="text-sm font-normal flex-1 text-gray-900"
+              className="text-sm font-normal flex-1 text-gray-900 cursor-pointer"
             >
               {option}
             </Label>
           </div>
-        ))}
+          );
+        })}
       </div>
 
       {/* Selection Summary */}
@@ -102,7 +120,6 @@ export function CheckboxListWidget({
           onChange={handleCommentChange}
           placeholder="Add any additional comments..."
           className="min-h-[60px] resize-none text-sm text-gray-900"
-          disabled
         />
       </div>
 
@@ -116,7 +133,7 @@ export function CheckboxListWidget({
       )}
 
       {/* Corrective Actions */}
-      {question.corrective_actions.length > 0 && (
+      {showCorrectiveActions && (
         <div className="p-3 bg-orange-50 rounded-lg border border-orange-200">
           <p className="text-xs text-orange-800 font-medium mb-1">Corrective Actions:</p>
           <ul className="text-xs text-orange-700 space-y-1">

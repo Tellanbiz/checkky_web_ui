@@ -3,7 +3,7 @@
 import { AvailableChecklist } from "@/components/checklist/available-checklist";
 import { useAvailableFilterActions } from "@/lib/provider/checklists/index";
 import { Input } from "@/components/ui/input";
-import { Search, Filter, Plus, Sparkles } from "lucide-react";
+import { Search, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useRouter } from "next/navigation";
 
@@ -15,9 +15,6 @@ export default function MyChecklistsPage() {
     router.push("/dashboard/checklists/new");
   };
 
-  const handleAIChecklist = () => {
-    router.push("/dashboard/checklists/ai");
-  };
   return (
     <div className="flex-1 space-y-4 p-4 md:p-8 pt-6">
       {/* Header with Search */}
@@ -34,15 +31,6 @@ export default function MyChecklistsPage() {
 
         {/* Action Button */}
         <div className="flex w-full sm:w-auto gap-2">
-          <Button
-            onClick={handleAIChecklist}
-            variant="outline"
-            className="w-full sm:w-auto justify-center border-emerald-200 bg-emerald-50 text-emerald-800 hover:bg-emerald-100"
-          >
-            <Sparkles className="mr-2 h-4 w-4" />
-            <span className="hidden sm:inline">Build with AI</span>
-            <span className="sm:hidden">AI Builder</span>
-          </Button>
           <Button
             onClick={handleNewChecklist}
             className="bg-primary hover:bg-primary/90 text-primary-foreground w-full sm:w-auto justify-center"

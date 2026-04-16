@@ -2,24 +2,14 @@
 
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Input } from "@/components/ui/input";
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import {
-  Search,
-  Filter,
-  Plus,
-  Download,
-  Eye,
   Loader2,
   ArrowRight,
   Trash2,
   ShieldCheck,
+  CalendarDays,
+  FileText,
+  ListChecks,
 } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
@@ -158,86 +148,93 @@ export function AvailableChecklist() {
       {!isLoading && (
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
           {filteredAndSortedChecklists.map((checklist: CheckList) => (
-            <button
+            <article
               key={checklist.id}
-              className="group bg-white rounded-2xl border border-gray-200 p-5 hover:shadow-lg hover:border-primary/30 transition-all duration-200 cursor-pointer overflow-hidden text-left w-full hover:bg-gray-50"
-              onClick={() => handleViewChecklist(checklist)}
+              className="group flex h-full flex-col rounded-2xl border border-gray-200 bg-white p-5 shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:border-primary/30 hover:shadow-md"
             >
-              <div className="space-y-4">
-                {/* Header */}
-                <div className="flex items-start justify-between gap-2">
-                  <div className="flex-1 min-w-0">
-                    <div className="mb-2 flex flex-wrap items-center gap-2">
+              <div className="flex items-start justify-between gap-3">
+                <div className="min-w-0 space-y-2">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <Badge
+                      variant="outline"
+                      className="border-emerald-200 bg-emerald-50 text-emerald-800 capitalize"
+                    >
+                      {checklist.category.replaceAll("_", " ")}
+                    </Badge>
+                    {checklist.can_delete && (
                       <Badge
                         variant="outline"
-                        className="border-emerald-200 bg-emerald-50 text-emerald-800"
+                        className="border-amber-200 bg-amber-50 text-amber-700"
                       >
-                        {checklist.category.replaceAll("_", " ")}
+                        <ShieldCheck className="mr-1 h-3.5 w-3.5" />
+                        Uploaded by you
                       </Badge>
-                      {checklist.can_delete && (
-                        <Badge
-                          variant="outline"
-                          className="border-amber-200 bg-amber-50 text-amber-700"
-                        >
-                          <ShieldCheck className="mr-1 h-3.5 w-3.5" />
-                          Uploaded by you
-                        </Badge>
-                      )}
-                    </div>
-                    <h3 className="font-bold text-base text-gray-900 line-clamp-2 group-hover:text-primary transition-colors">
-                      {checklist.name}
-                    </h3>
-                    {checklist.description && (
-                      <p className="text-sm text-gray-500 line-clamp-2 mt-1.5">
-                        {checklist.description}
-                      </p>
                     )}
                   </div>
-                  <div className="flex flex-shrink-0 items-center gap-1">
-                    {checklist.can_delete && (
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="icon"
-                        className="h-8 w-8 text-red-500 opacity-0 transition-opacity hover:bg-red-50 hover:text-red-600 group-hover:opacity-100"
-                        onClick={(event) => {
-                          event.stopPropagation();
-                          setChecklistToDelete(checklist);
-                        }}
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                    )}
-                    <div className="opacity-0 transition-opacity group-hover:opacity-100">
-                      <ArrowRight className="h-4 w-4 text-primary" />
-                    </div>
-                  </div>
+                  <h3 className="line-clamp-2 text-base font-semibold text-gray-950 transition-colors group-hover:text-primary">
+                    {checklist.name}
+                  </h3>
                 </div>
 
-                {/* Stats */}
-                <div className="flex items-center gap-3 text-sm text-gray-600 bg-gray-50 rounded-lg p-2.5">
-                  <div className="flex items-center gap-1">
-                    <span className="font-semibold text-gray-900">
-                      {checklist.section_count}
-                    </span>
-                    <span>sections</span>
+                {checklist.can_delete && (
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    className="h-8 w-8 shrink-0 text-red-500 hover:bg-red-50 hover:text-red-600"
+                    onClick={() => setChecklistToDelete(checklist)}
+                    aria-label={`Delete ${checklist.name}`}
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
+                )}
+              </div>
+
+              <p className="mt-3 line-clamp-2 min-h-10 text-sm leading-5 text-gray-500">
+                {checklist.description ||
+                  "Open this checklist to review its sections and questions."}
+              </p>
+
+              <div className="mt-5 grid grid-cols-3 gap-2 rounded-xl bg-gray-50 p-3 text-sm text-gray-600">
+                <div className="min-w-0">
+                  <div className="mb-1 flex items-center gap-1 text-gray-400">
+                    <ListChecks className="h-3.5 w-3.5" />
+                    <span className="text-xs">Sections</span>
                   </div>
-                  <div className="w-px h-4 bg-gray-300" />
-                  <div className="flex items-center gap-1">
-                    <span className="font-semibold text-gray-900">
-                      {checklist.item_count}
-                    </span>
-                    <span>items</span>
+                  <p className="font-semibold text-gray-950">
+                    {checklist.section_count}
+                  </p>
+                </div>
+                <div className="min-w-0">
+                  <div className="mb-1 flex items-center gap-1 text-gray-400">
+                    <FileText className="h-3.5 w-3.5" />
+                    <span className="text-xs">Items</span>
                   </div>
-                  <div className="w-px h-4 bg-gray-300" />
-                  <div className="flex items-center gap-1">
-                    <span className="font-semibold text-gray-900">
-                      {formatDate(checklist.created_at)}
-                    </span>
+                  <p className="font-semibold text-gray-950">
+                    {checklist.item_count}
+                  </p>
+                </div>
+                <div className="min-w-0">
+                  <div className="mb-1 flex items-center gap-1 text-gray-400">
+                    <CalendarDays className="h-3.5 w-3.5" />
+                    <span className="text-xs">Added</span>
                   </div>
+                  <p className="truncate text-xs font-semibold text-gray-950">
+                    {formatDate(checklist.created_at)}
+                  </p>
                 </div>
               </div>
-            </button>
+
+              <Button
+                type="button"
+                variant="outline"
+                className="mt-4 w-full justify-between rounded-full bg-white"
+                onClick={() => handleViewChecklist(checklist)}
+              >
+                View checklist
+                <ArrowRight className="h-4 w-4" />
+              </Button>
+            </article>
           ))}
         </div>
       )}

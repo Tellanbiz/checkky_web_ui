@@ -25,6 +25,7 @@ export interface ChecklistInfo {
       default_answer: string | null;
       photo_available: "Yes" | "No";
       answer_options: string[];
+      corrective_option?: string | null;
       corrective_actions: string[];
       policy: string | null;
     }[];
@@ -35,7 +36,7 @@ export interface AssignedChecklist {
   id: string;
   title: string;
   notes: string;
-  status: 'pending' | 'completed';
+  status: 'pending' | 'in_progress' | 'completed';
   priority: 'high' | 'mid' | 'low';
   member_id: string;
   checklist_id: string;
@@ -61,6 +62,20 @@ export interface AssignedChecklistParams {
   member_ids: string[];
   section_id: string;
   geofence_enabled: boolean;
+}
+
+export interface ChecklistItemUpdateData {
+  id: number;
+  order_index: number;
+  question_group: string;
+  checklist_item_caption: string;
+  question_type: string;
+  default_answer?: string | null;
+  photo_available: "Yes" | "No";
+  answer_options: string[];
+  corrective_option?: string | null;
+  corrective_actions: string[];
+  policy?: string | null;
 }
 
 export interface PublicChecklist {

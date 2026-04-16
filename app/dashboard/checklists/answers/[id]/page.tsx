@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { getAssignedCheclistWithAnswer } from "@/lib/services/checklist-assigned/get";
+import { submitChecklistAnswer } from "@/lib/services/checklist-assigned/post";
 import {
   AssignedChecklistWithAnswer,
   AuditScore,
@@ -90,8 +91,27 @@ export default function AnswerPage() {
     element?.scrollIntoView({ behavior: "smooth", block: "center" });
   };
 
+  const saveAnswerMutation = useMutation({
+    mutationFn: (data: { questionId: number; value: string }) =>
+      submitChecklistAnswer({
+        assigned_checklist_id: id,
+        checklist_item_id: data.questionId,
+        answer: data.value,
+        photo_url: photos[data.questionId] || "",
+      }),
+    onError: (error) => {
+      toast({
+        title: "Answer not saved",
+        description: "Please try selecting the option again.",
+        variant: "destructive",
+      });
+      console.error("Failed to save answer:", error);
+    },
+  });
+
   const handleAnswerChange = (questionId: number, value: string) => {
     setAnswers((prev) => ({ ...prev, [questionId]: value }));
+    saveAnswerMutation.mutate({ questionId, value });
   };
 
   const handleCommentChange = (questionId: number, comment: string) => {
